@@ -5,12 +5,31 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { signOut, useSession } from "next-auth/react";
+
 import { Container } from "@/components/shared-ui/container";
 import { HamburgerButton } from "@/components/shared-ui/hamburger-button";
 import { ThemeToggle } from "@/components/shared-ui/theme-toggle";
 import { RippleButton } from "@/components/ui/ripple-button";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 type NavItem = { label: string; href: string };
+
+type AppUser = {
+  firstName?: string;
+  lastName?: string;
+  userName?: string;
+  userId?: string;
+  profileId?: number;
+};
 
 const NAV: NavItem[] = [{ label: "Home", href: "/" }];
 
@@ -22,17 +41,36 @@ function isActivePath(pathname: string, href: string) {
   return pathname.startsWith(href);
 }
 
+function getDisplayName(sessionUser: AppUser): string {
+  return sessionUser?.userName || sessionUser?.firstName || "User";
+}
+
+function getInitial(name: string) {
+  const ch = (name || "U").trim().charAt(0);
+  return ch ? ch.toUpperCase() : "U";
+}
+
 function MobileMenu({
   open,
   pathname,
   nav,
+  isAuthed,
+  userInitial,
+  userName,
   onLogin,
+  onLogout,
+  goDashboard,
   panelRef,
 }: {
   open: boolean;
   pathname: string;
   nav: NavItem[];
+  isAuthed: boolean;
+  userInitial: string;
+  userName: string;
   onLogin: () => void;
+  onLogout: () => void;
+  goDashboard: () => void;
   panelRef: React.RefObject<HTMLDivElement | null>;
 }) {
   return (
@@ -47,7 +85,7 @@ function MobileMenu({
         >
           <div
             ref={panelRef}
-            className={`border-t border-gray-200 bg-sky-50/95 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/85`}
+            className="border-t border-gray-200 bg-sky-50/95 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/85"
           >
             <Container>
               <div className="pb-4">
@@ -88,13 +126,48 @@ function MobileMenu({
                 </ul>
 
                 <div className="mt-3 flex flex-col gap-2 border-t border-gray-200 pt-4 dark:border-white/10">
-                  <RippleButton
-                    type="button"
-                    onClick={onLogin}
-                    className="w-full bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:text-slate-900 dark:hover:bg-blue-400"
-                  >
-                    Login
-                  </RippleButton>
+                  {!isAuthed ? (
+                    <RippleButton
+                      type="button"
+                      onClick={onLogin}
+                      className="w-full bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:text-slate-900 dark:hover:bg-blue-400"
+                    >
+                      Login
+                    </RippleButton>
+                  ) : (
+                    <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white/70 px-4 py-3 dark:border-white/10 dark:bg-white/5">
+                      <div className="flex items-center gap-3">
+                        <div className="grid h-9 w-9 place-items-center rounded-full bg-blue-600 text-sm font-semibold text-white">
+                          {userInitial}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-semibold text-slate-900 dark:text-white">
+                            {userName}
+                          </div>
+                          <div className="text-xs text-slate-600 dark:text-slate-300">
+                            Signed in
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={goDashboard}
+                          className="rounded-lg px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-900/5 dark:text-blue-300 dark:hover:bg-white/10"
+                        >
+                          Dashboard
+                        </button>
+                        <button
+                          type="button"
+                          onClick={onLogout}
+                          className="rounded-lg px-3 py-2 text-sm font-medium text-rose-700 hover:bg-rose-500/10 dark:text-rose-300 dark:hover:bg-rose-500/10"
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </Container>
@@ -108,12 +181,18 @@ function MobileMenu({
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { data: session, status } = useSession();
+  const isAuthed = status === "authenticated";
+
+  const user = session?.user as AppUser;
+
+  const userName = getDisplayName(user);
+  const userInitial = getInitial(userName);
 
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [navVisible, setNavVisible] = useState(true);
 
-  // --- refs to avoid stale state inside scroll handler
   const openRef = useRef(open);
   const scrolledRef = useRef(scrolled);
   const navVisibleRef = useRef(navVisible);
@@ -128,8 +207,16 @@ export default function Navbar() {
   const closeMenu = useCallback(() => setOpen(false), []);
 
   const goLogin = useCallback(() => {
-    router.push("/signup");
+    router.push("/auth/login");
   }, [router]);
+
+  const goDashboard = useCallback(() => {
+    router.push("/dashboard/");
+  }, [router]);
+
+  const doLogout = useCallback(async () => {
+    await signOut({ callbackUrl: "/auth/login" });
+  }, []);
 
   useEffect(() => {
     openRef.current = open;
@@ -143,13 +230,11 @@ export default function Navbar() {
     navVisibleRef.current = navVisible;
   }, [navVisible]);
 
-  // close menu on route change
   useEffect(() => {
     const id = requestAnimationFrame(() => setOpen(false));
     return () => cancelAnimationFrame(id);
   }, [pathname]);
 
-  //Scroll logic (single rAF-throttled listener)
   useEffect(() => {
     let rafId = 0;
     const lastYRef = { current: window.scrollY };
@@ -190,13 +275,9 @@ export default function Navbar() {
 
         const y = window.scrollY;
 
-        // shadow state
         const nextScrolled = y > SHADOW_AT;
-
-        // close mobile menu when user scrolls (only if it was open)
         const shouldCloseMenu = nextScrolled && openRef.current;
 
-        // hide/show navbar by direction with 20px threshold
         const dy = y - lastYRef.current;
 
         if (dy !== 0) {
@@ -207,7 +288,7 @@ export default function Navbar() {
         let nextVisible = navVisibleRef.current;
 
         if (y <= 10) {
-          nextVisible = true; // always show near top
+          nextVisible = true;
           accRef.current = 0;
         } else {
           if (accRef.current >= HIDE_SHOW_DELTA) {
@@ -236,7 +317,6 @@ export default function Navbar() {
     };
   }, []);
 
-  // Outside click + ESC
   useEffect(() => {
     if (!open) return;
 
@@ -244,9 +324,7 @@ export default function Navbar() {
       const el = panelRef.current;
       if (!el) return;
 
-      if (!el.contains(e.target as Node)) {
-        closeMenu();
-      }
+      if (!el.contains(e.target as Node)) closeMenu();
     };
 
     const onKeyDown = (e: KeyboardEvent) => {
@@ -278,7 +356,6 @@ export default function Navbar() {
       >
         <Container>
           <div className="flex items-center justify-between">
-            {/* Logo */}
             <Link
               href="/"
               aria-label="CuetPlus Portal"
@@ -334,13 +411,69 @@ export default function Navbar() {
 
               <div className="ml-2 flex items-center gap-2 border-l border-gray-200 pl-3 dark:border-white/10">
                 <ThemeToggle size="lg" />
-                <RippleButton
-                  type="button"
-                  onClick={goLogin}
-                  rippleColor="#ADD8E6"
-                >
-                  Login
-                </RippleButton>
+
+                {!isAuthed ? (
+                  <RippleButton
+                    type="button"
+                    onClick={goLogin}
+                    rippleColor="#ADD8E6"
+                  >
+                    Login
+                  </RippleButton>
+                ) : (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        type="button"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white/70 text-sm font-bold text-blue-700 shadow-sm transition hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-blue-200 dark:hover:bg-white/10"
+                        aria-label="Open user menu"
+                      >
+                        {userInitial}
+                      </button>
+                    </DropdownMenuTrigger>
+
+                    <DropdownMenuContent
+                      align="end"
+                      className="w-64 rounded-2xl border-slate-200 bg-white/90 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/80"
+                    >
+                      <DropdownMenuLabel className="px-2 py-1.5">
+                        <div className="text-sm capitalize font-semibold text-slate-900 dark:text-white"></div>
+                        <div className="text-xs text-slate-600 dark:text-slate-300">
+                          @{userName}
+                        </div>
+                      </DropdownMenuLabel>
+
+                      <DropdownMenuSeparator className="bg-slate-200 dark:bg-white/10" />
+
+                      <DropdownMenuItem asChild>
+                        <Link
+                          href="/profile"
+                          className="cursor-pointer rounded-xl"
+                        >
+                          Profile
+                        </Link>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem asChild>
+                        <Link
+                          href="/dashboard"
+                          className="cursor-pointer rounded-xl"
+                        >
+                          Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuSeparator className="bg-slate-200 dark:bg-white/10" />
+
+                      <DropdownMenuItem
+                        onClick={doLogout}
+                        className="cursor-pointer rounded-xl text-red-700 focus:text-red-700 dark:text-red-300 dark:focus:text-red-300"
+                      >
+                        Logout
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
             </div>
 
@@ -360,7 +493,12 @@ export default function Navbar() {
             open={open}
             pathname={pathname}
             nav={NAV}
+            isAuthed={isAuthed}
+            userInitial={userInitial}
+            userName={userName}
             onLogin={goLogin}
+            onLogout={doLogout}
+            goDashboard={goDashboard}
             panelRef={panelRef}
           />
         </Container>
