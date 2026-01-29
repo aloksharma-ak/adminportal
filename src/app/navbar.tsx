@@ -1,0 +1,508 @@
+"use client";
+
+import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import { signOut, useSession } from "next-auth/react";
+
+import { Container } from "@/components/shared-ui/container";
+import { HamburgerButton } from "@/components/shared-ui/hamburger-button";
+import { ThemeToggle } from "@/components/shared-ui/theme-toggle";
+import { RippleButton } from "@/components/ui/ripple-button";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+type NavItem = { label: string; href: string };
+
+type AppUser = {
+  firstName?: string;
+  lastName?: string;
+  userName?: string;
+  userId?: string;
+  profileId?: number;
+};
+
+const NAV: NavItem[] = [{ label: "Home", href: "/" }];
+
+const SHADOW_AT = 8;
+const HIDE_SHOW_DELTA = 20;
+
+function isActivePath(pathname: string, href: string) {
+  if (href === "/") return pathname === "/";
+  return pathname.startsWith(href);
+}
+
+function getDisplayName(sessionUser: AppUser): string {
+  return sessionUser?.userName || sessionUser?.firstName || "User";
+}
+
+function getInitial(name: string) {
+  const ch = (name || "U").trim().charAt(0);
+  return ch ? ch.toUpperCase() : "U";
+}
+
+function MobileMenu({
+  open,
+  pathname,
+  nav,
+  isAuthed,
+  userInitial,
+  userName,
+  onLogin,
+  onLogout,
+  goDashboard,
+  panelRef,
+}: {
+  open: boolean;
+  pathname: string;
+  nav: NavItem[];
+  isAuthed: boolean;
+  userInitial: string;
+  userName: string;
+  onLogin: () => void;
+  onLogout: () => void;
+  goDashboard: () => void;
+  panelRef: React.RefObject<HTMLDivElement | null>;
+}) {
+  return (
+    <AnimatePresence>
+      {open ? (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.18 }}
+          className="absolute left-0 right-0 top-full z-50 lg:hidden"
+        >
+          <div
+            ref={panelRef}
+            className="border-t border-gray-200 bg-sky-50/95 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/85"
+          >
+            <Container>
+              <div className="pb-4">
+                <ul className="flex flex-col gap-1 pt-2">
+                  {nav.map((item) => {
+                    const active = isActivePath(pathname, item.href);
+
+                    return (
+                      <li key={item.href}>
+                        <Link
+                          href={item.href}
+                          aria-current={active ? "page" : undefined}
+                          className={
+                            active
+                              ? "flex items-center justify-between rounded-xl bg-blue-900/5 px-4 py-3 text-base font-semibold text-blue-900 dark:bg-white/10 dark:text-white"
+                              : "flex items-center justify-between rounded-xl px-4 py-3 text-base font-medium text-gray-700 transition hover:bg-blue-900/5 hover:text-blue-900 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-white"
+                          }
+                        >
+                          <motion.span
+                            initial={false}
+                            whileHover={{ x: 2 }}
+                            transition={{ duration: 0.15 }}
+                          >
+                            {item.label}
+                          </motion.span>
+
+                          <span
+                            className={
+                              active
+                                ? "h-2 w-2 rounded-full bg-blue-900 dark:bg-white"
+                                : "h-2 w-2 rounded-full bg-blue-900/30 dark:bg-white/30"
+                            }
+                          />
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+
+                <div className="mt-3 flex flex-col gap-2 border-t border-gray-200 pt-4 dark:border-white/10">
+                  {!isAuthed ? (
+                    <RippleButton
+                      type="button"
+                      onClick={onLogin}
+                      className="w-full bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:text-slate-900 dark:hover:bg-blue-400"
+                    >
+                      Login
+                    </RippleButton>
+                  ) : (
+                    <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white/70 px-4 py-3 dark:border-white/10 dark:bg-white/5">
+                      <div className="flex items-center gap-3">
+                        <div className="grid h-9 w-9 place-items-center rounded-full bg-blue-600 text-sm font-semibold text-white">
+                          {userInitial}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-semibold text-slate-900 dark:text-white">
+                            {userName}
+                          </div>
+                          <div className="text-xs text-slate-600 dark:text-slate-300">
+                            Signed in
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={goDashboard}
+                          className="rounded-lg px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-900/5 dark:text-blue-300 dark:hover:bg-white/10"
+                        >
+                          Dashboard
+                        </button>
+                        <button
+                          type="button"
+                          onClick={onLogout}
+                          className="rounded-lg px-3 py-2 text-sm font-medium text-rose-700 hover:bg-rose-500/10 dark:text-rose-300 dark:hover:bg-rose-500/10"
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Container>
+          </div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
+  );
+}
+
+export default function Navbar() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { data: session, status } = useSession();
+  const isAuthed = status === "authenticated";
+
+  const user = session?.user as AppUser;
+
+  const userName = getDisplayName(user);
+  const userInitial = getInitial(userName);
+
+  const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [navVisible, setNavVisible] = useState(true);
+
+  const openRef = useRef(open);
+  const scrolledRef = useRef(scrolled);
+  const navVisibleRef = useRef(navVisible);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+
+  const barCommon = useMemo(
+    () => "h-[2px] w-6 origin-center rounded-full bg-gray-900 dark:bg-white",
+    [],
+  );
+
+  const toggleMenu = useCallback(() => setOpen((v) => !v), []);
+  const closeMenu = useCallback(() => setOpen(false), []);
+
+  const goLogin = useCallback(() => {
+    router.push("/auth/login");
+  }, [router]);
+
+  const goDashboard = useCallback(() => {
+    router.push("/dashboard/");
+  }, [router]);
+
+  const doLogout = useCallback(async () => {
+    await signOut({ callbackUrl: "/auth/login" });
+  }, []);
+
+  useEffect(() => {
+    openRef.current = open;
+  }, [open]);
+
+  useEffect(() => {
+    scrolledRef.current = scrolled;
+  }, [scrolled]);
+
+  useEffect(() => {
+    navVisibleRef.current = navVisible;
+  }, [navVisible]);
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setOpen(false));
+    return () => cancelAnimationFrame(id);
+  }, [pathname]);
+
+  useEffect(() => {
+    let rafId = 0;
+    const lastYRef = { current: window.scrollY };
+    const accRef = { current: 0 };
+
+    const applyState = (next: {
+      scrolled?: boolean;
+      navVisible?: boolean;
+      closeMenu?: boolean;
+    }) => {
+      if (
+        typeof next.scrolled === "boolean" &&
+        next.scrolled !== scrolledRef.current
+      ) {
+        scrolledRef.current = next.scrolled;
+        setScrolled(next.scrolled);
+      }
+
+      if (
+        typeof next.navVisible === "boolean" &&
+        next.navVisible !== navVisibleRef.current
+      ) {
+        navVisibleRef.current = next.navVisible;
+        setNavVisible(next.navVisible);
+      }
+
+      if (next.closeMenu && openRef.current) {
+        openRef.current = false;
+        setOpen(false);
+      }
+    };
+
+    const onScroll = () => {
+      if (rafId) return;
+
+      rafId = window.requestAnimationFrame(() => {
+        rafId = 0;
+
+        const y = window.scrollY;
+
+        const nextScrolled = y > SHADOW_AT;
+        const shouldCloseMenu = nextScrolled && openRef.current;
+
+        const dy = y - lastYRef.current;
+
+        if (dy !== 0) {
+          const sameDir = Math.sign(dy) === Math.sign(accRef.current || dy);
+          accRef.current = sameDir ? accRef.current + dy : dy;
+        }
+
+        let nextVisible = navVisibleRef.current;
+
+        if (y <= 10) {
+          nextVisible = true;
+          accRef.current = 0;
+        } else {
+          if (accRef.current >= HIDE_SHOW_DELTA) {
+            nextVisible = false;
+            accRef.current = 0;
+          } else if (accRef.current <= -HIDE_SHOW_DELTA) {
+            nextVisible = true;
+            accRef.current = 0;
+          }
+        }
+
+        applyState({
+          scrolled: nextScrolled,
+          navVisible: nextVisible,
+          closeMenu: shouldCloseMenu,
+        });
+
+        lastYRef.current = y;
+      });
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const onPointerDown = (e: PointerEvent) => {
+      const el = panelRef.current;
+      if (!el) return;
+
+      if (!el.contains(e.target as Node)) closeMenu();
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeMenu();
+    };
+
+    document.addEventListener("pointerdown", onPointerDown, true);
+    document.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown, true);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open, closeMenu]);
+
+  return (
+    <motion.header
+      className="sticky inset-x-0 top-0 z-50 will-change-transform"
+      animate={navVisible ? { y: 0 } : { y: "-110%" }}
+      transition={{ type: "spring", stiffness: 500, damping: 40 }}
+    >
+      <nav
+        className={`relative w-full bg-sky-50/80 backdrop-blur-xl transition-all duration-300 dark:bg-slate-950/60
+        ${
+          scrolled
+            ? "shadow-[0_6px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_24px_rgba(0,0,0,0.45)]"
+            : "shadow-none"
+        }`}
+      >
+        <Container>
+          <div className="flex items-center justify-between">
+            <Link
+              href="/"
+              aria-label="CuetPlus Portal"
+              className="relative inline-flex h-14 w-30 md:h-16 md:w-40 lg:h-20 lg:w-50"
+            >
+              <span className="absolute top-1/2 -translate-y-1/2 transform text-3xl font-bold text-blue-600">
+                CuetPlus
+              </span>
+            </Link>
+
+            {/* Desktop */}
+            <div className="hidden items-center gap-3 lg:flex">
+              <ul className="flex items-center gap-1">
+                {NAV.map((item) => {
+                  const active = isActivePath(pathname, item.href);
+
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        aria-current={active ? "page" : undefined}
+                        className={`
+                          group relative rounded-lg px-3 py-2 text-base
+                          ${
+                            active
+                              ? "font-semibold text-blue-700 dark:text-blue-400"
+                              : "font-medium text-gray-700 dark:text-gray-200"
+                          }
+                        `}
+                      >
+                        <span className="relative z-10 transition-colors duration-200 group-hover:text-blue-700 dark:group-hover:text-blue-400">
+                          {item.label}
+                        </span>
+
+                        <span className="absolute left-3 right-3 -bottom-0.5 h-0.5 origin-left scale-x-0 rounded-full bg-blue-500 transition-transform duration-300 ease-out group-hover:scale-x-100" />
+
+                        {active && (
+                          <motion.span
+                            layoutId="nav-underline"
+                            className="absolute left-3 right-3 -bottom-0.5 h-0.5 rounded-full bg-blue-600 dark:bg-blue-400"
+                            transition={{
+                              type: "spring",
+                              stiffness: 500,
+                              damping: 30,
+                            }}
+                          />
+                        )}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              <div className="ml-2 flex items-center gap-2 border-l border-gray-200 pl-3 dark:border-white/10">
+                <ThemeToggle size="lg" />
+
+                {!isAuthed ? (
+                  <RippleButton
+                    type="button"
+                    onClick={goLogin}
+                    rippleColor="#ADD8E6"
+                  >
+                    Login
+                  </RippleButton>
+                ) : (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        type="button"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white/70 text-sm font-bold text-blue-700 shadow-sm transition hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-blue-200 dark:hover:bg-white/10"
+                        aria-label="Open user menu"
+                      >
+                        {userInitial}
+                      </button>
+                    </DropdownMenuTrigger>
+
+                    <DropdownMenuContent
+                      align="end"
+                      className="w-64 rounded-2xl border-slate-200 bg-white/90 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/80"
+                    >
+                      <DropdownMenuLabel className="px-2 py-1.5">
+                        <div className="text-sm capitalize font-semibold text-slate-900 dark:text-white"></div>
+                        <div className="text-xs text-slate-600 dark:text-slate-300">
+                          @{userName}
+                        </div>
+                      </DropdownMenuLabel>
+
+                      <DropdownMenuSeparator className="bg-slate-200 dark:bg-white/10" />
+
+                      <DropdownMenuItem asChild>
+                        <Link
+                          href="/profile"
+                          className="cursor-pointer rounded-xl"
+                        >
+                          Profile
+                        </Link>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem asChild>
+                        <Link
+                          href="/dashboard"
+                          className="cursor-pointer rounded-xl"
+                        >
+                          Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuSeparator className="bg-slate-200 dark:bg-white/10" />
+
+                      <DropdownMenuItem
+                        onClick={doLogout}
+                        className="cursor-pointer rounded-xl text-red-700 focus:text-red-700 dark:text-red-300 dark:focus:text-red-300"
+                      >
+                        Logout
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
+            </div>
+
+            {/* Mobile */}
+            <div className="flex items-center gap-2 lg:hidden">
+              <ThemeToggle />
+              <HamburgerButton
+                open={open}
+                onClick={toggleMenu}
+                barClassName={barCommon}
+              />
+            </div>
+          </div>
+
+          {/* Mobile Menu */}
+          <MobileMenu
+            open={open}
+            pathname={pathname}
+            nav={NAV}
+            isAuthed={isAuthed}
+            userInitial={userInitial}
+            userName={userName}
+            onLogin={goLogin}
+            onLogout={doLogout}
+            goDashboard={goDashboard}
+            panelRef={panelRef}
+          />
+        </Container>
+      </nav>
+    </motion.header>
+  );
+}
