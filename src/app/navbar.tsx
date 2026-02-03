@@ -31,10 +31,10 @@ type AppUser = {
   profileId?: number;
 };
 
-const NAV: NavItem[] = [];
-
-const SHADOW_AT = 8;
-const HIDE_SHOW_DELTA = 20;
+const NAV: NavItem[] = [
+  // { label: "Home", href: "/" },
+  // { label: "About", href: "/about" },
+];
 
 function isActivePath(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
@@ -59,7 +59,6 @@ function MobileMenu({
   userName,
   onLogin,
   onLogout,
-  // goDashboard,
   panelRef,
 }: {
   open: boolean;
@@ -70,7 +69,6 @@ function MobileMenu({
   userName: string;
   onLogin: () => void;
   onLogout: () => void;
-  goDashboard: () => void;
   panelRef: React.RefObject<HTMLDivElement | null>;
 }) {
   return (
@@ -194,12 +192,7 @@ export default function Navbar() {
   const userInitial = getInitial(userName);
 
   const [open, setOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const [navVisible, setNavVisible] = useState(true);
 
-  const openRef = useRef(open);
-  const scrolledRef = useRef(scrolled);
-  const navVisibleRef = useRef(navVisible);
   const panelRef = useRef<HTMLDivElement | null>(null);
 
   const barCommon = useMemo(
@@ -214,25 +207,9 @@ export default function Navbar() {
     router.push("/auth/login");
   }, [router]);
 
-  const goDashboard = useCallback(() => {
-    router.push("/dashboard/");
-  }, [router]);
-
   const doLogout = useCallback(async () => {
     await signOut({ callbackUrl: "/auth/login" });
   }, []);
-
-  useEffect(() => {
-    openRef.current = open;
-  }, [open]);
-
-  useEffect(() => {
-    scrolledRef.current = scrolled;
-  }, [scrolled]);
-
-  useEffect(() => {
-    navVisibleRef.current = navVisible;
-  }, [navVisible]);
 
   useEffect(() => {
     const id = requestAnimationFrame(() => setOpen(false));
@@ -240,91 +217,9 @@ export default function Navbar() {
   }, [pathname]);
 
   useEffect(() => {
-    let rafId = 0;
-    const lastYRef = { current: window.scrollY };
-    const accRef = { current: 0 };
-
-    const applyState = (next: {
-      scrolled?: boolean;
-      navVisible?: boolean;
-      closeMenu?: boolean;
-    }) => {
-      if (
-        typeof next.scrolled === "boolean" &&
-        next.scrolled !== scrolledRef.current
-      ) {
-        scrolledRef.current = next.scrolled;
-        setScrolled(next.scrolled);
-      }
-
-      if (
-        typeof next.navVisible === "boolean" &&
-        next.navVisible !== navVisibleRef.current
-      ) {
-        navVisibleRef.current = next.navVisible;
-        setNavVisible(next.navVisible);
-      }
-
-      if (next.closeMenu && openRef.current) {
-        openRef.current = false;
-        setOpen(false);
-      }
-    };
-
-    const onScroll = () => {
-      if (rafId) return;
-
-      rafId = window.requestAnimationFrame(() => {
-        rafId = 0;
-
-        const y = window.scrollY;
-
-        const nextScrolled = y > SHADOW_AT;
-        const shouldCloseMenu = nextScrolled && openRef.current;
-
-        const dy = y - lastYRef.current;
-
-        if (dy !== 0) {
-          const sameDir = Math.sign(dy) === Math.sign(accRef.current || dy);
-          accRef.current = sameDir ? accRef.current + dy : dy;
-        }
-
-        let nextVisible = navVisibleRef.current;
-
-        if (y <= 10) {
-          nextVisible = true;
-          accRef.current = 0;
-        } else {
-          if (accRef.current >= HIDE_SHOW_DELTA) {
-            nextVisible = false;
-            accRef.current = 0;
-          } else if (accRef.current <= -HIDE_SHOW_DELTA) {
-            nextVisible = true;
-            accRef.current = 0;
-          }
-        }
-
-        applyState({
-          scrolled: nextScrolled,
-          navVisible: nextVisible,
-          closeMenu: shouldCloseMenu,
-        });
-
-        lastYRef.current = y;
-      });
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      if (rafId) cancelAnimationFrame(rafId);
-      window.removeEventListener("scroll", onScroll);
-    };
-  }, []);
-
-  useEffect(() => {
     if (!open) return;
 
-    const onPointerDown = (e: PointerEvent) => {
+    const onClick = (e: MouseEvent) => {
       const el = panelRef.current;
       if (!el) return;
 
@@ -335,29 +230,27 @@ export default function Navbar() {
       if (e.key === "Escape") closeMenu();
     };
 
-    document.addEventListener("pointerdown", onPointerDown, true);
+    const onScroll = () => {
+      closeMenu();
+    };
+
+    document.addEventListener("click", onClick);
     document.addEventListener("keydown", onKeyDown);
+    window.addEventListener("scroll", onScroll, { passive: true });
 
     return () => {
-      document.removeEventListener("pointerdown", onPointerDown, true);
+      document.removeEventListener("click", onClick);
       document.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("scroll", onScroll);
     };
   }, [open, closeMenu]);
 
   return (
     <motion.header
       className="sticky inset-x-0 top-0 z-50 will-change-transform"
-      animate={navVisible ? { y: 0 } : { y: "-110%" }}
       transition={{ type: "spring", stiffness: 500, damping: 40 }}
     >
-      <nav
-        className={`relative w-full bg-sky-50/80 backdrop-blur-xl transition-all duration-300 dark:bg-slate-950/60
-        ${
-          scrolled
-            ? "shadow-[0_6px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_24px_rgba(0,0,0,0.45)]"
-            : "shadow-none"
-        }`}
-      >
+      <nav className="relative w-full bg-sky-50/80 backdrop-blur-xl transition-all duration-300 dark:bg-slate-950/60">
         <Container>
           <div className="flex items-center justify-between">
             <Link
@@ -366,7 +259,7 @@ export default function Navbar() {
               className="relative inline-flex h-14 w-30 md:h-16 md:w-40 lg:h-20 lg:w-50"
             >
               <span className="absolute top-1/2 -translate-y-1/2 transform text-3xl font-bold text-blue-600">
-                CuetPlus
+                AdminPortal
               </span>
             </Link>
 
@@ -498,7 +391,6 @@ export default function Navbar() {
             userName={userName}
             onLogin={goLogin}
             onLogout={doLogout}
-            goDashboard={goDashboard}
             panelRef={panelRef}
           />
         </Container>
