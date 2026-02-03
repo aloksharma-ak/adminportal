@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
-import Navbar from "./navbar";
 import AuthProvider from "@/components/providers/auth-provider";
 import { Suspense } from "react";
 import Loading from "./loading";
@@ -38,7 +37,6 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <AuthProvider>
-            <Navbar />
             <Suspense fallback={<Loading />}>{children}</Suspense>
           </AuthProvider>
         </ThemeProvider>

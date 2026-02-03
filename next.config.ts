@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  experimental: {
+    serverActions: {
+      // optional: use only if needed
+      allowedOrigins: [],
+    },
+  },
 };
 
 export default nextConfig;

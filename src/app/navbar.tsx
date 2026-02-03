@@ -10,7 +10,6 @@ import { signOut, useSession } from "next-auth/react";
 import { Container } from "@/components/shared-ui/container";
 import { HamburgerButton } from "@/components/shared-ui/hamburger-button";
 import { ThemeToggle } from "@/components/shared-ui/theme-toggle";
-import { RippleButton } from "@/components/ui/ripple-button";
 
 import {
   DropdownMenu,
@@ -20,6 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ActionButton, LinkButton } from "@/components/controls/Buttons";
 
 type NavItem = { label: string; href: string };
 
@@ -31,7 +31,7 @@ type AppUser = {
   profileId?: number;
 };
 
-const NAV: NavItem[] = [{ label: "Home", href: "/" }];
+const NAV: NavItem[] = [];
 
 const SHADOW_AT = 8;
 const HIDE_SHOW_DELTA = 20;
@@ -59,7 +59,7 @@ function MobileMenu({
   userName,
   onLogin,
   onLogout,
-  goDashboard,
+  // goDashboard,
   panelRef,
 }: {
   open: boolean;
@@ -127,13 +127,13 @@ function MobileMenu({
 
                 <div className="mt-3 flex flex-col gap-2 border-t border-gray-200 pt-4 dark:border-white/10">
                   {!isAuthed ? (
-                    <RippleButton
+                    <ActionButton
                       type="button"
                       onClick={onLogin}
                       className="w-full bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:text-slate-900 dark:hover:bg-blue-400"
                     >
                       Login
-                    </RippleButton>
+                    </ActionButton>
                   ) : (
                     <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white/70 px-4 py-3 dark:border-white/10 dark:bg-white/5">
                       <div className="flex items-center gap-3">
@@ -151,20 +151,24 @@ function MobileMenu({
                       </div>
 
                       <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={goDashboard}
+                        <LinkButton
+                          href="/dashboard/"
+                          variant="ghost"
+                          color="blue"
                           className="rounded-lg px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-900/5 dark:text-blue-300 dark:hover:bg-white/10"
                         >
                           Dashboard
-                        </button>
-                        <button
+                        </LinkButton>
+
+                        <ActionButton
                           type="button"
                           onClick={onLogout}
+                          variant="ghost"
+                          color="rose"
                           className="rounded-lg px-3 py-2 text-sm font-medium text-rose-700 hover:bg-rose-500/10 dark:text-rose-300 dark:hover:bg-rose-500/10"
                         >
                           Logout
-                        </button>
+                        </ActionButton>
                       </div>
                     </div>
                   )}
@@ -413,13 +417,9 @@ export default function Navbar() {
                 <ThemeToggle size="lg" />
 
                 {!isAuthed ? (
-                  <RippleButton
-                    type="button"
-                    onClick={goLogin}
-                    rippleColor="#ADD8E6"
-                  >
+                  <ActionButton type="button" onClick={goLogin}>
                     Login
-                  </RippleButton>
+                  </ActionButton>
                 ) : (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
