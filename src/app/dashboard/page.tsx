@@ -1,70 +1,101 @@
-// app/dashboard/page.tsx
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowRight,
   BarChart3,
-  Boxes,
-  Briefcase,
-  Database,
-  Euro,
-  Factory,
-  FileText,
-  Puzzle,
-  ShoppingBag,
-  Store,
+  CalendarDays,
+  Megaphone,
   Users,
+  Wallet,
 } from "lucide-react";
 
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type Tile = {
   title: string;
+  desc: string;
   href: string;
   Icon: React.ComponentType<{ className?: string }>;
 };
 
 const tiles: Tile[] = [
-  { title: "ACCOUNTING", href: "/dashboard/accounting", Icon: Euro },
-  { title: "CRM", href: "/dashboard/crm", Icon: Puzzle },
-  { title: "HR", href: "/dashboard/hr", Icon: Users },
-  { title: "PROJECT", href: "/dashboard/project", Icon: Briefcase },
-  { title: "INVENTORY", href: "/dashboard/inventory", Icon: Boxes },
-  { title: "MANUFACTURING", href: "/dashboard/manufacturing", Icon: Factory },
-  { title: "E-COMMERCE", href: "/dashboard/ecommerce", Icon: Store },
-  { title: "PDM", href: "/dashboard/pdm", Icon: Database },
-  { title: "KM", href: "/dashboard/km", Icon: FileText },
-  { title: "POS", href: "/dashboard/pos", Icon: ShoppingBag },
-  { title: "TRADE", href: "/dashboard/trade", Icon: BarChart3 },
-  { title: "MORE", href: "/dashboard/more", Icon: ArrowRight },
+  {
+    title: "Leads & Enquiries",
+    desc: "Capture and track admissions leads.",
+    href: "/dashboard/leads",
+    Icon: Megaphone,
+  },
+  {
+    title: "Students",
+    desc: "Manage student profiles and status.",
+    href: "/dashboard/students",
+    Icon: Users,
+  },
+  {
+    title: "Fees",
+    desc: "Invoices, dues, receipts, payments.",
+    href: "/dashboard/fees",
+    Icon: Wallet,
+  },
+  {
+    title: "Schedule",
+    desc: "Timetable, classes, exams calendar.",
+    href: "/dashboard/schedule",
+    Icon: CalendarDays,
+  },
+  {
+    title: "Reports",
+    desc: "Admissions, fees, and performance.",
+    href: "/dashboard/reports",
+    Icon: BarChart3,
+  },
+  {
+    title: "More",
+    desc: "Go to full modules list.",
+    href: "/dashboard/more",
+    Icon: ArrowRight,
+  },
 ];
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
-
   if (!session) redirect("/auth/login");
-
-  console.log("---->", session);
 
   return (
     <main className="min-h-screen bg-white">
-      <section className="mx-auto w-full max-w-6xl px-4 pb-14 pt-12 sm:px-6 lg:px-8">
-        <div className="rounded-md border border-slate-200 bg-slate-50 p-5 sm:p-6">
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-            {tiles.map(({ title, href, Icon }) => (
-              <Link
-                key={title}
-                href={href}
-                className="group flex h-44 flex-col items-center justify-center rounded-md border border-slate-200 bg-white shadow-[0_1px_0_rgba(15,23,42,0.04)] transition hover:bg-slate-50"
-              >
-                <Icon className="h-16 w-16 text-slate-400 transition group-hover:text-slate-500" />
-                <div className="mt-6 text-xs font-semibold tracking-[0.22em] text-slate-500">
-                  {title}
-                </div>
-              </Link>
-            ))}
-          </div>
+      <section className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mb-6">
+          <h1 className="text-2xl font-semibold text-slate-900">Dashboard</h1>
+          <p className="mt-1 text-sm text-slate-600">
+            Quick access to your main modules.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {tiles.map(({ title, desc, href, Icon }) => (
+            <Link key={title} href={href} className="group">
+              <Card className="transition hover:-translate-y-0.5 hover:shadow-md">
+                <CardHeader className="flex flex-row items-start justify-between space-y-0">
+                  <div>
+                    <CardTitle className="text-base">{title}</CardTitle>
+                    <p className="mt-1 text-sm text-slate-600">{desc}</p>
+                  </div>
+                  <div className="grid h-10 w-10 place-items-center rounded-lg border bg-slate-50">
+                    <Icon className="h-5 w-5 text-slate-700" />
+                  </div>
+                </CardHeader>
+
+                <CardContent>
+                  <div className="inline-flex items-center gap-2 text-sm font-medium text-slate-700">
+                    Open
+                    <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
         </div>
       </section>
     </main>
