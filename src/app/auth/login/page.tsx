@@ -25,6 +25,12 @@ function prettyAuthError(err?: string | null) {
   return err;
 }
 
+function toDataUrl(base64: string, mime = "image/png") {
+  if (!base64) return "";
+  if (base64.startsWith("data:")) return base64;
+  return `data:${mime};base64,${base64}`;
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const { status } = useSession();
@@ -94,6 +100,7 @@ export default function LoginPage() {
           username: data.username.trim(),
           password: data.password,
           orgId: data.orgId,
+          orgCode: data.orgCode,
           redirect: false,
         });
 
@@ -122,6 +129,8 @@ export default function LoginPage() {
     form.setValue("password", "");
   }, [form, resetMessages]);
 
+  const logoSrc = toDataUrl(org?.logo ?? "", "image/png");
+
   return (
     <main className="relative overflow-hidden bg-white dark:bg-slate-950">
       <Spotlight
@@ -132,15 +141,28 @@ export default function LoginPage() {
       <div className="grid h-screen w-full grow grid-cols-1 place-items-center">
         <div className="w-full max-w-104 p-4 sm:px-5">
           <div className="mb-6 text-center">
-            <Link href="/" className="text-4xl font-extrabold">
-              <span
-                className="bg-clip-text text-transparent"
-                style={{
-                  color: `${brandColor}`,
-                }}
-              >
-                {org?.orgName ? org.orgName : ""}
-              </span>
+            <Link
+              href="/"
+              aria-label={org?.orgName ? `${org.orgName} home` : "Home"}
+              className="inline-flex items-center justify-center"
+            >
+              {org?.logo ? (
+                <Image
+                  src={logoSrc}
+                  alt={org.orgName ?? "Logo"}
+                  width={140}
+                  height={56}
+                  priority
+                  className="h-14 w-auto object-contain"
+                />
+              ) : (
+                <span
+                  className="text-3xl md:text-4xl font-extrabold"
+                  style={{ color: brandColor }}
+                >
+                  {org?.orgName ?? ""}
+                </span>
+              )}
             </Link>
 
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
