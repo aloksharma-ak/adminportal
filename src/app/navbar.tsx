@@ -10,7 +10,6 @@ import { signOut, useSession } from "next-auth/react";
 import { Container } from "@/components/shared-ui/container";
 import { HamburgerButton } from "@/components/shared-ui/hamburger-button";
 import { ThemeToggle } from "@/components/shared-ui/theme-toggle";
-import { RippleButton } from "@/components/ui/ripple-button";
 
 import {
   DropdownMenu,
@@ -20,6 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ActionButton, LinkButton } from "@/components/controls/Buttons";
 
 type NavItem = { label: string; href: string };
 
@@ -31,10 +31,10 @@ type AppUser = {
   profileId?: number;
 };
 
-const NAV: NavItem[] = [{ label: "Home", href: "/" }];
-
-const SHADOW_AT = 8;
-const HIDE_SHOW_DELTA = 20;
+const NAV: NavItem[] = [
+  // { label: "Home", href: "/" },
+  // { label: "About", href: "/about" },
+];
 
 function isActivePath(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
@@ -59,7 +59,6 @@ function MobileMenu({
   userName,
   onLogin,
   onLogout,
-  goDashboard,
   panelRef,
 }: {
   open: boolean;
@@ -70,7 +69,6 @@ function MobileMenu({
   userName: string;
   onLogin: () => void;
   onLogout: () => void;
-  goDashboard: () => void;
   panelRef: React.RefObject<HTMLDivElement | null>;
 }) {
   return (
@@ -127,13 +125,13 @@ function MobileMenu({
 
                 <div className="mt-3 flex flex-col gap-2 border-t border-gray-200 pt-4 dark:border-white/10">
                   {!isAuthed ? (
-                    <RippleButton
+                    <ActionButton
                       type="button"
                       onClick={onLogin}
                       className="w-full bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:text-slate-900 dark:hover:bg-blue-400"
                     >
                       Login
-                    </RippleButton>
+                    </ActionButton>
                   ) : (
                     <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white/70 px-4 py-3 dark:border-white/10 dark:bg-white/5">
                       <div className="flex items-center gap-3">
@@ -151,20 +149,24 @@ function MobileMenu({
                       </div>
 
                       <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={goDashboard}
+                        <LinkButton
+                          href="/dashboard/"
+                          variant="ghost"
+                          color="blue"
                           className="rounded-lg px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-900/5 dark:text-blue-300 dark:hover:bg-white/10"
                         >
                           Dashboard
-                        </button>
-                        <button
+                        </LinkButton>
+
+                        <ActionButton
                           type="button"
                           onClick={onLogout}
+                          variant="ghost"
+                          color="rose"
                           className="rounded-lg px-3 py-2 text-sm font-medium text-rose-700 hover:bg-rose-500/10 dark:text-rose-300 dark:hover:bg-rose-500/10"
                         >
                           Logout
-                        </button>
+                        </ActionButton>
                       </div>
                     </div>
                   )}
@@ -190,12 +192,7 @@ export default function Navbar() {
   const userInitial = getInitial(userName);
 
   const [open, setOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const [navVisible, setNavVisible] = useState(true);
 
-  const openRef = useRef(open);
-  const scrolledRef = useRef(scrolled);
-  const navVisibleRef = useRef(navVisible);
   const panelRef = useRef<HTMLDivElement | null>(null);
 
   const barCommon = useMemo(
@@ -210,25 +207,9 @@ export default function Navbar() {
     router.push("/auth/login");
   }, [router]);
 
-  const goDashboard = useCallback(() => {
-    router.push("/dashboard/");
-  }, [router]);
-
   const doLogout = useCallback(async () => {
     await signOut({ callbackUrl: "/auth/login" });
   }, []);
-
-  useEffect(() => {
-    openRef.current = open;
-  }, [open]);
-
-  useEffect(() => {
-    scrolledRef.current = scrolled;
-  }, [scrolled]);
-
-  useEffect(() => {
-    navVisibleRef.current = navVisible;
-  }, [navVisible]);
 
   useEffect(() => {
     const id = requestAnimationFrame(() => setOpen(false));
@@ -236,91 +217,9 @@ export default function Navbar() {
   }, [pathname]);
 
   useEffect(() => {
-    let rafId = 0;
-    const lastYRef = { current: window.scrollY };
-    const accRef = { current: 0 };
-
-    const applyState = (next: {
-      scrolled?: boolean;
-      navVisible?: boolean;
-      closeMenu?: boolean;
-    }) => {
-      if (
-        typeof next.scrolled === "boolean" &&
-        next.scrolled !== scrolledRef.current
-      ) {
-        scrolledRef.current = next.scrolled;
-        setScrolled(next.scrolled);
-      }
-
-      if (
-        typeof next.navVisible === "boolean" &&
-        next.navVisible !== navVisibleRef.current
-      ) {
-        navVisibleRef.current = next.navVisible;
-        setNavVisible(next.navVisible);
-      }
-
-      if (next.closeMenu && openRef.current) {
-        openRef.current = false;
-        setOpen(false);
-      }
-    };
-
-    const onScroll = () => {
-      if (rafId) return;
-
-      rafId = window.requestAnimationFrame(() => {
-        rafId = 0;
-
-        const y = window.scrollY;
-
-        const nextScrolled = y > SHADOW_AT;
-        const shouldCloseMenu = nextScrolled && openRef.current;
-
-        const dy = y - lastYRef.current;
-
-        if (dy !== 0) {
-          const sameDir = Math.sign(dy) === Math.sign(accRef.current || dy);
-          accRef.current = sameDir ? accRef.current + dy : dy;
-        }
-
-        let nextVisible = navVisibleRef.current;
-
-        if (y <= 10) {
-          nextVisible = true;
-          accRef.current = 0;
-        } else {
-          if (accRef.current >= HIDE_SHOW_DELTA) {
-            nextVisible = false;
-            accRef.current = 0;
-          } else if (accRef.current <= -HIDE_SHOW_DELTA) {
-            nextVisible = true;
-            accRef.current = 0;
-          }
-        }
-
-        applyState({
-          scrolled: nextScrolled,
-          navVisible: nextVisible,
-          closeMenu: shouldCloseMenu,
-        });
-
-        lastYRef.current = y;
-      });
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      if (rafId) cancelAnimationFrame(rafId);
-      window.removeEventListener("scroll", onScroll);
-    };
-  }, []);
-
-  useEffect(() => {
     if (!open) return;
 
-    const onPointerDown = (e: PointerEvent) => {
+    const onClick = (e: MouseEvent) => {
       const el = panelRef.current;
       if (!el) return;
 
@@ -331,29 +230,27 @@ export default function Navbar() {
       if (e.key === "Escape") closeMenu();
     };
 
-    document.addEventListener("pointerdown", onPointerDown, true);
+    const onScroll = () => {
+      closeMenu();
+    };
+
+    document.addEventListener("click", onClick);
     document.addEventListener("keydown", onKeyDown);
+    window.addEventListener("scroll", onScroll, { passive: true });
 
     return () => {
-      document.removeEventListener("pointerdown", onPointerDown, true);
+      document.removeEventListener("click", onClick);
       document.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("scroll", onScroll);
     };
   }, [open, closeMenu]);
 
   return (
     <motion.header
       className="sticky inset-x-0 top-0 z-50 will-change-transform"
-      animate={navVisible ? { y: 0 } : { y: "-110%" }}
       transition={{ type: "spring", stiffness: 500, damping: 40 }}
     >
-      <nav
-        className={`relative w-full bg-sky-50/80 backdrop-blur-xl transition-all duration-300 dark:bg-slate-950/60
-        ${
-          scrolled
-            ? "shadow-[0_6px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_24px_rgba(0,0,0,0.45)]"
-            : "shadow-none"
-        }`}
-      >
+      <nav className="relative w-full bg-sky-50/80 backdrop-blur-xl transition-all duration-300 dark:bg-slate-950/60">
         <Container>
           <div className="flex items-center justify-between">
             <Link
@@ -362,7 +259,7 @@ export default function Navbar() {
               className="relative inline-flex h-14 w-30 md:h-16 md:w-40 lg:h-20 lg:w-50"
             >
               <span className="absolute top-1/2 -translate-y-1/2 transform text-3xl font-bold text-blue-600">
-                CuetPlus
+                AdminPortal
               </span>
             </Link>
 
@@ -413,13 +310,9 @@ export default function Navbar() {
                 <ThemeToggle size="lg" />
 
                 {!isAuthed ? (
-                  <RippleButton
-                    type="button"
-                    onClick={goLogin}
-                    rippleColor="#ADD8E6"
-                  >
+                  <ActionButton type="button" onClick={goLogin}>
                     Login
-                  </RippleButton>
+                  </ActionButton>
                 ) : (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -498,7 +391,6 @@ export default function Navbar() {
             userName={userName}
             onLogin={goLogin}
             onLogout={doLogout}
-            goDashboard={goDashboard}
             panelRef={panelRef}
           />
         </Container>

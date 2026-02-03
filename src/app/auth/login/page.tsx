@@ -1,400 +1,221 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
-import { useForm } from "react-hook-form";
 
 import { signIn, useSession } from "next-auth/react";
+import { useForm } from "react-hook-form";
+import { ArrowLeft } from "lucide-react";
 
 import { Spotlight } from "@/components/ui/spotlight";
 import { BorderBeam } from "@/components/ui/border-beam";
-import { ShimmerButton } from "@/components/ui/shimmer-button";
 
-type Mode = "login" | "register";
-
-type FormValues = {
-  // login
-  username: string;
-  password: string;
-
-  // register
-  firstName: string;
-  lastName: string;
-  userName: string;
-  regPassword: string;
-  confirmPassword: string;
-};
+import { OrganisationForm, type LoginFormValues } from "./OrganisationForm";
+import { LoginForm } from "./LoginForm";
+import { ActionButton } from "@/components/controls/Buttons";
+import { Organisation } from "@/shared-types/organisation.types";
+import { getOrganisationDetailAction } from "@/app/utils";
 
 function prettyAuthError(err?: string | null) {
   if (!err) return null;
-
-  // NextAuth typical credential error
-  if (err === "CredentialsSignin") return "Invalid username or password";
+  if (err === "CredentialsSignin") return "Invalid username / password / Org";
   if (err === "AccessDenied") return "Access denied";
   return err;
 }
 
-export default function AuthPage() {
+export default function LoginPage() {
   const router = useRouter();
   const { status } = useSession();
   const searchParams = useSearchParams();
   const authError = prettyAuthError(searchParams.get("error"));
 
-  const [mode, setMode] = React.useState<Mode>("login");
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [success, setSuccess] = React.useState<string | null>(null);
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-  } = useForm<FormValues>({
+  const [step, setStep] = React.useState<"org" | "login">("org");
+  const [org, setOrg] = React.useState<Organisation | null>(null);
+
+  const form = useForm<LoginFormValues>({
     defaultValues: {
+      orgCode: "",
+      orgId: "",
       username: "",
       password: "",
-      firstName: "",
-      lastName: "",
-      userName: "",
-      regPassword: "",
-      confirmPassword: "",
     },
+    mode: "onSubmit",
   });
 
-  function resetMessages() {
+  const resetMessages = React.useCallback(() => {
     setError(null);
     setSuccess(null);
-  }
+  }, []);
 
-  function switchMode(next: Mode) {
-    setMode(next);
-    resetMessages();
-    setLoading(false);
-  }
-
-  // ✅ Client-safe redirect when already authenticated
   React.useEffect(() => {
-    if (status === "authenticated") {
-      router.replace("/dashboard/");
-    }
+    if (status === "authenticated") router.replace("/dashboard/");
   }, [status, router]);
 
-  const onSubmit = async (data: FormValues) => {
-    resetMessages();
-    setLoading(true);
+  const brandColor: string | undefined = org?.brandColor ?? undefined;
+  const brandName = org?.orgName || "Welcome back";
 
-    try {
-      if (mode === "login") {
-        // ✅ Use redirect:false so we can show errors nicely
+  const submitOrgCode = React.useCallback(
+    async (orgCode: string) => {
+      resetMessages();
+      setLoading(true);
+
+      try {
+        const result = await getOrganisationDetailAction(orgCode);
+
+        if (!result.success) {
+          setError(result.message);
+          return;
+        }
+
+        setOrg(result.organisation);
+        form.setValue("orgId", String(result.organisation.orgId));
+        setStep("login");
+        setSuccess("Organisation verified. Please login.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [form, resetMessages],
+  );
+
+  const submitLogin = React.useCallback(
+    async (data: LoginFormValues) => {
+      resetMessages();
+      setLoading(true);
+
+      try {
         const res = await signIn("credentials", {
-          username: data.username,
+          username: data.username.trim(),
           password: data.password,
+          orgId: data.orgId,
           redirect: false,
         });
 
         if (!res || res.error) {
           setError(prettyAuthError(res?.error) || "Login failed");
-          setLoading(false);
           return;
         }
 
         setSuccess("Login success. Redirecting...");
         router.push("/dashboard/");
-        return;
-      }
-
-      // ✅ Register
-      if (data.regPassword !== data.confirmPassword) {
-        setError("Password and Confirm Password must match");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Something went wrong");
+      } finally {
         setLoading(false);
-        return;
       }
+    },
+    [router, resetMessages],
+  );
 
-      const res = await fetch("/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstName: data.firstName,
-          lastName: data.lastName,
-          userName: data.userName,
-          password: data.regPassword,
-        }),
-      });
-
-      const json = await res.json();
-
-      if (!res.ok || json?.status === false) {
-        throw new Error(json?.message || "Registration failed");
-      }
-
-      setSuccess("Account created. Logging you in...");
-
-      // ✅ Auto login after register
-      const loginRes = await signIn("credentials", {
-        username: data.userName,
-        password: data.regPassword,
-        redirect: false,
-      });
-
-      if (!loginRes || loginRes.error) {
-        throw new Error("Auto login failed. Please login manually.");
-      }
-
-      router.push("/dashboard/");
-
-      // optional clear
-      setValue("firstName", "");
-      setValue("lastName", "");
-      setValue("userName", "");
-      setValue("regPassword", "");
-      setValue("confirmPassword", "");
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const goBackToOrg = React.useCallback(() => {
+    resetMessages();
+    setStep("org");
+    setOrg(null);
+    form.setValue("orgId", "");
+    form.setValue("username", "");
+    form.setValue("password", "");
+  }, [form, resetMessages]);
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-white dark:bg-slate-950">
+    <main className="relative overflow-hidden bg-white dark:bg-slate-950">
       <Spotlight
         className="-top-40 left-0 md:left-60 md:-top-20 opacity-70 dark:opacity-60"
-        fill="rgb(59 130 246)"
+        fill={brandColor}
       />
 
-      <div className="mx-auto flex min-h-screen max-w-7xl items-center justify-center px-4">
-        <div className="w-full max-w-md">
-          {/* Header */}
+      <div className="grid h-screen w-full grow grid-cols-1 place-items-center">
+        <div className="w-full max-w-104 p-4 sm:px-5">
           <div className="mb-6 text-center">
             <Link href="/" className="text-4xl font-extrabold">
-              <span className="bg-linear-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-                CuetPlus
+              <span
+                className="bg-clip-text text-transparent"
+                style={{
+                  color: `${brandColor}`,
+                }}
+              >
+                {org?.orgName ? org.orgName : ""}
               </span>
             </Link>
+
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-              {mode === "login"
-                ? "Welcome back. Login to continue."
-                : "Create your account to continue."}
+              {step === "org"
+                ? "Enter your Organisation Code to continue."
+                : `Login to ${brandName}`}
             </p>
           </div>
 
-          {/* Card */}
           <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white/70 p-6 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/55">
             <BorderBeam size={260} duration={12} delay={4} />
 
-            {/* Toggle */}
-            <div className="mb-5 grid grid-cols-2 rounded-2xl border border-slate-200 bg-white/60 p-1 text-sm dark:border-white/10 dark:bg-white/5">
-              <button
-                type="button"
-                onClick={() => switchMode("login")}
-                className={`h-10 rounded-2xl font-semibold transition ${
-                  mode === "login"
-                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
-                    : "text-slate-700 hover:bg-white/70 dark:text-slate-200 dark:hover:bg-white/10"
-                }`}
-              >
-                Login
-              </button>
-              <button
-                type="button"
-                onClick={() => switchMode("register")}
-                className={`h-10 rounded-2xl font-semibold transition ${
-                  mode === "register"
-                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
-                    : "text-slate-700 hover:bg-white/70 dark:text-slate-200 dark:hover:bg-white/10"
-                }`}
-              >
-                Register
-              </button>
-            </div>
+            {org?.logo && (
+              <div className="mb-4 flex items-center justify-center">
+                <Image
+                  src={org.logo}
+                  alt={org.orgName ?? "Organisation Logo"}
+                  width={56}
+                  height={56}
+                  className="h-14 w-14 rounded-2xl border border-slate-200 object-contain bg-white p-2 dark:border-white/10"
+                />
+              </div>
+            )}
 
-            {/* Messages */}
-            {authError ? (
+            {authError && (
               <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
                 {authError}
               </div>
-            ) : null}
+            )}
 
-            {error ? (
+            {error && (
               <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-200">
                 {error}
               </div>
-            ) : null}
+            )}
 
-            {success ? (
+            {success && (
               <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
                 {success}
               </div>
-            ) : null}
+            )}
 
-            {/* Form */}
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              {mode === "login" ? (
-                <>
-                  <div>
-                    <label className="text-sm font-medium">Username</label>
-                    <input
-                      className="mt-1 h-11 w-full rounded-2xl border border-slate-200 bg-white/70 px-4 text-sm outline-none focus:ring-2 focus:ring-blue-400/30 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                      placeholder="john123"
-                      type="text"
-                      {...register("username", {
-                        required: "This is required",
-                      })}
-                    />
-                    {errors.username?.message ? (
-                      <p className="mt-1 text-xs text-red-600 dark:text-red-300">
-                        {errors.username.message}
-                      </p>
-                    ) : null}
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium">Password</label>
-                    <input
-                      className="mt-1 h-11 w-full rounded-2xl border border-slate-200 bg-white/70 px-4 text-sm outline-none focus:ring-2 focus:ring-blue-400/30 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                      placeholder="••••••••"
-                      type="password"
-                      {...register("password", {
-                        required: "This is required",
-                      })}
-                    />
-                    {errors.password?.message ? (
-                      <p className="mt-1 text-xs text-red-600 dark:text-red-300">
-                        {errors.password.message}
-                      </p>
-                    ) : null}
-                  </div>
-
-                  <ShimmerButton
-                    type="submit"
-                    className="h-11 w-full rounded-2xl"
-                    disabled={loading}
-                  >
-                    {loading ? "Signing in..." : "Sign in"}
-                  </ShimmerButton>
-
-                  <p className="text-center text-sm text-slate-600 dark:text-slate-300">
-                    Don&apos;t have an account?{" "}
-                    <button
-                      type="button"
-                      onClick={() => switchMode("register")}
-                      className="font-semibold text-blue-600 hover:underline"
-                    >
-                      Register
-                    </button>
-                  </p>
-                </>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <div>
-                      <label className="text-sm font-medium">First Name</label>
-                      <input
-                        className="mt-1 h-11 w-full rounded-2xl border border-slate-200 bg-white/70 px-4 text-sm outline-none focus:ring-2 focus:ring-blue-400/30 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                        placeholder="Alok"
-                        {...register("firstName", {
-                          required: "This is required",
-                        })}
-                      />
-                      {errors.firstName?.message ? (
-                        <p className="mt-1 text-xs text-red-600 dark:text-red-300">
-                          {errors.firstName.message}
-                        </p>
-                      ) : null}
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium">Last Name</label>
-                      <input
-                        className="mt-1 h-11 w-full rounded-2xl border border-slate-200 bg-white/70 px-4 text-sm outline-none focus:ring-2 focus:ring-blue-400/30 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                        placeholder="Sharma"
-                        {...register("lastName", {
-                          required: "This is required",
-                        })}
-                      />
-                      {errors.lastName?.message ? (
-                        <p className="mt-1 text-xs text-red-600 dark:text-red-300">
-                          {errors.lastName.message}
-                        </p>
-                      ) : null}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium">Username</label>
-                    <input
-                      className="mt-1 h-11 w-full rounded-2xl border border-slate-200 bg-white/70 px-4 text-sm outline-none focus:ring-2 focus:ring-blue-400/30 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                      placeholder="john123"
-                      {...register("userName", {
-                        required: "This is required",
-                      })}
-                    />
-                    {errors.userName?.message ? (
-                      <p className="mt-1 text-xs text-red-600 dark:text-red-300">
-                        {errors.userName.message}
-                      </p>
-                    ) : null}
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium">Password</label>
-                    <input
-                      type="password"
-                      className="mt-1 h-11 w-full rounded-2xl border border-slate-200 bg-white/70 px-4 text-sm outline-none focus:ring-2 focus:ring-blue-400/30 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                      placeholder="••••••••"
-                      {...register("regPassword", {
-                        required: "This is required",
-                      })}
-                    />
-                    {errors.regPassword?.message ? (
-                      <p className="mt-1 text-xs text-red-600 dark:text-red-300">
-                        {errors.regPassword.message}
-                      </p>
-                    ) : null}
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium">
-                      Confirm Password
-                    </label>
-                    <input
-                      type="password"
-                      className="mt-1 h-11 w-full rounded-2xl border border-slate-200 bg-white/70 px-4 text-sm outline-none focus:ring-2 focus:ring-blue-400/30 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                      placeholder="••••••••"
-                      {...register("confirmPassword", {
-                        required: "This is required",
-                      })}
-                    />
-                    {errors.confirmPassword?.message ? (
-                      <p className="mt-1 text-xs text-red-600 dark:text-red-300">
-                        {errors.confirmPassword.message}
-                      </p>
-                    ) : null}
-                  </div>
-
-                  <ShimmerButton
-                    type="submit"
-                    className="h-11 w-full rounded-2xl"
-                    disabled={loading}
-                  >
-                    {loading ? "Creating account..." : "Create account"}
-                  </ShimmerButton>
-
-                  <p className="text-center text-sm text-slate-600 dark:text-slate-300">
-                    Already have an account?{" "}
-                    <button
-                      type="button"
-                      onClick={() => switchMode("login")}
-                      className="font-semibold text-blue-600 hover:underline"
-                    >
-                      Login
-                    </button>
-                  </p>
-                </>
-              )}
-            </form>
+            {step === "org" ? (
+              <OrganisationForm
+                control={form.control}
+                handleSubmit={form.handleSubmit}
+                loading={loading}
+                onContinue={submitOrgCode}
+              />
+            ) : org ? (
+              <LoginForm
+                org={org}
+                control={form.control}
+                register={form.register}
+                handleSubmit={form.handleSubmit}
+                loading={loading}
+                onBack={goBackToOrg}
+                onLogin={submitLogin}
+              />
+            ) : (
+              <div className="space-y-3">
+                <div className="text-sm text-slate-600 dark:text-slate-300">
+                  Organisation not loaded.
+                </div>
+                <ActionButton
+                  type="button"
+                  color={brandColor}
+                  onClick={goBackToOrg}
+                  className="h-11 w-full rounded-2xl"
+                  leftIcon={<ArrowLeft className="h-4 w-4" />}
+                >
+                  Back
+                </ActionButton>
+              </div>
+            )}
           </div>
         </div>
       </div>
