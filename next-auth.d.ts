@@ -5,6 +5,7 @@ export type AppUser = {
   profileId: number;
   userName: string;
   orgId: number;
+  orgCode?: string;
 };
 
 declare module "next-auth" {
@@ -13,6 +14,7 @@ declare module "next-auth" {
     profileId: number;
     userName: string;
     orgId: number;
+    orgCode?: string;
   }
 
   interface Session {

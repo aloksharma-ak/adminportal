@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ActionButton, LinkButton } from "@/components/controls/Buttons";
+import Image from "next/image";
 
 type NavItem = { label: string; href: string };
 
@@ -180,7 +181,11 @@ function MobileMenu({
   );
 }
 
-export default function Navbar() {
+export default function Navbar(props: {
+  orgName?: string;
+  brandColor?: string;
+  logo?: string;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -256,11 +261,25 @@ export default function Navbar() {
             <Link
               href="/"
               aria-label="CuetPlus Portal"
-              className="relative inline-flex h-14 w-30 md:h-16 md:w-40 lg:h-20 lg:w-50"
+              className="relative inline-flex h-14 md:h-16 lg:h-20 items-center"
             >
-              <span className="absolute top-1/2 -translate-y-1/2 transform text-3xl font-bold text-blue-600">
-                AdminPortal
-              </span>
+              {props.logo ? (
+                <Image
+                  src={props.logo}
+                  alt={props.orgName ?? "Logo"}
+                  width={140}
+                  height={56}
+                  priority
+                  className="h-full w-auto object-contain"
+                />
+              ) : (
+                <span
+                  className="whitespace-nowrap text-2xl md:text-3xl font-bold"
+                  style={{ color: props.brandColor }}
+                >
+                  {props.orgName}
+                </span>
+              )}
             </Link>
 
             {/* Desktop */}

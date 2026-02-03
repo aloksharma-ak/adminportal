@@ -11,12 +11,14 @@ export const authOptions: NextAuthOptions = {
         username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
         orgId: { label: "OrgId", type: "text" },
+        orgCode: { label: "OrgCode", type: "text" },
       },
 
       async authorize(credentials) {
         const username = credentials?.username?.trim();
         const password = credentials?.password;
         const orgId = Number(credentials?.orgId);
+        const orgCode = credentials?.orgCode?.trim();
 
         if (!baseApiUrl) return null;
         if (!username || !password) return null;
@@ -46,6 +48,7 @@ export const authOptions: NextAuthOptions = {
           profileId,
           userName,
           orgId,
+          orgCode,
         };
       },
     }),
