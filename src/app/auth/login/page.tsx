@@ -16,19 +16,13 @@ import { OrganisationForm, type LoginFormValues } from "./OrganisationForm";
 import { LoginForm } from "./LoginForm";
 import { ActionButton } from "@/components/controls/Buttons";
 import { Organisation } from "@/shared-types/organisation.types";
-import { getOrganisationDetailAction } from "@/app/utils";
+import { getOrganisationDetailAction, uploadBase64Image } from "@/app/utils";
 
 function prettyAuthError(err?: string | null) {
   if (!err) return null;
   if (err === "CredentialsSignin") return "Invalid username / password / Org";
   if (err === "AccessDenied") return "Access denied";
   return err;
-}
-
-function toDataUrl(base64: string, mime = "image/png") {
-  if (!base64) return "";
-  if (base64.startsWith("data:")) return base64;
-  return `data:${mime};base64,${base64}`;
 }
 
 export default function LoginPage() {
@@ -43,6 +37,7 @@ export default function LoginPage() {
 
   const [step, setStep] = React.useState<"org" | "login">("org");
   const [org, setOrg] = React.useState<Organisation | null>(null);
+  const [logoSrc, setLogoSrc] = React.useState("");
 
   const form = useForm<LoginFormValues>({
     defaultValues: {
@@ -129,7 +124,26 @@ export default function LoginPage() {
     form.setValue("password", "");
   }, [form, resetMessages]);
 
-  const logoSrc = toDataUrl(org?.logo ?? "", "image/png");
+  React.useEffect(() => {
+    let active = true;
+
+    async function run() {
+      if (!org?.logo) return;
+      try {
+        const url = await uploadBase64Image(
+          `data:image/png;base64,${org.logo}`,
+        );
+        if (active) setLogoSrc(url);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    run();
+    return () => {
+      active = false;
+    };
+  }, [org?.logo]);
 
   return (
     <main className="relative overflow-hidden bg-white dark:bg-slate-950">
