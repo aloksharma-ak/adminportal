@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ActionButton, LinkButton } from "@/components/controls/Buttons";
 import Image from "next/image";
+import { getImageFromSession } from "@/lib/image-session.client";
 
 type NavItem = { label: string; href: string };
 
@@ -181,11 +182,7 @@ function MobileMenu({
   );
 }
 
-export default function Navbar(props: {
-  orgName?: string;
-  brandColor?: string;
-  logo?: string;
-}) {
+export default function Navbar(props: { orgCode: string | undefined }) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -250,6 +247,11 @@ export default function Navbar(props: {
     };
   }, [open, closeMenu]);
 
+  const logoSrc = useMemo(() => {
+    if (!props.orgCode) return null;
+    return getImageFromSession(props.orgCode.toUpperCase()) ?? null;
+  }, [props.orgCode]);
+
   return (
     <motion.header
       className="sticky inset-x-0 top-0 z-50 will-change-transform"
@@ -263,21 +265,18 @@ export default function Navbar(props: {
               aria-label="CuetPlus Portal"
               className="relative inline-flex h-14 md:h-16 lg:h-20 items-center"
             >
-              {props.logo ? (
+              {logoSrc ? (
                 <Image
-                  src={props.logo}
-                  alt={props.orgName ?? "Logo"}
+                  src={logoSrc}
+                  alt={props.orgCode ?? "Logo"}
                   width={140}
                   height={56}
                   priority
                   className="h-full w-auto object-contain"
                 />
               ) : (
-                <span
-                  className="whitespace-nowrap text-2xl md:text-3xl font-bold"
-                  style={{ color: props.brandColor }}
-                >
-                  {props.orgName}
+                <span className="whitespace-nowrap text-2xl md:text-3xl font-bold">
+                  {props.orgCode}
                 </span>
               )}
             </Link>
