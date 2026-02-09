@@ -8,56 +8,53 @@ import {
   Megaphone,
   Users,
   Wallet,
+  LucideIcon,
+  LayoutGrid,
 } from "lucide-react";
 
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { uploadBase64Image } from "../utils";
+import Image from "next/image";
 
-type Tile = {
-  title: string;
-  desc: string;
-  href: string;
-  Icon: React.ComponentType<{ className?: string }>;
+type ModuleItem = {
+  ModuleId: number;
+  ModuleName: string;
+  Icon: string; // icon name from API/DB
 };
 
-const tiles: Tile[] = [
-  {
-    title: "Leads & Enquiries",
-    desc: "Capture and track admissions leads.",
-    href: "/dashboard/leads",
-    Icon: Megaphone,
-  },
-  {
-    title: "Students",
-    desc: "Manage student profiles and status.",
-    href: "/dashboard/students",
-    Icon: Users,
-  },
-  {
-    title: "Fees",
-    desc: "Invoices, dues, receipts, payments.",
-    href: "/dashboard/fees",
-    Icon: Wallet,
-  },
-  {
-    title: "Schedule",
-    desc: "Timetable, classes, exams calendar.",
-    href: "/dashboard/schedule",
-    Icon: CalendarDays,
-  },
-  {
-    title: "Reports",
-    desc: "Admissions, fees, and performance.",
-    href: "/dashboard/reports",
-    Icon: BarChart3,
-  },
-  {
-    title: "More",
-    desc: "Go to full modules list.",
-    href: "/dashboard/more",
-    Icon: ArrowRight,
-  },
+const modules: ModuleItem[] = [
+  { ModuleId: 1, ModuleName: "Leads & Enquiries", Icon: "Megaphone" },
+  { ModuleId: 2, ModuleName: "Students", Icon: "Users" },
+  { ModuleId: 3, ModuleName: "Fees", Icon: "Wallet" },
+  { ModuleId: 4, ModuleName: "Schedule", Icon: "CalendarDays" },
+  { ModuleId: 5, ModuleName: "Reports", Icon: "BarChart3" },
+  { ModuleId: 6, ModuleName: "More", Icon: "ArrowRight" },
 ];
+
+// ModuleId -> route mapping (description removed)
+const moduleRouteMap: Record<number, string> = {
+  1: "/dashboard/leads",
+  2: "/dashboard/students",
+  3: "/dashboard/fees",
+  4: "/dashboard/schedule",
+  5: "/dashboard/reports",
+  6: "/dashboard/more",
+};
+
+const iconMap: Record<string, LucideIcon> = {
+  megaphone: Megaphone,
+  users: Users,
+  wallet: Wallet,
+  calendardays: CalendarDays,
+  barchart3: BarChart3,
+  arrowright: ArrowRight,
+};
+
+function getIconByName(iconName: string): LucideIcon {
+  const key = iconName.replace(/\s+/g, "").toLowerCase();
+  return iconMap[key] ?? LayoutGrid;
+}
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -69,33 +66,39 @@ export default async function DashboardPage() {
         <div className="mb-6">
           <h1 className="text-2xl font-semibold text-slate-900">Dashboard</h1>
           <p className="mt-1 text-sm text-slate-600">
-            Quick access to your main modules.
+            Quick access to your modules.
           </p>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {tiles.map(({ title, desc, href, Icon }) => (
-            <Link key={title} href={href} className="group">
-              <Card className="transition hover:-translate-y-0.5 hover:shadow-md">
-                <CardHeader className="flex flex-row items-start justify-between space-y-0">
-                  <div>
-                    <CardTitle className="text-base">{title}</CardTitle>
-                    <p className="mt-1 text-sm text-slate-600">{desc}</p>
-                  </div>
-                  <div className="grid h-10 w-10 place-items-center rounded-lg border bg-slate-50">
-                    <Icon className="h-5 w-5 text-slate-700" />
-                  </div>
-                </CardHeader>
+          {modules.map((module) => {
+            const IconComp = getIconByName(module.Icon);
+            const href =
+              moduleRouteMap[module.ModuleId] ??
+              `/dashboard/module/${module.ModuleId}`;
 
-                <CardContent>
-                  <div className="inline-flex items-center gap-2 text-sm font-medium text-slate-700">
-                    Open
-                    <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+            return (
+              <Link key={module.ModuleId} href={href} className="group">
+                <Card className="transition hover:-translate-y-0.5 hover:shadow-md">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                    <CardTitle className="text-base">
+                      {module.ModuleName}
+                    </CardTitle>
+                    <div className="grid h-10 w-10 place-items-center rounded-lg border bg-slate-50">
+                      <IconComp className="h-5 w-5 text-slate-700" />
+                    </div>
+                  </CardHeader>
+
+                  <CardContent>
+                    <div className="inline-flex items-center gap-2 text-sm font-medium text-slate-700">
+                      Open
+                      <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            );
+          })}
         </div>
       </section>
     </main>
