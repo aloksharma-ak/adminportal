@@ -14,8 +14,6 @@ import {
 
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { uploadBase64Image } from "../utils";
-import Image from "next/image";
 
 type ModuleItem = {
   ModuleId: number;

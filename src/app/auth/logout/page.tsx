@@ -1,11 +1,18 @@
 "use client";
 
-import * as React from "react";
+import { useEffect, useRef } from "react";
 import { signOut } from "next-auth/react";
+import { clearImageFromSession } from "@/lib/image-session.client";
 
 export default function LogoutPage() {
-  React.useEffect(() => {
-    signOut({ callbackUrl: "/auth/login" });
+  const didRun = useRef(false);
+
+  useEffect(() => {
+    if (didRun.current) return;
+    didRun.current = true;
+
+    clearImageFromSession();
+    void signOut({ callbackUrl: "/auth/login", redirect: true });
   }, []);
 
   return (

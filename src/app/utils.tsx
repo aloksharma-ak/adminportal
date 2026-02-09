@@ -1,35 +1,5 @@
 "use server";
 
-function getBaseUrl() {
-  // Vercel + local friendly
-  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return "http://localhost:3000";
-}
-
-export async function uploadBase64Image(base64DataUrl: string) {
-  const baseUrl = getBaseUrl();
-
-  const res = await fetch(`${baseUrl}/api/upload/base64`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ base64: base64DataUrl }),
-    cache: "no-store",
-  });
-
-  const raw = await res.text();
-  let data: any = null;
-
-  try {
-    data = JSON.parse(raw);
-  } catch {
-    throw new Error(`Non-JSON response (${res.status}): ${raw.slice(0, 180)}`);
-  }
-
-  if (!res.ok) throw new Error(data?.error || "Upload failed");
-  return data.url as string;
-}
-
 export async function getOrganisationDetailAction(orgCode: string) {
   const API_URL = process.env.API_URL;
 
