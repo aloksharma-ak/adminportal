@@ -53,12 +53,6 @@ export const LoginForm = React.memo(function LoginForm({
         >
           Change Org
         </ActionButton>
-
-        {org.website && (
-          <LinkButton color={brandColor} href={org.website} target="_blank">
-            Visit site
-          </LinkButton>
-        )}
       </div>
 
       <InputField

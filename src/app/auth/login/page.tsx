@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
@@ -16,7 +15,13 @@ import { OrganisationForm, type LoginFormValues } from "./OrganisationForm";
 import { LoginForm } from "./LoginForm";
 import { ActionButton } from "@/components/controls/Buttons";
 import { Organisation } from "@/shared-types/organisation.types";
-import { getOrganisationDetailAction, uploadBase64Image } from "@/app/utils";
+import { getOrganisationDetailAction } from "@/app/utils";
+import {
+  clearImageFromSession,
+  getImageFromSession,
+  setImageToSession,
+  toImageSrc,
+} from "@/lib/image-session.client";
 
 function prettyAuthError(err?: string | null) {
   if (!err) return null;
@@ -119,47 +124,36 @@ export default function LoginPage() {
     resetMessages();
     setStep("org");
     setOrg(null);
+    setLogoSrc(null);
+    clearImageFromSession();
     form.setValue("orgId", "");
     form.setValue("username", "");
     form.setValue("password", "");
   }, [form, resetMessages]);
 
   React.useEffect(() => {
-    let active = true;
-    setLogoSrc(null); // reset when org changes
-
-    async function run() {
-      const raw = org?.logo?.trim();
-      if (!raw) return;
-
-      try {
-        // already URL/path
-        if (
-          raw.startsWith("/") ||
-          raw.startsWith("http://") ||
-          raw.startsWith("https://")
-        ) {
-          if (active) setLogoSrc(raw);
-          return;
-        }
-
-        const dataUrl = raw.startsWith("data:image/")
-          ? raw
-          : `data:image/png;base64,${raw}`;
-
-        const url = await uploadBase64Image(dataUrl);
-        if (active) setLogoSrc(url?.trim() || null);
-      } catch (e) {
-        console.error(e);
-        if (active) setLogoSrc(null);
-      }
+    const orgCode = org?.orgCode?.trim().toUpperCase();
+    if (!orgCode) {
+      setLogoSrc(null);
+      return;
     }
 
-    run();
-    return () => {
-      active = false;
-    };
-  }, [org?.logo]);
+    // 1) Try session cache first
+    const cached = getImageFromSession(orgCode);
+    if (cached) {
+      setLogoSrc(cached);
+      return;
+    }
+
+    // 2) Build from API logo field
+    const normalized = toImageSrc(org?.logo);
+    setLogoSrc(normalized);
+
+    // 3) Save in session
+    if (normalized) {
+      setImageToSession(orgCode, normalized);
+    }
+  }, [org?.orgCode, org?.logo]);
 
   const website = org?.website?.trim() || "";
   const email = org?.email?.trim() || "";
@@ -196,6 +190,7 @@ export default function LoginPage() {
                       fill
                       sizes="(max-width: 640px) 64px, (max-width: 768px) 80px, 96px"
                       priority
+                      unoptimized={logoSrc.startsWith("data:image/")}
                       className="object-contain"
                     />
                   </div>
