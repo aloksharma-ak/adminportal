@@ -18,7 +18,7 @@ export async function uploadBase64Image(base64DataUrl: string) {
   });
 
   const raw = await res.text();
-  let data: any = null;
+  let data = null;
 
   try {
     data = JSON.parse(raw);

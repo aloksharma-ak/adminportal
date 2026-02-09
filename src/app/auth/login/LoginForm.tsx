@@ -8,7 +8,7 @@ import type {
 } from "react-hook-form";
 import { ArrowLeft, LockIcon, User2 } from "lucide-react";
 
-import { ActionButton } from "@/components/controls/Buttons";
+import { ActionButton, LinkButton } from "@/components/controls/Buttons";
 import { InputField } from "@/components/controls/InputField";
 import type { LoginFormValues } from "./OrganisationForm";
 import { Organisation } from "@/shared-types/organisation.types";
@@ -48,21 +48,16 @@ export const LoginForm = React.memo(function LoginForm({
           type="button"
           onClick={onBack}
           color="transparent"
-          className="h-11 w-full rounded-2xl"
+          className="h-11 rounded-2xl"
           leftIcon={<ArrowLeft className="h-4 w-4" />}
         >
           Change Org
         </ActionButton>
 
         {org.website && (
-          <a
-            href={org.website}
-            target="_blank"
-            rel="noreferrer"
-            className="text-sm text-slate-600 hover:underline dark:text-slate-300"
-          >
+          <LinkButton color={brandColor} href={org.website} target="_blank">
             Visit site
-          </a>
+          </LinkButton>
         )}
       </div>
 
