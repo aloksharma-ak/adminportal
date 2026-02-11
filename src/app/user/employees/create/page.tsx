@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useForm, Controller } from "react-hook-form";
+import indianStatesCitiesList from "indian-states-cities-list";
 import { toast } from "sonner";
 import {
   User2,
@@ -51,16 +52,53 @@ const ROLE_OPTIONS: DropdownOption[] = [
   { value: "19", label: "Auditor" },
 ];
 
+type Address = {
+  addressLine1: string;
+  addressLine2: string;
+  pinCode: string;
+  city: string;
+  state: string;
+};
+
+type EmployeeFormValues = {
+  orgId: number | string | undefined;
+  roleId: string | undefined;
+
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  initials: string;
+
+  phone: string;
+  secondaryPhone: string;
+  email: string;
+
+  panNo: string;
+  aadharNo: string;
+  passportNo: string;
+
+  profilePicture: string;
+
+  permanantAddress: Address;
+
+  isCommunicationAddressSameAsPermanant: boolean;
+  communicationAddress: Address;
+
+  isCreateCredential: boolean;
+  userName: string;
+  password: string;
+};
+
 export default function Page() {
   const { data: session } = useSession();
 
   const [loading, setLoading] = React.useState(false);
   const [preview, setPreview] = React.useState<string>("");
 
-  const form = useForm({
+  const form = useForm<EmployeeFormValues>({
     mode: "onSubmit",
     defaultValues: {
-      orgId: session?.user.orgId,
+      orgId: session?.user?.orgId,
       roleId: undefined,
 
       firstName: "",
@@ -105,6 +143,14 @@ export default function Page() {
 
   const sameAddress = form.watch("isCommunicationAddressSameAsPermanant");
   const createCred = form.watch("isCreateCredential");
+  const selectedCommState = form.watch("communicationAddress.state");
+
+  // session load ke baad orgId sync
+  React.useEffect(() => {
+    if (session?.user?.orgId !== undefined && session?.user?.orgId !== null) {
+      setValue("orgId", session.user.orgId);
+    }
+  }, [session?.user?.orgId, setValue]);
 
   // ✅ if sameAddress => copy permanent -> communication
   React.useEffect(() => {
@@ -112,8 +158,26 @@ export default function Page() {
     setValue("communicationAddress", getValues("permanantAddress"));
   }, [sameAddress, getValues, setValue]);
 
+  const stateOptions = React.useMemo<DropdownOption[]>(
+    () =>
+      indianStatesCitiesList.STATES.map((state) => ({
+        value: state,
+        label: state,
+      })),
+    [],
+  );
+
+  const commCityOptions = React.useMemo<DropdownOption[]>(() => {
+    if (!selectedCommState) return [];
+    const cities =
+      indianStatesCitiesList.STATE_WISE_CITIES[
+        selectedCommState as keyof typeof indianStatesCitiesList.STATE_WISE_CITIES
+      ] ?? [];
+
+    return cities.map((city) => ({ value: city, label: city }));
+  }, [selectedCommState]);
+
   const onSubmit = handleSubmit(async (v) => {
-    // ✅ small client-side UX validation (server also validates)
     const orgIdNum = Number(v.orgId);
     const roleIdNum = Number(v.roleId);
 
@@ -173,7 +237,7 @@ export default function Page() {
                 control={control}
                 name="orgId"
                 label="Org ID"
-                placeholder={session?.user.orgName}
+                placeholder={session?.user?.orgName}
                 className="h-11 rounded-2xl"
                 leftIcon={<Hash className="h-4 w-4" />}
                 disabled
@@ -333,11 +397,7 @@ export default function Page() {
                       }
 
                       const { dataUrl, base64 } = await fileToBase64(file);
-
-                      // ✅ preview needs dataUrl
                       setPreview(dataUrl);
-
-                      // ✅ API needs base64 only
                       setValue("profilePicture", base64);
                     }}
                   />
@@ -420,7 +480,7 @@ export default function Page() {
               </div>
 
               <ToggleControl
-                color={session?.user.brandColor}
+                color={session?.user?.brandColor}
                 label=""
                 checked={sameAddress}
                 onChange={(v) =>
@@ -441,6 +501,7 @@ export default function Page() {
                     name="communicationAddress.addressLine1"
                     label="Address Line 1"
                     className="h-11 rounded-2xl"
+                    rules={{ required: "Required" }}
                   />
 
                   <InputField
@@ -455,20 +516,74 @@ export default function Page() {
                     name="communicationAddress.pinCode"
                     label="Pin Code"
                     className="h-11 rounded-2xl"
+                    rules={{ required: "Required" }}
                   />
 
-                  <InputField
-                    control={control}
-                    name="communicationAddress.city"
-                    label="City"
-                    className="h-11 rounded-2xl"
-                  />
-
-                  <InputField
+                  {/* ✅ DropdownFilter for State */}
+                  <Controller
                     control={control}
                     name="communicationAddress.state"
-                    label="State"
-                    className="h-11 rounded-2xl md:col-span-2"
+                    rules={{ required: "State is required" }}
+                    render={({ field, fieldState }) => (
+                      <div className="space-y-2">
+                        <label className="mb-2 block text-sm font-medium text-slate-900">
+                          State
+                        </label>
+                        <DropdownFilter
+                          value={field.value}
+                          onChange={(val) => {
+                            field.onChange(val);
+                            setValue("communicationAddress.city", "");
+                          }}
+                          placeholder="Select State"
+                          options={stateOptions}
+                          className={cn(
+                            "h-11 rounded-2xl",
+                            fieldState.invalid && "border border-red-500",
+                          )}
+                          allowClear={false}
+                        />
+                        {fieldState.invalid && (
+                          <p className="text-xs text-red-600">
+                            {fieldState.error?.message ?? "State is required"}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  />
+
+                  {/* ✅ DropdownFilter for City */}
+                  <Controller
+                    control={control}
+                    name="communicationAddress.city"
+                    rules={{ required: "City is required" }}
+                    render={({ field, fieldState }) => (
+                      <div className="space-y-2">
+                        <label className="mb-2 block text-sm font-medium text-slate-900">
+                          City
+                        </label>
+                        <DropdownFilter
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder={
+                            selectedCommState
+                              ? "Select City"
+                              : "Select state first"
+                          }
+                          options={commCityOptions}
+                          className={cn(
+                            "h-11 rounded-2xl",
+                            fieldState.invalid && "border border-red-500",
+                          )}
+                          allowClear={false}
+                        />
+                        {fieldState.invalid && (
+                          <p className="text-xs text-red-600">
+                            {fieldState.error?.message ?? "City is required"}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   />
                 </div>
               </div>
@@ -488,7 +603,7 @@ export default function Page() {
               </div>
 
               <ToggleControl
-                color={session?.user.brandColor}
+                color={session?.user?.brandColor}
                 label=""
                 checked={createCred}
                 onChange={(v) => setValue("isCreateCredential", v)}
@@ -533,7 +648,7 @@ export default function Page() {
 
             <ActionButton
               type="submit"
-              color={session?.user.brandColor}
+              color={session?.user?.brandColor}
               loading={loading}
               disabled={loading}
               className="h-11 w-full rounded-2xl"
