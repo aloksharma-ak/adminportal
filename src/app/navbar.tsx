@@ -9,7 +9,6 @@ import { signOut, useSession } from "next-auth/react";
 
 import { Container } from "@/components/shared-ui/container";
 import { HamburgerButton } from "@/components/shared-ui/hamburger-button";
-import { ThemeToggle } from "@/components/shared-ui/theme-toggle";
 
 import {
   DropdownMenu,
@@ -21,7 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ActionButton, LinkButton } from "@/components/controls/Buttons";
 import Image from "next/image";
-import { getImageFromSession } from "@/lib/image-session.client";
+import { getImagesFromSession } from "@/lib/image-session.client";
 
 type NavItem = { label: string; href: string };
 
@@ -182,7 +181,12 @@ function MobileMenu({
   );
 }
 
-export default function Navbar(props: { orgCode: string | undefined }) {
+export default function Navbar(props: {
+  orgCode: string;
+  brandColor: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  impDetails: any;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -247,37 +251,50 @@ export default function Navbar(props: { orgCode: string | undefined }) {
     };
   }, [open, closeMenu]);
 
-  const logoSrc = useMemo(() => {
-    if (!props.orgCode) return null;
-    return getImageFromSession(props.orgCode.toUpperCase()) ?? null;
-  }, [props.orgCode]);
+  const { logoSrc, fullLogoSrc } = getImagesFromSession(props.orgCode);
 
   return (
     <motion.header
       className="sticky inset-x-0 top-0 z-50 will-change-transform"
       transition={{ type: "spring", stiffness: 500, damping: 40 }}
     >
-      <nav className="relative w-full bg-sky-50/80 backdrop-blur-xl transition-all duration-300 dark:bg-slate-950/60">
+      <nav
+        className="relative w-full backdrop-blur-xl transition-all duration-300 dark:bg-slate-950/60"
+        style={{ backgroundColor: props.brandColor, opacity: 0.7 }}
+      >
         <Container>
           <div className="flex items-center justify-between">
             <Link
               href="/"
               aria-label="CuetPlus Portal"
-              className="relative inline-flex h-14 md:h-16 lg:h-20 items-center"
+              className="relative inline-flex h-14 items-center md:h-16 lg:h-20"
             >
-              {logoSrc ? (
-                <Image
-                  src={logoSrc}
-                  alt={props.orgCode ?? "Logo"}
-                  width={140}
-                  height={56}
-                  priority
-                  className="h-full w-auto object-contain"
-                />
+              {fullLogoSrc ? (
+                <div className="relative h-full w-43 md:w-55 lg:w-65">
+                  <Image
+                    src={fullLogoSrc ?? ""}
+                    alt={props.orgCode ?? "Organisation Logo"}
+                    fill
+                    priority
+                    sizes="(max-width: 768px) 170px, (max-width: 1024px) 220px, 260px"
+                    unoptimized={
+                      fullLogoSrc?.startsWith("data:image/") ?? false
+                    }
+                    className="object-contain"
+                  />
+                </div>
               ) : (
-                <span className="whitespace-nowrap text-2xl md:text-3xl font-bold">
-                  {props.orgCode}
-                </span>
+                <div className="relative aspect-square h-full max-h-12 md:max-h-14 lg:max-h-16">
+                  <Image
+                    src={logoSrc ?? ""}
+                    alt={props.orgCode ?? "Organisation Logo"}
+                    fill
+                    priority
+                    sizes="(max-width: 768px) 56px, 64px"
+                    unoptimized={logoSrc?.startsWith("data:image/") ?? false}
+                    className="object-contain"
+                  />
+                </div>
               )}
             </Link>
 
@@ -325,8 +342,6 @@ export default function Navbar(props: { orgCode: string | undefined }) {
               </ul>
 
               <div className="ml-2 flex items-center gap-2 border-l border-gray-200 pl-3 dark:border-white/10">
-                <ThemeToggle size="lg" />
-
                 {!isAuthed ? (
                   <ActionButton type="button" onClick={goLogin}>
                     Login
@@ -390,7 +405,6 @@ export default function Navbar(props: { orgCode: string | undefined }) {
 
             {/* Mobile */}
             <div className="flex items-center gap-2 lg:hidden">
-              <ThemeToggle />
               <HamburgerButton
                 open={open}
                 onClick={toggleMenu}

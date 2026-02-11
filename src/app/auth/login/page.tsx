@@ -15,13 +15,14 @@ import { OrganisationForm, type LoginFormValues } from "./OrganisationForm";
 import { LoginForm } from "./LoginForm";
 import { ActionButton } from "@/components/controls/Buttons";
 import { Organisation } from "@/shared-types/organisation.types";
-import { getOrganisationDetailAction } from "@/app/utils";
+import { toast } from "sonner";
 import {
   clearImageFromSession,
-  getImageFromSession,
-  setImageToSession,
+  getImagesFromSession,
+  setImagesToSession,
   toImageSrc,
 } from "@/lib/image-session.client";
+import { getOrganisationDetail } from "@/app/utils";
 
 function prettyAuthError(err?: string | null) {
   if (!err) return null;
@@ -37,8 +38,6 @@ export default function LoginPage() {
   const authError = prettyAuthError(searchParams.get("error"));
 
   const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-  const [success, setSuccess] = React.useState<string | null>(null);
 
   const [step, setStep] = React.useState<"org" | "login">("org");
   const [org, setOrg] = React.useState<Organisation | null>(null);
@@ -54,9 +53,17 @@ export default function LoginPage() {
     mode: "onSubmit",
   });
 
+  // ✅ show auth error from URL once
+  const authErrorToastedRef = React.useRef(false);
+  React.useEffect(() => {
+    if (authError && !authErrorToastedRef.current) {
+      toast.error(authError);
+      authErrorToastedRef.current = true;
+    }
+  }, [authError]);
+
   const resetMessages = React.useCallback(() => {
-    setError(null);
-    setSuccess(null);
+    toast.dismiss();
   }, []);
 
   React.useEffect(() => {
@@ -71,18 +78,30 @@ export default function LoginPage() {
       resetMessages();
       setLoading(true);
 
+      const tId = toast.loading("Verifying organisation...");
+
       try {
-        const result = await getOrganisationDetailAction(orgCode);
+        const result = await getOrganisationDetail(orgCode);
 
         if (!result.success) {
-          setError(result.message);
+          toast.error(result.message || "Organisation verification failed", {
+            id: tId,
+          });
           return;
         }
 
         setOrg(result.organisation);
         form.setValue("orgId", String(result.organisation.orgId));
         setStep("login");
-        setSuccess("Organisation verified. Please login.");
+
+        toast.success("Organisation verified. Please login.", { id: tId });
+      } catch (err) {
+        toast.error(
+          err instanceof Error ? err.message : "Something went wrong",
+          {
+            id: tId,
+          },
+        );
       } finally {
         setLoading(false);
       }
@@ -95,6 +114,8 @@ export default function LoginPage() {
       resetMessages();
       setLoading(true);
 
+      const tId = toast.loading("Logging in...");
+
       try {
         const res = await signIn("credentials", {
           username: data.username.trim(),
@@ -105,14 +126,21 @@ export default function LoginPage() {
         });
 
         if (!res || res.error) {
-          setError(prettyAuthError(res?.error) || "Login failed");
+          toast.error(prettyAuthError(res?.error) || "Login failed", {
+            id: tId,
+          });
           return;
         }
 
-        setSuccess("Login success. Redirecting...");
+        toast.success("Login success. Redirecting...", { id: tId });
         router.push("/dashboard/");
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Something went wrong");
+        toast.error(
+          err instanceof Error ? err.message : "Something went wrong",
+          {
+            id: tId,
+          },
+        );
       } finally {
         setLoading(false);
       }
@@ -126,6 +154,7 @@ export default function LoginPage() {
     setOrg(null);
     setLogoSrc(null);
     clearImageFromSession();
+
     form.setValue("orgId", "");
     form.setValue("username", "");
     form.setValue("password", "");
@@ -139,27 +168,30 @@ export default function LoginPage() {
     }
 
     // 1) Try session cache first
-    const cached = getImageFromSession(orgCode);
-    if (cached) {
-      setLogoSrc(cached);
+    const { logoSrc } = getImagesFromSession(orgCode);
+
+    if (logoSrc) {
+      setLogoSrc(logoSrc);
       return;
     }
 
-    // 2) Build from API logo field
-    const normalized = toImageSrc(org?.logo);
-    setLogoSrc(normalized);
+    // 2) Build from API fields
+    const logo = toImageSrc(org?.logo);
+    const fullLogo = toImageSrc(org?.fullLogo);
 
-    // 3) Save in session
-    if (normalized) {
-      setImageToSession(orgCode, normalized);
-    }
-  }, [org?.orgCode, org?.logo]);
+    setLogoSrc(logo);
+
+    // 3) Save both in session
+    setImagesToSession({
+      orgCode,
+      logoSrc: logo,
+      fullLogoSrc: fullLogo,
+    });
+  }, [org?.orgCode, org?.logo, org?.fullLogo]);
 
   const website = org?.website?.trim() || "";
   const email = org?.email?.trim() || "";
   const phone = org?.phone?.trim() || "";
-
-  const showLeftPanel = Boolean(org);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-white dark:bg-slate-950">
@@ -168,192 +200,160 @@ export default function LoginPage() {
         fill={brandColor}
       />
 
-      <div
-        className={`mx-auto grid min-h-screen w-full place-items-center px-4 py-8 sm:px-6 ${
-          showLeftPanel ? "max-w-5xl" : "max-w-xl"
-        }`}
+      <section
+        className={`mx-auto min-h-screen max-w-8xl flex flex-col ${step === "org" ? "justify-center" : "justify-between"} items-center px-4 py-10`}
       >
-        <div
-          className={`grid w-full grid-cols-1 gap-4 ${
-            showLeftPanel ? "lg:grid-cols-2" : ""
-          }`}
-        >
-          {/* LEFT SIDE: BRAND / CONTACT (only when org is available) */}
-          {showLeftPanel && (
-            <section className="relative overflow-hidden bg-white/70 p-6 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/55 md:p-8">
-              <div className="flex flex-col items-center gap-4">
-                {logoSrc && (
-                  <div className="relative aspect-square w-16 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 dark:border-white/10 sm:w-20 md:w-24">
-                    <Image
-                      src={logoSrc}
-                      alt={org?.orgName ?? "Organisation Logo"}
-                      fill
-                      sizes="(max-width: 640px) 64px, (max-width: 768px) 80px, 96px"
-                      priority
-                      unoptimized={logoSrc.startsWith("data:image/")}
-                      className="object-contain"
-                    />
-                  </div>
-                )}
+        <section className="relative mx-auto w-full max-w-lg overflow-hidden rounded-3xl border border-slate-200 bg-white/70 p-6 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/55">
+          <BorderBeam size={260} duration={12} delay={4} />
 
-                <h1
-                  className="text-center text-2xl font-extrabold md:text-3xl lg:text-4xl"
-                  style={{ color: brandColor }}
-                >
-                  {org?.orgName ?? "Organisation Portal"}
-                </h1>
-              </div>
-
-              <div className="mt-8 space-y-3">
-                {/* Visit Site */}
-                {website ? (
-                  <a
-                    href={website}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group flex items-center justify-between rounded-2xl border border-slate-200 px-4 py-3 text-sm transition hover:bg-slate-50 dark:border-white/10 dark:hover:bg-slate-900/60"
-                  >
-                    <span className="flex items-center gap-2">
-                      <Globe className="h-4 w-4" />
-                      {website}
-                    </span>
-                    <ExternalLink className="h-4 w-4 opacity-70 transition group-hover:translate-x-0.5" />
-                  </a>
-                ) : (
-                  <div className="flex items-center justify-between rounded-2xl border border-dashed border-slate-300 px-4 py-3 text-sm text-slate-500 dark:border-white/20 dark:text-slate-400">
-                    <span className="flex items-center gap-2">
-                      <Globe className="h-4 w-4" />
-                    </span>
-                    <span>Not available</span>
-                  </div>
-                )}
-
-                {/* Mailto */}
-                {email ? (
-                  <a
-                    href={`mailto:${email}`}
-                    className="flex items-center justify-between rounded-2xl border border-slate-200 px-4 py-3 text-sm transition hover:bg-slate-50 dark:border-white/10 dark:hover:bg-slate-900/60"
-                  >
-                    <span className="flex items-center gap-2">
-                      <Mail className="h-4 w-4" />
-                      Mailto
-                    </span>
-                    <span className="truncate pl-3 text-slate-700 dark:text-slate-300">
-                      {email}
-                    </span>
-                  </a>
-                ) : (
-                  <div className="flex items-center justify-between rounded-2xl border border-dashed border-slate-300 px-4 py-3 text-sm text-slate-500 dark:border-white/20 dark:text-slate-400">
-                    <span className="flex items-center gap-2">
-                      <Mail className="h-4 w-4" />
-                      Mailto
-                    </span>
-                    <span>Not available</span>
-                  </div>
-                )}
-
-                {/* Phone */}
-                {phone ? (
-                  <a
-                    href={`tel:${phone}`}
-                    className="flex items-center justify-between rounded-2xl border border-slate-200 px-4 py-3 text-sm transition hover:bg-slate-50 dark:border-white/10 dark:hover:bg-slate-900/60"
-                  >
-                    <span className="flex items-center gap-2">
-                      <Phone className="h-4 w-4" />
-                      Phone No.
-                    </span>
-                    <span className="pl-3 text-slate-700 dark:text-slate-300">
-                      {phone}
-                    </span>
-                  </a>
-                ) : (
-                  <div className="flex items-center justify-between rounded-2xl border border-dashed border-slate-300 px-4 py-3 text-sm text-slate-500 dark:border-white/20 dark:text-slate-400">
-                    <span className="flex items-center gap-2">
-                      <Phone className="h-4 w-4" />
-                      Phone No.
-                    </span>
-                    <span>Not available</span>
-                  </div>
-                )}
-              </div>
-            </section>
-          )}
-
-          {/* RIGHT SIDE: FORM (always visible) */}
-          <section
-            className={`relative overflow-hidden rounded-3xl border border-slate-200 bg-white/70 p-6 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/55 ${
-              !showLeftPanel ? "mx-auto w-full max-w-xl" : ""
-            }`}
-          >
-            <BorderBeam size={260} duration={12} delay={4} />
-
-            <div className="mb-5 text-center">
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
-                {step === "org"
-                  ? "Verify Organisation"
-                  : `Login to ${brandName}`}
-              </h2>
-              <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-                {step === "org"
-                  ? "Enter your Organisation Code to continue."
-                  : "Enter your credentials to access dashboard."}
-              </p>
-            </div>
-
-            {authError && (
-              <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
-                {authError}
+          {/* centered header */}
+          <div className="flex flex-col items-center justify-center gap-4 text-center">
+            {logoSrc && (
+              <div className="relative aspect-square w-16 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 dark:border-white/10 sm:w-20 md:w-24">
+                <Image
+                  src={logoSrc}
+                  alt={org?.orgName ?? "Organisation Logo"}
+                  fill
+                  sizes="(max-width: 640px) 64px, (max-width: 768px) 80px, 96px"
+                  priority
+                  unoptimized={logoSrc.startsWith("data:image/")}
+                  className="object-contain"
+                />
               </div>
             )}
 
-            {error && (
-              <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-200">
-                {error}
-              </div>
-            )}
+            <h2 className="w-full text-center text-xl font-semibold text-slate-900 dark:text-slate-100">
+              {step === "org" ? (
+                "Verify Organisation"
+              ) : (
+                <span className="flex flex-col items-center justify-center">
+                  <span>Login to</span>
+                  <span
+                    className="text-3xl font-bold uppercase"
+                    style={{ color: brandColor }}
+                  >
+                    {brandName}
+                  </span>
+                </span>
+              )}
+            </h2>
+          </div>
 
-            {success && (
-              <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
-                {success}
-              </div>
-            )}
-
-            {step === "org" ? (
-              <OrganisationForm
-                control={form.control}
-                handleSubmit={form.handleSubmit}
-                loading={loading}
-                onContinue={submitOrgCode}
-              />
-            ) : org ? (
-              <LoginForm
-                org={org}
-                control={form.control}
-                register={form.register}
-                handleSubmit={form.handleSubmit}
-                loading={loading}
-                onBack={goBackToOrg}
-                onLogin={submitLogin}
-              />
-            ) : (
-              <div className="space-y-3">
-                <div className="text-sm text-slate-600 dark:text-slate-300">
-                  Organisation not loaded.
+          {/* ✅ form area centered */}
+          <div className="mt-6">
+            <div className="mx-auto w-full max-w-md">
+              {step === "org" ? (
+                <OrganisationForm
+                  control={form.control}
+                  handleSubmit={form.handleSubmit}
+                  loading={loading}
+                  onContinue={submitOrgCode}
+                />
+              ) : org ? (
+                <LoginForm
+                  org={org}
+                  control={form.control}
+                  register={form.register}
+                  handleSubmit={form.handleSubmit}
+                  loading={loading}
+                  onBack={goBackToOrg}
+                  onLogin={submitLogin}
+                />
+              ) : (
+                <div className="space-y-3">
+                  <div className="text-sm text-slate-600 dark:text-slate-300">
+                    Organisation not loaded.
+                  </div>
+                  <ActionButton
+                    type="button"
+                    color={brandColor}
+                    onClick={goBackToOrg}
+                    className="h-11 w-full rounded-2xl"
+                    leftIcon={<ArrowLeft className="h-4 w-4" />}
+                  >
+                    Back
+                  </ActionButton>
                 </div>
-                <ActionButton
-                  type="button"
-                  color={brandColor}
-                  onClick={goBackToOrg}
-                  className="h-11 w-full rounded-2xl"
-                  leftIcon={<ArrowLeft className="h-4 w-4" />}
-                >
-                  Back
-                </ActionButton>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {org && (
+          <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-3">
+            {/* Visit Site */}
+            {website ? (
+              <a
+                href={website}
+                target="_blank"
+                rel="noreferrer"
+                className="group flex w-full items-center justify-between rounded-2xl border border-slate-200 px-4 py-3 text-sm transition hover:bg-slate-50 dark:border-white/10 dark:hover:bg-slate-900/60"
+              >
+                <span className="flex items-center gap-2 truncate">
+                  <Globe className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{website}</span>
+                </span>
+                <ExternalLink className="h-4 w-4 shrink-0 opacity-70 transition group-hover:translate-x-0.5" />
+              </a>
+            ) : (
+              <div className="flex w-full items-center justify-between rounded-2xl border border-dashed border-slate-300 px-4 py-3 text-sm text-slate-500 dark:border-white/20 dark:text-slate-400">
+                <span className="flex items-center gap-2">
+                  <Globe className="h-4 w-4" />
+                </span>
+                <span>Not available</span>
               </div>
             )}
-          </section>
-        </div>
-      </div>
+
+            {/* Mailto */}
+            {email ? (
+              <a
+                href={`mailto:${email}`}
+                className="flex w-full items-center justify-between rounded-2xl border border-slate-200 px-4 py-3 text-sm transition hover:bg-slate-50 dark:border-white/10 dark:hover:bg-slate-900/60"
+              >
+                <span className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Mailto
+                </span>
+                <span className="truncate pl-3 text-slate-700 dark:text-slate-300">
+                  {email}
+                </span>
+              </a>
+            ) : (
+              <div className="flex w-full items-center justify-between rounded-2xl border border-dashed border-slate-300 px-4 py-3 text-sm text-slate-500 dark:border-white/20 dark:text-slate-400">
+                <span className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Mailto
+                </span>
+                <span>Not available</span>
+              </div>
+            )}
+
+            {/* Phone */}
+            {phone ? (
+              <a
+                href={`tel:${phone}`}
+                className="flex w-full items-center justify-between rounded-2xl border border-slate-200 px-4 py-3 text-sm transition hover:bg-slate-50 dark:border-white/10 dark:hover:bg-slate-900/60"
+              >
+                <span className="flex items-center gap-2">
+                  <Phone className="h-4 w-4" />
+                  Phone No.
+                </span>
+                <span className="pl-3 text-slate-700 dark:text-slate-300">
+                  {phone}
+                </span>
+              </a>
+            ) : (
+              <div className="flex w-full items-center justify-between rounded-2xl border border-dashed border-slate-300 px-4 py-3 text-sm text-slate-500 dark:border-white/20 dark:text-slate-400">
+                <span className="flex items-center gap-2">
+                  <Phone className="h-4 w-4" />
+                  Phone No.
+                </span>
+                <span>Not available</span>
+              </div>
+            )}
+          </div>
+        )}
+      </section>
     </main>
   );
 }

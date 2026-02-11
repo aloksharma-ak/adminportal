@@ -8,7 +8,7 @@ import type {
 } from "react-hook-form";
 import { ArrowLeft, LockIcon, User2 } from "lucide-react";
 
-import { ActionButton, LinkButton } from "@/components/controls/Buttons";
+import { ActionButton } from "@/components/controls/Buttons";
 import { InputField } from "@/components/controls/InputField";
 import type { LoginFormValues } from "./OrganisationForm";
 import { Organisation } from "@/shared-types/organisation.types";

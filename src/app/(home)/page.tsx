@@ -1,26 +1,22 @@
-"use client";
-
 import Link from "next/link";
-import Image from "next/image";
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
 import { ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
 
 import { ActionButton } from "@/components/controls/Buttons";
+import { authOptions } from "../api/auth/[...nextauth]/auth";
 
-export default function Page() {
+export default async function Page() {
+  const session = await getServerSession(authOptions);
+  if (session) redirect("/auth/login");
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-slate-950 text-white">
       {/* Background image */}
       <div className="absolute inset-0">
-        {/* <Image
-          src="/admin-bg.jpg"
-          alt="Admin portal background"
-          fill
-          priority
-          className="object-cover"
-        /> */}
         {/* Gradient overlays */}
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-950/55 to-slate-950/90" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,0.28),transparent_55%),radial-gradient(circle_at_80%_30%,rgba(34,211,238,0.18),transparent_50%),radial-gradient(circle_at_50%_90%,rgba(168,85,247,0.18),transparent_55%)]" />
+        <div className="absolute inset-0 bg-linear-to-b from-slate-950/70 via-slate-950/55 to-slate-950/90" />
+        <div className="absolute inset-0 bg-[radial-linear(circle_at_20%_20%,rgba(59,130,246,0.28),transparent_55%),radial-linear(circle_at_80%_30%,rgba(34,211,238,0.18),transparent_50%),radial-linear(circle_at_50%_90%,rgba(168,85,247,0.18),transparent_55%)]" />
       </div>
 
       {/* Subtle floating glow blobs */}
@@ -42,7 +38,7 @@ export default function Page() {
 
             <h1 className="mt-5 text-4xl font-extrabold tracking-tight sm:text-5xl">
               Welcome to{" "}
-              <span className="bg-gradient-to-r from-cyan-300 via-blue-300 to-fuchsia-300 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-cyan-300 via-blue-300 to-fuchsia-300 bg-clip-text text-transparent">
                 Admin Portal
               </span>
             </h1>
@@ -95,7 +91,7 @@ export default function Page() {
 
           {/* Right: Premium glass card */}
           <div className="relative">
-            <div className="absolute -inset-1 rounded-[28px] bg-gradient-to-r from-cyan-500/30 via-blue-500/20 to-fuchsia-500/25 blur-xl" />
+            <div className="absolute -inset-1 rounded-[28px] bg-linear-to-r from-cyan-500/30 via-blue-500/20 to-fuchsia-500/25 blur-xl" />
             <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur-xl">
               <div className="flex items-center justify-between">
                 <div className="text-sm font-semibold text-white/85">
@@ -153,7 +149,7 @@ export default function Page() {
                     </div>
                   </div>
 
-                  <div className="mt-5 rounded-2xl border border-white/10 bg-gradient-to-r from-white/10 to-white/5 p-4">
+                  <div className="mt-5 rounded-2xl border border-white/10 bg-linear-to-r from-white/10 to-white/5 p-4">
                     <div className="text-sm font-semibold text-white/85">
                       Ready to sign in?
                     </div>
@@ -179,6 +175,7 @@ export default function Page() {
               </div>
             </div>
           </div>
+          {/* /Right */}
         </div>
       </div>
     </main>
