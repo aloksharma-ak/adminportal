@@ -1,7 +1,18 @@
 declare module "indian-states-cities-list" {
-  interface IndianStatesCitiesList {
-    STATE_WISE_CITIES: Record<string, string[]>; // e.g., { Karnataka: ["Bangalore", "Mysore"] }
-    STATES: string[];
+  export interface StateOption {
+    label: string; // "Andhra Pradesh"
+    value: string; // "Andhra Pradesh"
+    name: string; // "AndhraPradesh" (key used in STATE_WISE_CITIES)
+  }
+
+  export interface CityOption {
+    value: string; // "Bangalore"
+    label: string; // "Bangalore"
+  }
+
+  export interface IndianStatesCitiesList {
+    STATES_OBJECT: StateOption[];
+    STATE_WISE_CITIES: Record<string, CityOption[]>;
   }
 
   const data: IndianStatesCitiesList;

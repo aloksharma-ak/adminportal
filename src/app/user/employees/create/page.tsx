@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useForm, Controller } from "react-hook-form";
-import indianStatesCitiesList from "indian-states-cities-list";
+import Indian_states_cities_list from "indian-states-cities-list";
 import { toast } from "sonner";
 import {
   User2,
@@ -29,6 +29,8 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { fileToBase64 } from "@/lib/image-session.client";
 import { useSession } from "next-auth/react";
+
+const MAX_IMAGE_BYTES = 500 * 1024;
 
 const ROLE_OPTIONS: DropdownOption[] = [
   { value: "1", label: "SuperAdmin" },
@@ -143,7 +145,17 @@ export default function Page() {
 
   const sameAddress = form.watch("isCommunicationAddressSameAsPermanant");
   const createCred = form.watch("isCreateCredential");
+  const selectedPermanentState = form.watch("permanantAddress.state");
   const selectedCommState = form.watch("communicationAddress.state");
+  const permanentAddress = form.watch("permanantAddress");
+
+  React.useEffect(() => {
+    if (!sameAddress) return;
+    setValue("communicationAddress", permanentAddress, {
+      shouldDirty: true,
+      shouldValidate: false,
+    });
+  }, [sameAddress, permanentAddress, setValue]);
 
   // session load ke baad orgId sync
   React.useEffect(() => {
@@ -160,22 +172,59 @@ export default function Page() {
 
   const stateOptions = React.useMemo<DropdownOption[]>(
     () =>
-      indianStatesCitiesList.STATES.map((state) => ({
-        value: state,
-        label: state,
+      (Indian_states_cities_list.STATES_OBJECT ?? []).map((s) => ({
+        value: s.name, // key for STATE_WISE_CITIES
+        label: s.label, // UI text
       })),
     [],
   );
 
+  const permanentCityOptions = React.useMemo<DropdownOption[]>(() => {
+    if (!selectedPermanentState) return [];
+    const cities =
+      Indian_states_cities_list.STATE_WISE_CITIES?.[selectedPermanentState] ??
+      [];
+    return cities.map((c) => ({ value: c.value, label: c.label }));
+  }, [selectedPermanentState]);
+
   const commCityOptions = React.useMemo<DropdownOption[]>(() => {
     if (!selectedCommState) return [];
     const cities =
-      indianStatesCitiesList.STATE_WISE_CITIES[
-        selectedCommState as keyof typeof indianStatesCitiesList.STATE_WISE_CITIES
-      ] ?? [];
-
-    return cities.map((city) => ({ value: city, label: city }));
+      Indian_states_cities_list.STATE_WISE_CITIES?.[selectedCommState] ?? [];
+    return cities.map((c) => ({ value: c.value, label: c.label }));
   }, [selectedCommState]);
+
+  const onProfileImageChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const input = e.currentTarget;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload a valid image file");
+      input.value = "";
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_BYTES) {
+      toast.error("Image must be less than 500 KB");
+      setValue("profilePicture", "");
+      setPreview("");
+      input.value = ""; // important: same file select again triggers onChange
+      return;
+    }
+
+    try {
+      const { dataUrl, base64 } = await fileToBase64(file);
+      setPreview(dataUrl);
+      setValue("profilePicture", base64, { shouldDirty: true });
+    } catch {
+      toast.error("Unable to process image");
+    } finally {
+      input.value = "";
+    }
+  };
 
   const onSubmit = handleSubmit(async (v) => {
     const orgIdNum = Number(v.orgId);
@@ -249,10 +298,6 @@ export default function Page() {
               />
 
               <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-medium text-slate-900">
-                  Role
-                </label>
-
                 <Controller
                   control={control}
                   name="roleId"
@@ -260,12 +305,13 @@ export default function Page() {
                   render={({ field, fieldState }) => (
                     <div className="space-y-2">
                       <DropdownFilter
+                        label="Role"
                         value={field.value}
                         onChange={field.onChange}
                         placeholder="Select role"
                         options={ROLE_OPTIONS}
                         className={cn(
-                          "h-11 rounded-2xl",
+                          "h-11 py-5 rounded-2xl",
                           fieldState.invalid && "border border-red-500",
                         )}
                         allowClear={false}
@@ -337,7 +383,7 @@ export default function Page() {
                   control={control}
                   name="phone"
                   label="Phone"
-                  placeholder="9876543210"
+                  placeholder="0123456789"
                   className="h-11 rounded-2xl"
                   leftIcon={<Phone className="h-4 w-4" />}
                   rules={{ required: "Phone is required" }}
@@ -387,19 +433,7 @@ export default function Page() {
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-
-                      if (file.size > 500 * 1024) {
-                        toast.error("Image must be less than 500KB");
-                        return;
-                      }
-
-                      const { dataUrl, base64 } = await fileToBase64(file);
-                      setPreview(dataUrl);
-                      setValue("profilePicture", base64);
-                    }}
+                    onChange={onProfileImageChange}
                   />
                 </label>
               </div>
@@ -448,23 +482,68 @@ export default function Page() {
                   rules={{ required: "Required" }}
                 />
 
-                <InputField
-                  control={control}
-                  name="permanantAddress.city"
-                  label="City"
-                  placeholder="City"
-                  className="h-11 rounded-2xl"
-                  rules={{ required: "Required" }}
-                />
+                <div className="flex gap-6">
+                  <Controller
+                    control={control}
+                    name="communicationAddress.state"
+                    rules={{ required: "State is required" }}
+                    render={({ field, fieldState }) => (
+                      <div className="space-y-2">
+                        <DropdownFilter
+                          label="State"
+                          value={field.value}
+                          onChange={(val) => {
+                            field.onChange(val);
+                            setValue("communicationAddress.city", "");
+                          }}
+                          placeholder="Select State"
+                          options={stateOptions}
+                          className={cn(
+                            "h-11 py-5 rounded-2xl",
+                            fieldState.invalid && "border border-red-500",
+                          )}
+                          allowClear={false}
+                        />
+                        {fieldState.invalid && (
+                          <p className="text-xs text-red-600">
+                            {fieldState.error?.message ?? "State is required"}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  />
 
-                <InputField
-                  control={control}
-                  name="permanantAddress.state"
-                  label="State"
-                  placeholder="State"
-                  className="h-11 rounded-2xl md:col-span-2"
-                  rules={{ required: "Required" }}
-                />
+                  <Controller
+                    control={control}
+                    name="communicationAddress.city"
+                    rules={{ required: "City is required" }}
+                    render={({ field, fieldState }) => (
+                      <div className="space-y-2">
+                        <DropdownFilter
+                          label="City"
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder={
+                            selectedCommState
+                              ? "Select City"
+                              : "Select state first"
+                          }
+                          options={commCityOptions}
+                          className={cn(
+                            "h-11 py-5 rounded-2xl",
+                            fieldState.invalid && "border border-red-500",
+                          )}
+                          allowClear={false}
+                        />
+                        {fieldState.invalid && (
+                          <p className="text-xs text-red-600">
+                            {fieldState.error?.message ?? "City is required"}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  />
+                </div>
               </div>
             </div>
 
@@ -519,72 +598,68 @@ export default function Page() {
                     rules={{ required: "Required" }}
                   />
 
-                  {/* ✅ DropdownFilter for State */}
-                  <Controller
-                    control={control}
-                    name="communicationAddress.state"
-                    rules={{ required: "State is required" }}
-                    render={({ field, fieldState }) => (
-                      <div className="space-y-2">
-                        <label className="mb-2 block text-sm font-medium text-slate-900">
-                          State
-                        </label>
-                        <DropdownFilter
-                          value={field.value}
-                          onChange={(val) => {
-                            field.onChange(val);
-                            setValue("communicationAddress.city", "");
-                          }}
-                          placeholder="Select State"
-                          options={stateOptions}
-                          className={cn(
-                            "h-11 rounded-2xl",
-                            fieldState.invalid && "border border-red-500",
+                  <div className="flex gap-6">
+                    <Controller
+                      control={control}
+                      name="permanantAddress.state"
+                      rules={{ required: "State is required" }}
+                      render={({ field, fieldState }) => (
+                        <div>
+                          <DropdownFilter
+                            label="State"
+                            value={field.value}
+                            onChange={(val) => {
+                              field.onChange(val);
+                              setValue("permanantAddress.city", "");
+                            }}
+                            placeholder="Select State"
+                            options={stateOptions}
+                            className={cn(
+                              "h-11 py-5 rounded-2xl",
+                              fieldState.invalid && "border border-red-500",
+                            )}
+                            allowClear={false}
+                          />
+                          {fieldState.invalid && (
+                            <p className="text-xs text-red-600">
+                              {fieldState.error?.message}
+                            </p>
                           )}
-                          allowClear={false}
-                        />
-                        {fieldState.invalid && (
-                          <p className="text-xs text-red-600">
-                            {fieldState.error?.message ?? "State is required"}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  />
+                        </div>
+                      )}
+                    />
 
-                  {/* ✅ DropdownFilter for City */}
-                  <Controller
-                    control={control}
-                    name="communicationAddress.city"
-                    rules={{ required: "City is required" }}
-                    render={({ field, fieldState }) => (
-                      <div className="space-y-2">
-                        <label className="mb-2 block text-sm font-medium text-slate-900">
-                          City
-                        </label>
-                        <DropdownFilter
-                          value={field.value}
-                          onChange={field.onChange}
-                          placeholder={
-                            selectedCommState
-                              ? "Select City"
-                              : "Select state first"
-                          }
-                          options={commCityOptions}
-                          className={cn(
-                            "h-11 rounded-2xl",
-                            fieldState.invalid && "border border-red-500",
+                    <Controller
+                      control={control}
+                      name="permanantAddress.city"
+                      rules={{ required: "City is required" }}
+                      render={({ field, fieldState }) => (
+                        <div className="space-y-2">
+                          <DropdownFilter
+                            label="City"
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder={
+                              selectedPermanentState
+                                ? "Select City"
+                                : "Select state first"
+                            }
+                            options={permanentCityOptions}
+                            className={cn(
+                              "h-11 py-5 rounded-2xl",
+                              fieldState.invalid && "border border-red-500",
+                            )}
+                            allowClear={false}
+                          />
+                          {fieldState.invalid && (
+                            <p className="text-xs text-red-600">
+                              {fieldState.error?.message}
+                            </p>
                           )}
-                          allowClear={false}
-                        />
-                        {fieldState.invalid && (
-                          <p className="text-xs text-red-600">
-                            {fieldState.error?.message ?? "City is required"}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  />
+                        </div>
+                      )}
+                    />
+                  </div>
                 </div>
               </div>
             )}
