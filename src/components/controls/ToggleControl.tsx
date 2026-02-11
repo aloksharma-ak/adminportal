@@ -9,9 +9,16 @@ interface Props {
   checked: boolean;
   onChange: (checked: boolean) => void;
   disabled?: boolean;
+  color?: string;
 }
 
-export function ToggleControl({ label, checked, onChange, disabled }: Props) {
+export function ToggleControl({
+  label,
+  checked,
+  onChange,
+  disabled,
+  color,
+}: Props) {
   const id = React.useId();
   return (
     <div className="flex items-center gap-2">
@@ -20,6 +27,11 @@ export function ToggleControl({ label, checked, onChange, disabled }: Props) {
         checked={checked}
         onCheckedChange={onChange}
         disabled={disabled}
+        style={
+          checked && color
+            ? { backgroundColor: color }
+            : { backgroundClip: "#000" }
+        }
       />
       <Label htmlFor={id}>{label}</Label>
     </div>

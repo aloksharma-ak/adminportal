@@ -53,6 +53,9 @@ importers:
       framer-motion:
         specifier: ^12.29.2
         version: 12.29.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      indian-states-cities-list:
+        specifier: ^1.0.5
+        version: 1.0.5
       lucide-react:
         specifier: ^0.563.0
         version: 0.563.0(react@19.2.3)
@@ -2122,6 +2125,9 @@ packages:
   imurmurhash@0.1.4:
     resolution: {integrity: sha512-JmXMZ6wuvDmLiHEml9ykzqO6lwFbof0GG4IkcGaENdCRDDmMVnny7s5HsIgHCbaq0w2MyPhDqkhTUgS2LU2PHA==}
     engines: {node: '>=0.8.19'}
+
+  indian-states-cities-list@1.0.5:
+    resolution: {integrity: sha512-/ImypyB1vx/szo+2ZuowBelDHjNgPobzRgynII1TqR8cQtXAnkC7fCAMyyc7x8Ho/DmaARu+ibdjxB2juqYiPQ==}
 
   internal-slot@1.1.0:
     resolution: {integrity: sha512-4gd7VpWNQNB4UKKCFFVcp1AVv+FMOgs9NKzjHKusc8jTMhd5eL1NqQqOpE0KzMds804/yHlglp3uxgluOqAPLw==}
@@ -5145,6 +5151,8 @@ snapshots:
       resolve-from: 4.0.0
 
   imurmurhash@0.1.4: {}
+
+  indian-states-cities-list@1.0.5: {}
 
   internal-slot@1.1.0:
     dependencies:

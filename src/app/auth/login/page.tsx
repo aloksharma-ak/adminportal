@@ -122,6 +122,8 @@ export default function LoginPage() {
           password: data.password,
           orgId: data.orgId,
           orgCode: data.orgCode,
+          orgName: org?.orgName,
+          brandColor: org?.brandColor,
           redirect: false,
         });
 
@@ -145,7 +147,7 @@ export default function LoginPage() {
         setLoading(false);
       }
     },
-    [router, resetMessages],
+    [router, org?.orgName, resetMessages],
   );
 
   const goBackToOrg = React.useCallback(() => {

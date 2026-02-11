@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-const PROTECTED_PREFIXES = ["/dashboard", "/profile", "/admin"];
+const PROTECTED_PREFIXES = ["/dashboard", "/user", "/admin"];
 const REDIRECT_IF_AUTHENTICATED = ["/", "/auth/login"];
 
 function startsWithAny(pathname: string, prefixes: string[]) {
@@ -45,7 +45,7 @@ export const config = {
     "/",
     "/auth/login",
     "/dashboard/:path*",
-    "/profile/:path*",
+    "/user/:path*",
     "/admin/:path*",
   ],
 };

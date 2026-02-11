@@ -27,6 +27,7 @@ import { createEmployee } from "@/app/utils";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { fileToBase64 } from "@/lib/image-session.client";
+import { useSession } from "next-auth/react";
 
 const ROLE_OPTIONS: DropdownOption[] = [
   { value: "1", label: "SuperAdmin" },
@@ -51,13 +52,15 @@ const ROLE_OPTIONS: DropdownOption[] = [
 ];
 
 export default function Page() {
+  const { data: session } = useSession();
+
   const [loading, setLoading] = React.useState(false);
   const [preview, setPreview] = React.useState<string>("");
 
   const form = useForm({
     mode: "onSubmit",
     defaultValues: {
-      orgId: "",
+      orgId: session?.user.orgId,
       roleId: undefined,
 
       firstName: "",
@@ -160,9 +163,6 @@ export default function Page() {
       <Card className="rounded-3xl border-slate-200/70 bg-white/70 backdrop-blur-xl">
         <CardHeader className="space-y-2">
           <CardTitle className="text-xl">Create Employee</CardTitle>
-          <p className="text-sm text-slate-600">
-            Fill the details below. All final validation happens on the server.
-          </p>
         </CardHeader>
 
         <CardContent>
@@ -173,9 +173,10 @@ export default function Page() {
                 control={control}
                 name="orgId"
                 label="Org ID"
-                placeholder="e.g. 10"
+                placeholder={session?.user.orgName}
                 className="h-11 rounded-2xl"
                 leftIcon={<Hash className="h-4 w-4" />}
+                disabled
                 rules={{
                   required: "OrgId is required",
                   validate: (v) =>
@@ -295,7 +296,7 @@ export default function Page() {
                       Profile Picture
                     </div>
                     <div className="text-xs text-slate-600">
-                      Upload an image (max 2MB). We send base64 to API.
+                      Upload an image (max 500KB)
                     </div>
                   </div>
 
@@ -305,7 +306,7 @@ export default function Page() {
                       alt="preview"
                       width={48}
                       height={48}
-                      className="h-12 w-12 rounded-2xl border object-cover"
+                      className="h-14 w-14 rounded-2xl border object-cover"
                       unoptimized
                     />
                   ) : (
@@ -326,8 +327,8 @@ export default function Page() {
                       const file = e.target.files?.[0];
                       if (!file) return;
 
-                      if (file.size > 2 * 1024 * 1024) {
-                        toast.error("Image must be <= 2MB");
+                      if (file.size > 500 * 1024) {
+                        toast.error("Image must be less than 500KB");
                         return;
                       }
 
@@ -419,6 +420,7 @@ export default function Page() {
               </div>
 
               <ToggleControl
+                color={session?.user.brandColor}
                 label=""
                 checked={sameAddress}
                 onChange={(v) =>
@@ -486,6 +488,7 @@ export default function Page() {
               </div>
 
               <ToggleControl
+                color={session?.user.brandColor}
                 label=""
                 checked={createCred}
                 onChange={(v) => setValue("isCreateCredential", v)}
@@ -530,6 +533,7 @@ export default function Page() {
 
             <ActionButton
               type="submit"
+              color={session?.user.brandColor}
               loading={loading}
               disabled={loading}
               className="h-11 w-full rounded-2xl"

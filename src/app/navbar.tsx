@@ -185,7 +185,7 @@ export default function Navbar(props: {
   orgCode: string;
   brandColor: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  impDetails: any;
+  impDetails?: any;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -373,7 +373,7 @@ export default function Navbar(props: {
 
                       <DropdownMenuItem asChild>
                         <Link
-                          href="/profile"
+                          href="/user/profile"
                           className="cursor-pointer rounded-xl"
                         >
                           Profile
