@@ -80,6 +80,3 @@ For Vercel:
 - This project is under active development
 - Features and structure may evolve over time
 
----
-
-**Admin Portal** – Built to simplify CUET preparation 💪
