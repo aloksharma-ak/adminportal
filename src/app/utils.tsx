@@ -126,14 +126,25 @@ export async function getAllowModules(params: { orgId: number }) {
     }),
   });
 
+  const json = await res.json().catch(() => null);
+
+  // ✅ Handle "No Modules allow" case
   if (!res.ok) {
-    const text = await res.text().catch(() => "");
+    if (
+      res.status === 400 &&
+      json?.message?.toLowerCase().includes("no modules")
+    ) {
+      return { ...json, data: [] };
+    }
+
     throw new Error(
-      `GetAllowModules failed (${res.status}): ${text || res.statusText}`,
+      `GetAllowModules failed (${res.status}): ${
+        json?.message || res.statusText
+      }`,
     );
   }
 
-  return res.json();
+  return json;
 }
 
 const AddressSchema = z.object({

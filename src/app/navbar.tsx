@@ -10,17 +10,10 @@ import { signOut, useSession } from "next-auth/react";
 import { Container } from "@/components/shared-ui/container";
 import { HamburgerButton } from "@/components/shared-ui/hamburger-button";
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { ActionButton, LinkButton } from "@/components/controls/Buttons";
 import Image from "next/image";
 import { getImagesFromSession } from "@/lib/image-session.client";
+import NavProfileCard from "@/components/shared-ui/nav-profile-card";
 
 type NavItem = { label: string; href: string };
 
@@ -40,15 +33,6 @@ const NAV: NavItem[] = [
 function isActivePath(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
   return pathname.startsWith(href);
-}
-
-function getDisplayName(sessionUser: AppUser): string {
-  return sessionUser?.userName || sessionUser?.firstName || "User";
-}
-
-function getInitial(name: string) {
-  const ch = (name || "U").trim().charAt(0);
-  return ch ? ch.toUpperCase() : "U";
 }
 
 function MobileMenu({
@@ -184,8 +168,8 @@ function MobileMenu({
 export default function Navbar(props: {
   orgCode: string;
   brandColor: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  impDetails?: any;
+  initials?: string;
+  profilePicture?: string;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -193,9 +177,6 @@ export default function Navbar(props: {
   const isAuthed = status === "authenticated";
 
   const user = session?.user as AppUser;
-
-  const userName = getDisplayName(user);
-  const userInitial = getInitial(userName);
 
   const [open, setOpen] = useState(false);
 
@@ -366,58 +347,12 @@ export default function Navbar(props: {
                     Login
                   </ActionButton>
                 ) : (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        type="button"
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white/70 text-sm font-bold text-blue-700 shadow-sm transition hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-blue-200 dark:hover:bg-white/10"
-                        aria-label="Open user menu"
-                      >
-                        {userInitial}
-                      </button>
-                    </DropdownMenuTrigger>
-
-                    <DropdownMenuContent
-                      align="end"
-                      className="w-64 rounded-2xl border-slate-200 bg-white/90 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/80"
-                    >
-                      <DropdownMenuLabel className="px-2 py-1.5">
-                        <div className="text-sm capitalize font-semibold text-slate-900 dark:text-white"></div>
-                        <div className="text-xs text-slate-600 dark:text-slate-300">
-                          @{userName}
-                        </div>
-                      </DropdownMenuLabel>
-
-                      <DropdownMenuSeparator className="bg-slate-200 dark:bg-white/10" />
-
-                      <DropdownMenuItem asChild>
-                        <Link
-                          href="/user/profile"
-                          className="cursor-pointer rounded-xl"
-                        >
-                          Profile
-                        </Link>
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem asChild>
-                        <Link
-                          href="/dashboard"
-                          className="cursor-pointer rounded-xl"
-                        >
-                          Dashboard
-                        </Link>
-                      </DropdownMenuItem>
-
-                      <DropdownMenuSeparator className="bg-slate-200 dark:bg-white/10" />
-
-                      <DropdownMenuItem
-                        onClick={doLogout}
-                        className="cursor-pointer rounded-xl text-red-700 focus:text-red-700 dark:text-red-300 dark:focus:text-red-300"
-                      >
-                        Logout
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <NavProfileCard
+                    initials={props.initials ?? " "}
+                    profilePicture={props.profilePicture ?? ""}
+                    doLogout={doLogout}
+                    username={user.userName ?? ""}
+                  />
                 )}
               </div>
             </div>
@@ -438,8 +373,8 @@ export default function Navbar(props: {
             pathname={pathname}
             nav={NAV}
             isAuthed={isAuthed}
-            userInitial={userInitial}
-            userName={userName}
+            userInitial={props.initials ?? ""}
+            userName={user.userName ?? ""}
             onLogin={goLogin}
             onLogout={doLogout}
             panelRef={panelRef}
