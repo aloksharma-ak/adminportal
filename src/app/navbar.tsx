@@ -255,7 +255,7 @@ export default function Navbar(props: {
 
   return (
     <motion.header
-      className="sticky inset-x-0 top-0 z-50 will-change-transform"
+      className="relative inset-x-0 top-0 z-50 will-change-transform"
       transition={{ type: "spring", stiffness: 500, damping: 40 }}
     >
       <nav
@@ -283,7 +283,7 @@ export default function Navbar(props: {
                     className="object-contain"
                   />
                 </div>
-              ) : (
+              ) : logoSrc ? (
                 <div className="relative aspect-square h-full max-h-12 md:max-h-14 lg:max-h-16">
                   <Image
                     src={logoSrc ?? ""}
@@ -295,6 +295,13 @@ export default function Navbar(props: {
                     className="object-contain"
                   />
                 </div>
+              ) : (
+                <h1
+                  className="text-base font-bold uppercase"
+                  style={{ color: props.brandColor }}
+                >
+                  {props.orgCode || "Portal"}
+                </h1>
               )}
             </Link>
 

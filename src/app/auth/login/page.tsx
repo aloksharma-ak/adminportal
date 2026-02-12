@@ -147,7 +147,7 @@ export default function LoginPage() {
         setLoading(false);
       }
     },
-    [router, org?.orgName, resetMessages],
+    [router, org?.brandColor, org?.orgName, resetMessages],
   );
 
   const goBackToOrg = React.useCallback(() => {

@@ -29,7 +29,11 @@ export async function getOrganisationDetail(orgCode: string) {
     throw new Error(body?.message || "Organisation not found");
   }
 
-  return body.data;
+  return {
+    success: true,
+    message: body?.message,
+    organisation: body.data,
+  };
 }
 
 export async function getEmployee(params: {
@@ -160,7 +164,14 @@ export type CreateEmployeePayload = z.infer<typeof CreateEmployeeSchema>;
 export async function createEmployee(input: CreateEmployeePayload) {
   if (!API_URL) throw new Error("API_URL is not set");
 
-  const data = CreateEmployeeSchema.parse(input);
+  const normalizedInput: CreateEmployeePayload = {
+    ...input,
+    communicationAddress: input.isCommunicationAddressSameAsPermanant
+      ? input.permanantAddress
+      : input.communicationAddress,
+  };
+
+  const data = CreateEmployeeSchema.parse(normalizedInput);
 
   const body = {
     requestGuid: crypto.randomUUID(),

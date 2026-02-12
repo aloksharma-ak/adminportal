@@ -141,7 +141,7 @@ export default function Page() {
     },
   });
 
-  const { control, handleSubmit, getValues, setValue } = form;
+  const { control, handleSubmit, setValue } = form;
 
   const sameAddress = form.watch("isCommunicationAddressSameAsPermanant");
   const createCred = form.watch("isCreateCredential");
@@ -163,12 +163,6 @@ export default function Page() {
       setValue("orgId", session.user.orgId);
     }
   }, [session?.user?.orgId, setValue]);
-
-  // ✅ if sameAddress => copy permanent -> communication
-  React.useEffect(() => {
-    if (!sameAddress) return;
-    setValue("communicationAddress", getValues("permanantAddress"));
-  }, [sameAddress, getValues, setValue]);
 
   const stateOptions = React.useMemo<DropdownOption[]>(
     () =>
@@ -485,7 +479,7 @@ export default function Page() {
                 <div className="flex gap-6">
                   <Controller
                     control={control}
-                    name="communicationAddress.state"
+                    name="permanantAddress.state"
                     rules={{ required: "State is required" }}
                     render={({ field, fieldState }) => (
                       <div className="space-y-2">
@@ -494,7 +488,7 @@ export default function Page() {
                           value={field.value}
                           onChange={(val) => {
                             field.onChange(val);
-                            setValue("communicationAddress.city", "");
+                            setValue("permanantAddress.city", "");
                           }}
                           placeholder="Select State"
                           options={stateOptions}
@@ -515,7 +509,7 @@ export default function Page() {
 
                   <Controller
                     control={control}
-                    name="communicationAddress.city"
+                    name="permanantAddress.city"
                     rules={{ required: "City is required" }}
                     render={({ field, fieldState }) => (
                       <div className="space-y-2">
@@ -524,11 +518,11 @@ export default function Page() {
                           value={field.value}
                           onChange={field.onChange}
                           placeholder={
-                            selectedCommState
+                            selectedPermanentState
                               ? "Select City"
                               : "Select state first"
                           }
-                          options={commCityOptions}
+                          options={permanentCityOptions}
                           className={cn(
                             "h-11 py-5 rounded-2xl",
                             fieldState.invalid && "border border-red-500",
@@ -601,16 +595,16 @@ export default function Page() {
                   <div className="flex gap-6">
                     <Controller
                       control={control}
-                      name="permanantAddress.state"
+                      name="communicationAddress.state"
                       rules={{ required: "State is required" }}
                       render={({ field, fieldState }) => (
-                        <div>
+                        <div className="space-y-2">
                           <DropdownFilter
                             label="State"
                             value={field.value}
                             onChange={(val) => {
                               field.onChange(val);
-                              setValue("permanantAddress.city", "");
+                              setValue("communicationAddress.city", "");
                             }}
                             placeholder="Select State"
                             options={stateOptions}
@@ -622,7 +616,7 @@ export default function Page() {
                           />
                           {fieldState.invalid && (
                             <p className="text-xs text-red-600">
-                              {fieldState.error?.message}
+                              {fieldState.error?.message ?? "State is required"}
                             </p>
                           )}
                         </div>
@@ -631,7 +625,7 @@ export default function Page() {
 
                     <Controller
                       control={control}
-                      name="permanantAddress.city"
+                      name="communicationAddress.city"
                       rules={{ required: "City is required" }}
                       render={({ field, fieldState }) => (
                         <div className="space-y-2">
@@ -640,11 +634,11 @@ export default function Page() {
                             value={field.value}
                             onChange={field.onChange}
                             placeholder={
-                              selectedPermanentState
+                              selectedCommState
                                 ? "Select City"
                                 : "Select state first"
                             }
-                            options={permanentCityOptions}
+                            options={commCityOptions}
                             className={cn(
                               "h-11 py-5 rounded-2xl",
                               fieldState.invalid && "border border-red-500",
@@ -653,7 +647,7 @@ export default function Page() {
                           />
                           {fieldState.invalid && (
                             <p className="text-xs text-red-600">
-                              {fieldState.error?.message}
+                              {fieldState.error?.message ?? "City is required"}
                             </p>
                           )}
                         </div>
