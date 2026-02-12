@@ -66,7 +66,10 @@ export default function NavProfileCard({
         <DropdownMenuSeparator className="bg-slate-200 dark:bg-white/10" />
 
         <DropdownMenuItem asChild>
-          <Link href="/user/profile" className="cursor-pointer rounded-xl">
+          <Link
+            href="/dashboard/users/profile"
+            className="cursor-pointer rounded-xl"
+          >
             Profile
           </Link>
         </DropdownMenuItem>

@@ -32,19 +32,26 @@ export default async function DashboardLayout({
   const profilePicture = impDetails.data.profilePicture;
 
   return (
-    <>
+    <div className="flex h-screen flex-col overflow-hidden">
+      {/* Navbar */}
       <Navbar
         orgCode={session.user.orgCode}
         brandColor={session.user.brandColor ?? ""}
         initials={initials}
         profilePicture={profilePicture}
       />
-      <main className="mt-20">{children}</main>
+
+      {/* ✅ Only this area scrolls */}
+      <main className="flex-1 overflow-y-auto custom-scroll py-16">
+        {children}
+      </main>
+
+      {/* Footer */}
       <Footer
         website={org.organisation.website}
         email={org.organisation.email}
         phone={org.organisation.phone}
       />
-    </>
+    </div>
   );
 }

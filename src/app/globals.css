@@ -200,23 +200,21 @@
   html,
   body {
     height: 100%;
+    overflow: hidden;
   }
 }
 
 /* Scrollbar */
-html::-webkit-scrollbar,
-body::-webkit-scrollbar {
+.custom-scroll::-webkit-scrollbar {
   width: 10px;
 }
 
-html::-webkit-scrollbar-track,
-body::-webkit-scrollbar-track {
+.custom-scroll::-webkit-scrollbar-track {
   background: var(--scrollbar-track);
   border-radius: 10px;
 }
 
-html::-webkit-scrollbar-thumb,
-body::-webkit-scrollbar-thumb {
+.custom-scroll::-webkit-scrollbar-thumb {
   background: linear-gradient(
     to top,
     var(--scrollbar-thumb),
@@ -226,8 +224,7 @@ body::-webkit-scrollbar-thumb {
   border: 2px solid var(--scrollbar-track);
 }
 
-html::-webkit-scrollbar-thumb:hover,
-body::-webkit-scrollbar-thumb:hover {
+.custom-scroll::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(
     to top,
     var(--scrollbar-thumb-hover),

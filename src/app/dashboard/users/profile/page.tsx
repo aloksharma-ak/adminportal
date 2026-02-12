@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { getEmployee } from "@/app/utils";
+import { Container } from "@/components/shared-ui/container";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
@@ -38,8 +39,6 @@ export default async function Page() {
     { label: "Phone", value: emp.phone ?? "-" },
     { label: "Secondary Phone", value: emp.secondaryPhone || "-" },
     { label: "Email", value: emp.email || "-" },
-    { label: "Profile ID", value: emp.profileId ?? "-" },
-    { label: "Org ID", value: emp.orgId ?? "-" },
     { label: "Role", value: emp.role?.roleName ?? "-" },
     { label: "PAN", value: emp.panNo || "-" },
     { label: "Aadhar", value: emp.aadharNo || "-" },
@@ -47,7 +46,7 @@ export default async function Page() {
   ];
 
   return (
-    <div className="p-6">
+    <Container>
       <div className="mb-4">
         <h1 className="text-xl font-semibold">Employee Details</h1>
         <p className="text-sm text-slate-600">{res.message}</p>
@@ -81,7 +80,6 @@ export default async function Page() {
                 <th className="px-4 py-3 text-left font-semibold">
                   Description
                 </th>
-                <th className="px-4 py-3 text-left font-semibold">Group</th>
               </tr>
             </thead>
             <tbody>
@@ -90,7 +88,6 @@ export default async function Page() {
                   <td className="px-4 py-3">{idx + 1}</td>
                   <td className="px-4 py-3 font-mono">{p.code}</td>
                   <td className="px-4 py-3">{p.description}</td>
-                  <td className="px-4 py-3">{p.permissionGroup}</td>
                 </tr>
               ))}
 
@@ -105,6 +102,6 @@ export default async function Page() {
           </table>
         </div>
       </div>
-    </div>
+    </Container>
   );
 }

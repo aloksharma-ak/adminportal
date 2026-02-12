@@ -248,7 +248,7 @@ export default function Navbar(props: {
 
   return (
     <motion.header
-      className="fixed inset-x-0 top-0 z-50 will-change-transform"
+      className="fixed inset-x-0 top-0 z-50 will-change-transform bg-white"
       transition={{ type: "spring", stiffness: 500, damping: 40 }}
     >
       <nav
@@ -258,7 +258,7 @@ export default function Navbar(props: {
         <Container>
           <div className="flex items-center justify-between">
             <Link
-              href="/"
+              href="/dashboard/"
               aria-label={props.orgCode}
               className="relative inline-flex h-14 items-center md:h-16"
             >
