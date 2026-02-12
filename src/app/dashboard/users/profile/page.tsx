@@ -46,7 +46,7 @@ export default async function Page() {
   ];
 
   return (
-    <Container>
+    <Container className="py-8">
       <div className="mb-4">
         <h1 className="text-xl font-semibold">Employee Details</h1>
         <p className="text-sm text-slate-600">{res.message}</p>
