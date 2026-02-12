@@ -251,7 +251,19 @@ export default function Navbar(props: {
     };
   }, [open, closeMenu]);
 
-  const { logoSrc, fullLogoSrc } = getImagesFromSession(props.orgCode);
+  const normalizedOrgCode = useMemo(
+    () => (props.orgCode ?? "").trim().toUpperCase(),
+    [props.orgCode],
+  );
+
+  const { logoSrc, fullLogoSrc } = useMemo(
+    () => getImagesFromSession(normalizedOrgCode),
+    [normalizedOrgCode],
+  );
+
+  console.log("orgCode:", normalizedOrgCode);
+  console.log("logoSrc:", logoSrc);
+  console.log("fullLogoSrc:", fullLogoSrc);
 
   return (
     <motion.header
@@ -266,7 +278,7 @@ export default function Navbar(props: {
           <div className="flex items-center justify-between">
             <Link
               href="/"
-              aria-label="CuetPlus Portal"
+              aria-label={props.orgCode}
               className="relative inline-flex h-14 items-center md:h-16 lg:h-20"
             >
               {fullLogoSrc ? (

@@ -6,7 +6,7 @@ import * as React from "react";
 
 import { signIn, useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
-import { ArrowLeft, Globe, Mail, Phone, ExternalLink } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 import { Spotlight } from "@/components/ui/spotlight";
 import { BorderBeam } from "@/components/ui/border-beam";
@@ -23,6 +23,7 @@ import {
   toImageSrc,
 } from "@/lib/image-session.client";
 import { getOrganisationDetail } from "@/app/utils";
+import Footer from "@/app/footer";
 
 function prettyAuthError(err?: string | null) {
   if (!err) return null;
@@ -77,23 +78,21 @@ export default function LoginPage() {
     async (orgCode: string) => {
       resetMessages();
       setLoading(true);
-
       const tId = toast.loading("Verifying organisation...");
 
       try {
         const result = await getOrganisationDetail(orgCode);
+        const organisation = result.organisation;
 
-        if (!result.success) {
-          toast.error(result.message || "Organisation verification failed", {
-            id: tId,
-          });
-          return;
-        }
+        setOrg(organisation);
+        form.setValue("orgId", String(organisation.orgId));
+        form.setValue(
+          "orgCode",
+          organisation.orgCode?.trim().toUpperCase() ??
+            orgCode.trim().toUpperCase(),
+        );
 
-        setOrg(result.organisation);
-        form.setValue("orgId", String(result.organisation.orgId));
         setStep("login");
-
         toast.success("Organisation verified. Please login.", { id: tId });
       } catch (err) {
         toast.error(
@@ -191,10 +190,6 @@ export default function LoginPage() {
     });
   }, [org?.orgCode, org?.logo, org?.fullLogo]);
 
-  const website = org?.website?.trim() || "";
-  const email = org?.email?.trim() || "";
-  const phone = org?.phone?.trim() || "";
-
   return (
     <main className="relative min-h-screen overflow-hidden bg-white dark:bg-slate-950">
       <Spotlight
@@ -282,78 +277,7 @@ export default function LoginPage() {
         </section>
 
         {org && (
-          <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-3">
-            {/* Visit Site */}
-            {website ? (
-              <a
-                href={website}
-                target="_blank"
-                rel="noreferrer"
-                className="group flex w-full items-center justify-between rounded-2xl border border-slate-200 px-4 py-3 text-sm transition hover:bg-slate-50 dark:border-white/10 dark:hover:bg-slate-900/60"
-              >
-                <span className="flex items-center gap-2 truncate">
-                  <Globe className="h-4 w-4 shrink-0" />
-                  <span className="truncate">{website}</span>
-                </span>
-                <ExternalLink className="h-4 w-4 shrink-0 opacity-70 transition group-hover:translate-x-0.5" />
-              </a>
-            ) : (
-              <div className="flex w-full items-center justify-between rounded-2xl border border-dashed border-slate-300 px-4 py-3 text-sm text-slate-500 dark:border-white/20 dark:text-slate-400">
-                <span className="flex items-center gap-2">
-                  <Globe className="h-4 w-4" />
-                </span>
-                <span>Not available</span>
-              </div>
-            )}
-
-            {/* Mailto */}
-            {email ? (
-              <a
-                href={`mailto:${email}`}
-                className="flex w-full items-center justify-between rounded-2xl border border-slate-200 px-4 py-3 text-sm transition hover:bg-slate-50 dark:border-white/10 dark:hover:bg-slate-900/60"
-              >
-                <span className="flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  Mailto
-                </span>
-                <span className="truncate pl-3 text-slate-700 dark:text-slate-300">
-                  {email}
-                </span>
-              </a>
-            ) : (
-              <div className="flex w-full items-center justify-between rounded-2xl border border-dashed border-slate-300 px-4 py-3 text-sm text-slate-500 dark:border-white/20 dark:text-slate-400">
-                <span className="flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  Mailto
-                </span>
-                <span>Not available</span>
-              </div>
-            )}
-
-            {/* Phone */}
-            {phone ? (
-              <a
-                href={`tel:${phone}`}
-                className="flex w-full items-center justify-between rounded-2xl border border-slate-200 px-4 py-3 text-sm transition hover:bg-slate-50 dark:border-white/10 dark:hover:bg-slate-900/60"
-              >
-                <span className="flex items-center gap-2">
-                  <Phone className="h-4 w-4" />
-                  Phone No.
-                </span>
-                <span className="pl-3 text-slate-700 dark:text-slate-300">
-                  {phone}
-                </span>
-              </a>
-            ) : (
-              <div className="flex w-full items-center justify-between rounded-2xl border border-dashed border-slate-300 px-4 py-3 text-sm text-slate-500 dark:border-white/20 dark:text-slate-400">
-                <span className="flex items-center gap-2">
-                  <Phone className="h-4 w-4" />
-                  Phone No.
-                </span>
-                <span>Not available</span>
-              </div>
-            )}
-          </div>
+          <Footer website={org.website} email={org.email} phone={org.phone} />
         )}
       </section>
     </main>

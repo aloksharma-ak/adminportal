@@ -1,9 +1,24 @@
 "use server";
+import { Organisation } from "@/shared-types/organisation.types";
 import { z } from "zod";
 
 const API_URL = process.env.API_URL;
 
-export async function getOrganisationDetail(orgCode: string) {
+type GetOrganisationDetailApiResponse = {
+  status?: boolean;
+  message?: string;
+  data?: Partial<Organisation> & { OrgId?: number; OrgCode?: string };
+};
+
+type GetOrganisationDetailResult = {
+  success: true;
+  message?: string;
+  organisation: Organisation;
+};
+
+export async function getOrganisationDetail(
+  orgCode: string,
+): Promise<GetOrganisationDetailResult> {
   if (!API_URL) throw new Error("API_URL is not set");
 
   const code = orgCode.trim().toUpperCase();
@@ -23,16 +38,42 @@ export async function getOrganisationDetail(orgCode: string) {
     );
   }
 
-  const body = await res.json();
+  const body = (await res.json()) as GetOrganisationDetailApiResponse;
 
-  if (!body?.status || !body?.data?.orgId) {
+  const raw = body?.data;
+  const orgId = Number(raw?.orgId ?? raw?.OrgId ?? 0);
+  const orgCodeNormalized = String(raw?.orgCode ?? raw?.OrgCode ?? code)
+    .trim()
+    .toUpperCase();
+
+  if (!body?.status || !orgId) {
     throw new Error(body?.message || "Organisation not found");
   }
+
+  const organisation: Organisation = {
+    orgId,
+    orgName: raw?.orgName ?? "",
+    orgCode: orgCodeNormalized,
+    phone: raw?.phone ?? null,
+    email: raw?.email ?? null,
+    gstin: raw?.gstin ?? null,
+    panNo: raw?.panNo ?? null,
+    brandColor: raw?.brandColor ?? null,
+    logo: raw?.logo ?? null,
+    fullLogo: raw?.fullLogo ?? null,
+    stateCode: raw?.stateCode ?? null,
+    website: raw?.website ?? null,
+    addressLine1: raw?.addressLine1 ?? null,
+    addressLine2: raw?.addressLine2 ?? null,
+    pinCode: raw?.pinCode ?? null,
+    city: raw?.city ?? null,
+    state: raw?.state ?? null,
+  };
 
   return {
     success: true,
     message: body?.message,
-    organisation: body.data,
+    organisation,
   };
 }
 
