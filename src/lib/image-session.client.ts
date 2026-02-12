@@ -76,3 +76,26 @@ export function toImageSrc(rawLogo?: string | null) {
 
   return `data:image/png;base64,${raw}`;
 }
+
+export async function fileToBase64(file: File): Promise<{
+  dataUrl: string;
+  base64: string;
+}> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result !== "string") {
+        reject(new Error("Invalid file result"));
+        return;
+      }
+
+      const base64 = result.includes(",") ? result.split(",")[1] : result;
+      resolve({ dataUrl: result, base64 });
+    };
+
+    reader.readAsDataURL(file);
+  });
+}
