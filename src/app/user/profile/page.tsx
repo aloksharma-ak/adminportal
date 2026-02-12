@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { getEmployee } from "@/app/utils";
 import { getServerSession } from "next-auth";
