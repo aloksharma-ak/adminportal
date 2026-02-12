@@ -248,7 +248,7 @@ export default function Navbar(props: {
 
   return (
     <motion.header
-      className="relative inset-x-0 top-0 z-50 will-change-transform"
+      className="fixed inset-x-0 top-0 z-50 will-change-transform"
       transition={{ type: "spring", stiffness: 500, damping: 40 }}
     >
       <nav
@@ -260,7 +260,7 @@ export default function Navbar(props: {
             <Link
               href="/"
               aria-label={props.orgCode}
-              className="relative inline-flex h-14 items-center md:h-16 lg:h-20"
+              className="relative inline-flex h-14 items-center md:h-16"
             >
               {fullLogoSrc ? (
                 <div className="relative h-full w-43 md:w-55 lg:w-65">

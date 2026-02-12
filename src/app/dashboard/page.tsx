@@ -94,7 +94,7 @@ export default async function DashboardPage() {
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {modules.map((module) => {
               const IconComp = getIconByName(module.icon, module.moduleName);
-              const href = `/dashboard/module/${module.moduleId}`;
+              const href = `/dashboard/${module.moduleName.toLowerCase()}`;
 
               return (
                 <Link key={module.moduleId} href={href} className="group">
