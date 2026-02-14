@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { getStudentsByOrgId } from "./action";
 import StudentsGrid from "@/components/admission/students-grid";
+import { LinkButton } from "@/components/controls/Buttons";
 
 export default async function IndexAdmission() {
   const session = await getServerSession(authOptions);
@@ -12,7 +13,15 @@ export default async function IndexAdmission() {
 
   return (
     <div className="p-6">
-      <div>hhh</div>
+      {/* EnrollStudent */}
+      <div className="flex justify-end max-w-8xl mx-auto">
+        <LinkButton
+          color={session.user.brandColor}
+          href="/dashboard/admission/enroll-student"
+        >
+          Enroll Student
+        </LinkButton>
+      </div>
       <StudentsGrid data={students} brandColor={session.user.brandColor} />
     </div>
   );

@@ -6,12 +6,13 @@ import Indian_states_cities_list from "indian-states-cities-list";
 import { toast } from "sonner";
 import {
   User2,
-  LockIcon,
   Mail,
   Phone,
   ImageIcon,
   MapPin,
   Hash,
+  GraduationCap,
+  CalendarDays,
 } from "lucide-react";
 
 import { InputField } from "@/components/controls/InputField";
@@ -24,34 +25,19 @@ import { ActionButton } from "@/components/controls/Buttons";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { createEmployee } from "@/app/utils";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { fileToBase64 } from "@/lib/image-session.client";
-import { useSession } from "next-auth/react";
+import { enrollStudent } from "@/app/dashboard/admission/action";
 
 const MAX_IMAGE_BYTES = 500 * 1024;
 
-const ROLE_OPTIONS: DropdownOption[] = [
-  { value: "1", label: "SuperAdmin" },
-  { value: "2", label: "SchoolAdmin" },
-  { value: "3", label: "Principal" },
-  { value: "4", label: "HOD" },
-  { value: "5", label: "Teacher" },
-  { value: "6", label: "ExamController" },
-  { value: "7", label: "Student" },
-  { value: "8", label: "Parent" },
-  { value: "9", label: "Accountant" },
-  { value: "10", label: "HRManager" },
-  { value: "11", label: "AdmissionOfficer" },
-  { value: "12", label: "Receptionist" },
-  { value: "13", label: "TransportIncharge" },
-  { value: "14", label: "Librarian" },
-  { value: "15", label: "AssetsManager" },
-  { value: "16", label: "Counsellor" },
-  { value: "17", label: "Nurse" },
-  { value: "18", label: "ITSupport" },
-  { value: "19", label: "Auditor" },
+// TODO: replace with real class list (from API)
+const CLASS_OPTIONS: DropdownOption[] = [
+  { value: "1", label: "Class 1" },
+  { value: "2", label: "Class 2" },
+  { value: "3", label: "Class 3" },
+  { value: "4", label: "Class 4" },
 ];
 
 type Address = {
@@ -62,9 +48,10 @@ type Address = {
   state: string;
 };
 
-type EmployeeFormValues = {
+type FormValues = {
   orgId: number | string | undefined;
-  roleId: string | undefined;
+
+  classId: string | undefined;
 
   firstName: string;
   middleName: string;
@@ -73,35 +60,52 @@ type EmployeeFormValues = {
 
   phone: string;
   secondaryPhone: string;
+  aadharNo: string;
   email: string;
 
-  panNo: string;
-  aadharNo: string;
-  passportNo: string;
-
-  profilePicture: string;
+  profilePicture: string; // base64
 
   permanantAddress: Address;
-
   isCommunicationAddressSameAsPermanant: boolean;
   communicationAddress: Address;
 
-  isCreateCredential: boolean;
-  userName: string;
-  password: string;
+  previousSchoolName: string;
+  previousSchoolAddress: string;
+
+  fatherName: string;
+  fatherPhone: string;
+  fatherSecondaryPhone: string;
+  fatherAadharNo: string;
+  fatherEmail: string;
+
+  motherName: string;
+  motherPhone: string;
+  motherSecondaryPhone: string;
+  motherAadharNo: string;
+  motherEmail: string;
+
+  dob: string; // "YYYY-MM-DD"
+  religion: string;
+  cateogry: string;
+
+  contactPersonName: string;
+  contactPersonPhone: string;
 };
 
-export default function Page() {
-  const { data: session } = useSession();
-
+export default function EnrollStudentForm(props: {
+  orgId: number;
+  orgName?: string;
+  brandColor?: string;
+}) {
   const [loading, setLoading] = React.useState(false);
   const [preview, setPreview] = React.useState<string>("");
 
-  const form = useForm<EmployeeFormValues>({
+  const form = useForm<FormValues>({
     mode: "onSubmit",
     defaultValues: {
-      orgId: session?.user?.orgId,
-      roleId: undefined,
+      orgId: props.orgId,
+
+      classId: undefined,
 
       firstName: "",
       middleName: "",
@@ -110,11 +114,8 @@ export default function Page() {
 
       phone: "",
       secondaryPhone: "",
-      email: "",
-
-      panNo: "",
       aadharNo: "",
-      passportNo: "",
+      email: "",
 
       profilePicture: "",
 
@@ -135,16 +136,33 @@ export default function Page() {
         state: "",
       },
 
-      isCreateCredential: true,
-      userName: "",
-      password: "",
+      previousSchoolName: "",
+      previousSchoolAddress: "",
+
+      fatherName: "",
+      fatherPhone: "",
+      fatherSecondaryPhone: "",
+      fatherAadharNo: "",
+      fatherEmail: "",
+
+      motherName: "",
+      motherPhone: "",
+      motherSecondaryPhone: "",
+      motherAadharNo: "",
+      motherEmail: "",
+
+      dob: "",
+      religion: "",
+      cateogry: "",
+
+      contactPersonName: "",
+      contactPersonPhone: "",
     },
   });
 
   const { control, handleSubmit, setValue } = form;
 
   const sameAddress = form.watch("isCommunicationAddressSameAsPermanant");
-  const createCred = form.watch("isCreateCredential");
   const selectedPermanentState = form.watch("permanantAddress.state");
   const selectedCommState = form.watch("communicationAddress.state");
   const permanentAddress = form.watch("permanantAddress");
@@ -157,18 +175,11 @@ export default function Page() {
     });
   }, [sameAddress, permanentAddress, setValue]);
 
-  // session load ke baad orgId sync
-  React.useEffect(() => {
-    if (session?.user?.orgId !== undefined && session?.user?.orgId !== null) {
-      setValue("orgId", session.user.orgId);
-    }
-  }, [session?.user?.orgId, setValue]);
-
   const stateOptions = React.useMemo<DropdownOption[]>(
     () =>
       (Indian_states_cities_list.STATES_OBJECT ?? []).map((s) => ({
-        value: s.name, // key for STATE_WISE_CITIES
-        label: s.label, // UI text
+        value: s.name,
+        label: s.label,
       })),
     [],
   );
@@ -205,7 +216,7 @@ export default function Page() {
       toast.error("Image must be less than 500 KB");
       setValue("profilePicture", "");
       setPreview("");
-      input.value = ""; // important: same file select again triggers onChange
+      input.value = "";
       return;
     }
 
@@ -222,39 +233,67 @@ export default function Page() {
 
   const onSubmit = handleSubmit(async (v) => {
     const orgIdNum = Number(v.orgId);
-    const roleIdNum = Number(v.roleId);
+    const classIdNum = Number(v.classId);
 
-    if (!orgIdNum || orgIdNum <= 0) {
-      toast.error("OrgId is required");
-      return;
-    }
-    if (!roleIdNum || roleIdNum <= 0) {
-      toast.error("Role is required");
-      return;
-    }
-
-    if (v.isCreateCredential) {
-      if (!v.userName.trim()) return toast.error("Username is required");
-      if (!v.password.trim()) return toast.error("Password is required");
-    }
+    if (!orgIdNum || orgIdNum <= 0) return toast.error("OrgId is required");
+    if (!classIdNum || classIdNum <= 0) return toast.error("Class is required");
 
     setLoading(true);
-    const tId = toast.loading("Creating employee...");
+    const tId = toast.loading("Enrolling student...");
 
     try {
       const payload = {
-        ...v,
-        orgId: orgIdNum,
-        roleId: roleIdNum,
+        firstName: v.firstName.trim(),
+        middleName: v.middleName?.trim() || "",
+        lastName: v.lastName.trim(),
+        initials: v.initials?.trim() || "",
+
+        phone: v.phone.trim(),
+        secondaryPhone: v.secondaryPhone?.trim() || "",
+        aadharNo: v.aadharNo?.trim() || "",
+        email: v.email?.trim() || "",
+        profilePicture: v.profilePicture || null,
+
+        permanantAddress: v.permanantAddress,
+        isCommunicationAddressSameAsPermanant:
+          v.isCommunicationAddressSameAsPermanant,
         communicationAddress: v.isCommunicationAddressSameAsPermanant
           ? v.permanantAddress
           : v.communicationAddress,
+
+        classId: classIdNum,
+
+        previousSchoolName: v.previousSchoolName?.trim() || "",
+        previousSchoolAddress: v.previousSchoolAddress?.trim() || "",
+
+        fatherName: v.fatherName?.trim() || "",
+        fatherPhone: v.fatherPhone?.trim() || "",
+        fatherSecondaryPhone: v.fatherSecondaryPhone?.trim() || "",
+        fatherAadharNo: v.fatherAadharNo?.trim() || "",
+        fatherEmail: v.fatherEmail?.trim() || "",
+
+        motherName: v.motherName?.trim() || "",
+        motherPhone: v.motherPhone?.trim() || "",
+        motherSecondaryPhone: v.motherSecondaryPhone?.trim() || "",
+        motherAadharNo: v.motherAadharNo?.trim() || "",
+        motherEmail: v.motherEmail?.trim() || "",
+
+        dob: v.dob || null, // "YYYY-MM-DD"
+        religion: v.religion?.trim() || null,
+        cateogry: v.cateogry?.trim() || null,
+
+        contactPersonName: v.contactPersonName?.trim() || null,
+        contactPersonPhone: v.contactPersonPhone?.trim() || null,
       };
 
-      await createEmployee(payload);
+      const res = await enrollStudent({ orgId: orgIdNum, payload });
 
-      toast.success("Employee created", { id: tId });
-      form.reset();
+      if (!res?.status) {
+        throw new Error(res?.message || "Enroll failed");
+      }
+
+      toast.success(res?.message || "Student enrolled", { id: tId });
+      form.reset({ ...form.getValues(), profilePicture: "" });
       setPreview("");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Something went wrong", {
@@ -269,12 +308,12 @@ export default function Page() {
     <section className="mx-auto w-full max-w-5xl px-4 py-8">
       <Card className="rounded-3xl border-slate-200/70 bg-white/70 backdrop-blur-xl">
         <CardHeader className="space-y-2">
-          <CardTitle className="text-xl">Create Employee</CardTitle>
-          {session?.user?.orgName ? (
+          <CardTitle className="text-xl">Enroll Student</CardTitle>
+          {props.orgName ? (
             <p className="text-sm text-muted-foreground">
               Organization:{" "}
               <span className="font-medium text-foreground">
-                {session?.user?.orgName}
+                {props.orgName}
               </span>
             </p>
           ) : null}
@@ -282,13 +321,13 @@ export default function Page() {
 
         <CardContent>
           <form onSubmit={onSubmit} className="space-y-8" noValidate>
-            {/* Org + Role */}
+            {/* Org + Class */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <InputField
                 control={control}
                 name="orgId"
                 label="Org ID"
-                placeholder={session?.user?.orgName}
+                placeholder={props.orgName || "Org"}
                 className="h-11 rounded-2xl"
                 leftIcon={<Hash className="h-4 w-4" />}
                 disabled
@@ -302,16 +341,16 @@ export default function Page() {
               <div className="md:col-span-2">
                 <Controller
                   control={control}
-                  name="roleId"
-                  rules={{ required: "Role is required" }}
+                  name="classId"
+                  rules={{ required: "Class is required" }}
                   render={({ field, fieldState }) => (
                     <div className="space-y-2">
                       <DropdownFilter
-                        label="Role"
+                        label="Class"
                         value={field.value}
                         onChange={field.onChange}
-                        placeholder="Select role"
-                        options={ROLE_OPTIONS}
+                        placeholder="Select class"
+                        options={CLASS_OPTIONS}
                         className={cn(
                           "h-11 py-5 rounded-2xl",
                           fieldState.invalid && "border border-red-500",
@@ -320,7 +359,7 @@ export default function Page() {
                       />
                       {fieldState.invalid && (
                         <p className="text-xs text-red-600">
-                          {fieldState.error?.message ?? "Role is required"}
+                          {fieldState.error?.message ?? "Class is required"}
                         </p>
                       )}
                     </div>
@@ -341,13 +380,8 @@ export default function Page() {
                   placeholder="First name"
                   className="h-11 rounded-2xl"
                   leftIcon={<User2 className="h-4 w-4" />}
-                  rules={{
-                    required: "First name is required",
-                    validate: (v) =>
-                      String(v).trim() ? true : "First name is required",
-                  }}
+                  rules={{ required: "First name is required" }}
                 />
-
                 <InputField
                   control={control}
                   name="middleName"
@@ -355,22 +389,25 @@ export default function Page() {
                   placeholder="Optional"
                   className="h-11 rounded-2xl"
                 />
-
                 <InputField
                   control={control}
                   name="lastName"
                   label="Last Name"
                   placeholder="Last name"
                   className="h-11 rounded-2xl"
-                  rules={{
-                    required: "Last name is required",
-                    validate: (v) =>
-                      String(v).trim() ? true : "Last name is required",
-                  }}
+                  rules={{ required: "Last name is required" }}
                 />
               </div>
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <InputField
+                  control={control}
+                  name="initials"
+                  label="Initials"
+                  placeholder="e.g. VM"
+                  className="h-11 rounded-2xl"
+                  leftIcon={<GraduationCap className="h-4 w-4" />}
+                />
                 <InputField
                   control={control}
                   name="email"
@@ -378,9 +415,18 @@ export default function Page() {
                   placeholder="name@domain.com"
                   className="h-11 rounded-2xl"
                   leftIcon={<Mail className="h-4 w-4" />}
-                  rules={{ required: "Email is required" }}
                 />
+                <InputField
+                  control={control}
+                  name="dob"
+                  label="DOB"
+                  type="date"
+                  className="h-11 rounded-2xl"
+                  leftIcon={<CalendarDays className="h-4 w-4" />}
+                />
+              </div>
 
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <InputField
                   control={control}
                   name="phone"
@@ -390,11 +436,17 @@ export default function Page() {
                   leftIcon={<Phone className="h-4 w-4" />}
                   rules={{ required: "Phone is required" }}
                 />
-
                 <InputField
                   control={control}
                   name="secondaryPhone"
                   label="Secondary Phone"
+                  placeholder="Optional"
+                  className="h-11 rounded-2xl"
+                />
+                <InputField
+                  control={control}
+                  name="aadharNo"
+                  label="Aadhar No"
                   placeholder="Optional"
                   className="h-11 rounded-2xl"
                 />
@@ -416,8 +468,8 @@ export default function Page() {
                     <Image
                       src={preview}
                       alt="preview"
-                      width={48}
-                      height={48}
+                      width={56}
+                      height={56}
                       className="h-14 w-14 rounded-2xl border object-cover"
                       unoptimized
                     />
@@ -466,7 +518,6 @@ export default function Page() {
                   className="h-11 rounded-2xl"
                   rules={{ required: "Required" }}
                 />
-
                 <InputField
                   control={control}
                   name="permanantAddress.addressLine2"
@@ -474,7 +525,6 @@ export default function Page() {
                   placeholder="Optional"
                   className="h-11 rounded-2xl"
                 />
-
                 <InputField
                   control={control}
                   name="permanantAddress.pinCode"
@@ -561,7 +611,7 @@ export default function Page() {
               </div>
 
               <ToggleControl
-                color={session?.user?.brandColor}
+                color={props.brandColor}
                 label=""
                 checked={sameAddress}
                 onChange={(v) =>
@@ -584,14 +634,12 @@ export default function Page() {
                     className="h-11 rounded-2xl"
                     rules={{ required: "Required" }}
                   />
-
                   <InputField
                     control={control}
                     name="communicationAddress.addressLine2"
                     label="Address Line 2"
                     className="h-11 rounded-2xl"
                   />
-
                   <InputField
                     control={control}
                     name="communicationAddress.pinCode"
@@ -668,69 +716,109 @@ export default function Page() {
 
             <Separator />
 
-            {/* Credential toggle */}
-            <div className="flex items-center justify-between rounded-2xl border border-slate-200 p-4">
-              <div>
-                <div className="text-sm font-semibold text-slate-900">
-                  Create login credentials
-                </div>
-                <div className="text-xs text-slate-600">
-                  Enable to set username & password
-                </div>
+            {/* Previous school */}
+            <div className="space-y-4">
+              <div className="text-sm font-semibold text-slate-900">
+                Previous School (Optional)
               </div>
-
-              <ToggleControl
-                color={session?.user?.brandColor}
-                label=""
-                checked={createCred}
-                onChange={(v) => setValue("isCreateCredential", v)}
-              />
-            </div>
-
-            {createCred && (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <InputField
                   control={control}
-                  name="userName"
-                  label="Username"
-                  placeholder="username"
+                  name="previousSchoolName"
+                  label="School Name"
                   className="h-11 rounded-2xl"
-                  leftIcon={<User2 className="h-4 w-4" />}
-                  rules={{
-                    validate: (v) =>
-                      !createCred || String(v).trim()
-                        ? true
-                        : "Username is required",
-                  }}
+                  placeholder="Optional"
                 />
-
                 <InputField
                   control={control}
-                  name="password"
-                  label="Password"
-                  type="password"
-                  placeholder="••••••••"
+                  name="previousSchoolAddress"
+                  label="School Address"
                   className="h-11 rounded-2xl"
-                  leftIcon={<LockIcon className="h-4 w-4" />}
-                  showPasswordToggle
-                  rules={{
-                    validate: (v) =>
-                      !createCred || String(v).trim()
-                        ? true
-                        : "Password is required",
-                  }}
+                  placeholder="Optional"
                 />
               </div>
-            )}
+            </div>
+
+            <Separator />
+
+            {/* Parents */}
+            <div className="space-y-4">
+              <div className="text-sm font-semibold text-slate-900">
+                Parent Details (Optional)
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <InputField
+                  control={control}
+                  name="fatherName"
+                  label="Father Name"
+                  className="h-11 rounded-2xl"
+                />
+                <InputField
+                  control={control}
+                  name="motherName"
+                  label="Mother Name"
+                  className="h-11 rounded-2xl"
+                />
+                <InputField
+                  control={control}
+                  name="fatherPhone"
+                  label="Father Phone"
+                  className="h-11 rounded-2xl"
+                />
+                <InputField
+                  control={control}
+                  name="motherPhone"
+                  label="Mother Phone"
+                  className="h-11 rounded-2xl"
+                />
+                <InputField
+                  control={control}
+                  name="fatherEmail"
+                  label="Father Email"
+                  className="h-11 rounded-2xl"
+                />
+                <InputField
+                  control={control}
+                  name="motherEmail"
+                  label="Mother Email"
+                  className="h-11 rounded-2xl"
+                />
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Other */}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <InputField
+                control={control}
+                name="religion"
+                label="Religion"
+                className="h-11 rounded-2xl"
+              />
+              <InputField
+                control={control}
+                name="cateogry"
+                label="Category"
+                className="h-11 rounded-2xl"
+              />
+              <InputField
+                control={control}
+                name="contactPersonPhone"
+                label="Emergency Contact Phone"
+                className="h-11 rounded-2xl"
+              />
+            </div>
 
             <ActionButton
               type="submit"
-              color={session?.user?.brandColor}
+              color={props.brandColor}
               loading={loading}
               disabled={loading}
               className="h-11 w-full rounded-2xl"
             >
-              Create Employee
+              Enroll Student
             </ActionButton>
           </form>
         </CardContent>
