@@ -8,8 +8,8 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 type Permission = {
-  id?:          number | string;
-  code?:        string;
+  id?: number | string;
+  code?: string;
   description?: string;
 };
 
@@ -21,7 +21,7 @@ export default async function ProfilePage() {
 
   const res = await getEmployee({
     profileId: session.user.profileId,
-    orgId:     session.user.orgId,
+    orgId: session.user.orgId,
   });
 
   const emp = res?.data;
@@ -43,19 +43,21 @@ export default async function ProfilePage() {
     .trim();
 
   const info: Array<{ label: string; value: React.ReactNode }> = [
-    { label: "Employee ID",    value: emp.empId           ?? "—" },
-    { label: "Name",           value: fullName             || "—" },
-    { label: "Initials",       value: emp.initials         ?? "—" },
-    { label: "Phone",          value: emp.phone            ?? "—" },
-    { label: "Secondary Phone",value: emp.secondaryPhone   || "—" },
-    { label: "Email",          value: emp.email            || "—" },
-    { label: "Role",           value: emp.role?.roleName   ?? "—" },
-    { label: "PAN",            value: emp.panNo            || "—" },
-    { label: "Aadhar",         value: emp.aadharNo         || "—" },
-    { label: "Passport",       value: emp.passportNo       || "—" },
+    { label: "Employee ID", value: emp.empId ?? "—" },
+    { label: "Name", value: fullName || "—" },
+    { label: "Initials", value: emp.initials ?? "—" },
+    { label: "Phone", value: emp.phone ?? "—" },
+    { label: "Secondary Phone", value: emp.secondaryPhone || "—" },
+    { label: "Email", value: emp.email || "—" },
+    { label: "Role", value: emp.role?.roleName ?? "—" },
+    { label: "PAN", value: emp.panNo || "—" },
+    { label: "Aadhar", value: emp.aadharNo || "—" },
+    { label: "Passport", value: emp.passportNo || "—" },
   ];
 
-  const permissions: Permission[] = Array.isArray(emp.permissions) ? emp.permissions : [];
+  const permissions: Permission[] = Array.isArray(emp.permissions)
+    ? emp.permissions
+    : [];
 
   return (
     <Container className="py-8">

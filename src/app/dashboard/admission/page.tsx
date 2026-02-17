@@ -17,8 +17,7 @@ export default async function AdmissionPage() {
   try {
     students = await getStudentsByOrgId(session.user.orgId);
   } catch (err) {
-    fetchError =
-      err instanceof Error ? err.message : "Failed to load students";
+    fetchError = err instanceof Error ? err.message : "Failed to load students";
   }
 
   return (
@@ -51,10 +50,7 @@ export default async function AdmissionPage() {
           </CardContent>
         </Card>
       ) : (
-        <StudentsGrid
-          data={students}
-          brandColor={session.user.brandColor}
-        />
+        <StudentsGrid data={students} brandColor={session.user.brandColor} />
       )}
     </div>
   );
