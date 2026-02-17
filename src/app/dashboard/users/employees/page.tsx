@@ -19,7 +19,8 @@ export default async function EmployeesPage() {
     const res = await getEmployeeList({ orgId: session.user.orgId });
     employees = Array.isArray(res?.data) ? res.data : [];
   } catch (err) {
-    fetchError = err instanceof Error ? err.message : "Failed to load employees";
+    fetchError =
+      err instanceof Error ? err.message : "Failed to load employees";
   }
 
   return (
@@ -36,8 +37,12 @@ export default async function EmployeesPage() {
 
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Employees</h1>
-          <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">All staff members in your organisation</p>
+          <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+            Employees
+          </h1>
+          <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+            All staff members in your organisation
+          </p>
         </div>
         <LinkButton
           href="/dashboard/users/employees/create"
@@ -51,11 +56,16 @@ export default async function EmployeesPage() {
       {fetchError ? (
         <Card>
           <CardContent className="py-10 text-center">
-            <p className="text-sm text-red-600 dark:text-red-400">{fetchError}</p>
+            <p className="text-sm text-red-600 dark:text-red-400">
+              {fetchError}
+            </p>
           </CardContent>
         </Card>
       ) : (
-        <EmployeeListGrid data={employees} brandColor={session.user.brandColor} />
+        <EmployeeListGrid
+          data={employees}
+          brandColor={session.user.brandColor}
+        />
       )}
     </div>
   );

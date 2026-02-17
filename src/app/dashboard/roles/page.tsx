@@ -24,7 +24,9 @@ export default async function RolesPage() {
   return (
     <section className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
       <div className="mb-8">
-        <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Roles & Permissions</h1>
+        <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+          Roles & Permissions
+        </h1>
         <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
           Select a role to view and manage its permissions
         </p>
@@ -33,20 +35,28 @@ export default async function RolesPage() {
       {fetchError ? (
         <Card>
           <CardContent className="py-10 text-center">
-            <p className="text-sm text-red-600 dark:text-red-400">{fetchError}</p>
+            <p className="text-sm text-red-600 dark:text-red-400">
+              {fetchError}
+            </p>
           </CardContent>
         </Card>
       ) : roles.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <Shield className="mx-auto mb-3 h-8 w-8 text-slate-300" />
-            <p className="text-sm text-slate-500">No roles configured for this organisation.</p>
+            <p className="text-sm text-slate-500">
+              No roles configured for this organisation.
+            </p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {roles.map((role) => (
-            <Link key={role.roleId} href={`/dashboard/roles/${role.roleId}`} className="group">
+            <Link
+              key={role.roleId}
+              href={`/dashboard/roles/${role.roleId}`}
+              className="group"
+            >
               <Card className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <div className="flex items-center gap-3">

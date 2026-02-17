@@ -22,7 +22,7 @@ export default async function DashboardLayout({
     getOrganisationDetail(session.user.orgCode),
     getEmployee({
       profileId: session.user.profileId,
-      orgId:     session.user.orgId,
+      orgId: session.user.orgId,
     }),
   ]);
 
@@ -30,9 +30,15 @@ export default async function DashboardLayout({
     redirect("/auth/login");
   }
 
-  const org      = orgResult.value.organisation;
-  const initials = empResult.status === "fulfilled" ? (empResult.value?.data?.initials ?? "") : "";
-  const profilePicture = empResult.status === "fulfilled" ? (empResult.value?.data?.profilePicture ?? "") : "";
+  const org = orgResult.value.organisation;
+  const initials =
+    empResult.status === "fulfilled"
+      ? (empResult.value?.data?.initials ?? "")
+      : "";
+  const profilePicture =
+    empResult.status === "fulfilled"
+      ? (empResult.value?.data?.profilePicture ?? "")
+      : "";
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">
@@ -48,11 +54,7 @@ export default async function DashboardLayout({
         {children}
       </main>
 
-      <Footer
-        website={org.website}
-        email={org.email}
-        phone={org.phone}
-      />
+      <Footer website={org.website} email={org.email} phone={org.phone} />
     </div>
   );
 }

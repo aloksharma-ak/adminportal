@@ -16,7 +16,8 @@ export default async function RoleDetailPage({ params }: PageProps) {
   const roleId = Number(id);
   if (!Number.isInteger(roleId) || roleId <= 0) notFound();
 
-  let roleData: Awaited<ReturnType<typeof getRolePermissions>>["data"] | null = null;
+  let roleData: Awaited<ReturnType<typeof getRolePermissions>>["data"] | null =
+    null;
   let fetchError: string | null = null;
 
   try {

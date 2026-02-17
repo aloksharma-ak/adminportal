@@ -186,7 +186,8 @@ export async function getOrganisationDetail(
 export async function getEmployee(params: {
   profileId: number;
   orgId: number;
-}) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+}): Promise<any> {
   const base = requireUrl(API_URL, "API_URL");
   if (!Number.isFinite(params.profileId) || params.profileId <= 0)
     throw new Error("Invalid employee ID");
