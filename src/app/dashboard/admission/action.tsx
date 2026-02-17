@@ -158,10 +158,14 @@ export async function getStudentsByOrgId(orgId: number) {
   return Array.isArray(data?.data) ? data.data : [];
 }
 
+type GetStudentDetailResponse = {
+  data: Student;
+};
+
 export async function getStudentDetail(params: {
   orgId: number;
   studentId: number | string;
-}) {
+}): Promise<GetStudentDetailResponse> {
   const orgId = Number(params.orgId);
   const studentId = parseInt(String(params.studentId), 10);
   if (!Number.isFinite(orgId) || orgId <= 0)
