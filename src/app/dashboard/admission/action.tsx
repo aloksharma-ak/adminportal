@@ -196,7 +196,6 @@ export async function enrollStudent(params: { payload: EnrollStudentPayload }) {
     throw new Error("Communication address is required");
   }
 
-  console.log("Enroll payload---------->:", p);
 
   return post<ApiResponse<unknown>>("/api/Student/EnrollStudent", {
     ...reqMeta(),

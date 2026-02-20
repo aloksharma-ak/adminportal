@@ -8,12 +8,12 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "credentials",
       credentials: {
-        username:   { label: "Username",   type: "text"     },
-        password:   { label: "Password",   type: "password" },
-        orgId:      { label: "OrgId",      type: "text"     },
-        orgCode:    { label: "OrgCode",    type: "text"     },
-        orgName:    { label: "OrgName",    type: "text"     },
-        brandColor: { label: "BrandColor", type: "text"     },
+        username: { label: "Username", type: "text" },
+        password: { label: "Password", type: "password" },
+        orgId: { label: "OrgId", type: "text" },
+        orgCode: { label: "OrgCode", type: "text" },
+        orgName: { label: "OrgName", type: "text" },
+        brandColor: { label: "BrandColor", type: "text" },
       },
 
       async authorize(credentials) {
@@ -22,19 +22,19 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const username   = credentials?.username?.trim();
-        const password   = credentials?.password;
-        const orgId      = Number(credentials?.orgId);
-        const orgCode    = credentials?.orgCode?.trim().toUpperCase();
-        const orgName    = credentials?.orgName?.trim();
+        const username = credentials?.username?.trim();
+        const password = credentials?.password;
+        const orgId = Number(credentials?.orgId);
+        const orgCode = credentials?.orgCode?.trim().toUpperCase();
+        const orgName = credentials?.orgName?.trim();
         const brandColor = credentials?.brandColor?.trim();
 
-        if (!username || !password)                         return null;
-        if (!Number.isFinite(orgId) || orgId <= 0)          return null;
+        if (!username || !password) return null;
+        if (!Number.isFinite(orgId) || orgId <= 0) return null;
 
         try {
           const res = await fetch(`${BASE_API_URL}/api/Login/validate`, {
-            method:  "POST",
+            method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               requestGuid: crypto.randomUUID(),
@@ -49,12 +49,12 @@ export const authOptions: NextAuthOptions = {
 
           const body = await res.json();
           const profileId = Number(body?.data?.profileId);
-          const userName  = String(body?.data?.userName ?? username);
+          const userName = String(body?.data?.userName ?? username);
 
           if (!Number.isFinite(profileId) || profileId <= 0) return null;
 
           return {
-            id:         String(profileId),
+            id: String(profileId),
             profileId,
             userName,
             orgId,
@@ -90,8 +90,8 @@ export const authOptions: NextAuthOptions = {
   },
 
   pages: {
-    signIn:  "/auth/login",
+    signIn: "/auth/login",
     signOut: "/auth/logout",
-    error:   "/auth/login",
+    error: "/auth/login",
   },
 };

@@ -96,6 +96,7 @@ const CreateEmployeeSchema = z
     passportNo: z.string().trim().optional().default(""),
     email: z.string().trim().email("Invalid email address"),
     roleId: z.number().int().positive("Role is required"),
+    empId: z.number().int().optional(),
     profilePicture: z.string().optional().default(""),
     permanantAddress: AddressSchema,
     isCommunicationAddressSameAsPermanant: z.boolean(),
@@ -186,8 +187,7 @@ export async function getOrganisationDetail(
 export async function getEmployee(params: {
   profileId: number;
   orgId: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-}): Promise<any> {
+}): Promise<ApiResponse<EmployeeDetail>> {
   const base = requireUrl(API_URL, "API_URL");
   if (!Number.isFinite(params.profileId) || params.profileId <= 0)
     throw new Error("Invalid employee ID");
@@ -220,6 +220,7 @@ export async function createEmployee(input: CreateEmployeePayload) {
       : input.communicationAddress,
   };
   const data = CreateEmployeeSchema.parse(normalized);
+
   return apiPost(base, "/api/User/CreateEmployee", {
     ...reqMeta(),
     ...data,
@@ -228,6 +229,7 @@ export async function createEmployee(input: CreateEmployeePayload) {
       : data.communicationAddress,
   });
 }
+
 
 export async function getAllowModules(params: { orgId: number }) {
   const base = requireUrl(API_URL, "API_URL");
@@ -360,16 +362,60 @@ export type RolePermissionDetail = {
 };
 
 export type EmployeeListItem = {
-  empId: number;
+ empId: number;
+  empName: string;
+  initials?: string;
   profileId: number;
-  firstName: string;
-  middleName?: string;
-  lastName: string;
-  initials: string;
-  phone: string;
-  email: string;
-  role?: { roleId: number; roleName: string };
+  userName: string | null;
+  roleName: string;
   isActive: boolean;
+};
+
+export type EmployeePermission = {
+  id: number;
+  code: string;
+  description: string;
+  permissionGroup: number;
+};
+
+export type EmployeeDetail = {
+  empId: number;
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  initials?: string;
+  phone: string;
+  secondaryPhone: string;
+  panNo: string;
+  aadharNo: string;
+  passportNo: string;
+  email: string;
+  profileId: number;
+  profilePicture: string | null;
+  orgId: number;
+  permanantAddress: {
+    addressLine1: string;
+    addressLine2: string;
+    pinCode: string;
+    city: string;
+    state: string;
+  };
+  communicationAddress: {
+    addressLine1: string;
+    addressLine2: string;
+    pinCode: string;
+    city: string;
+    state: string;
+  };
+  role: {
+    id: number;
+    roleName: string;
+    isActive: boolean;
+  };
+  isActive: boolean;
+  isCredentialsCreated: boolean;
+  username: string;
+  permissions: EmployeePermission[];
 };
 
 export type ClassOption = {
@@ -378,8 +424,12 @@ export type ClassOption = {
 };
 
 export type MasterData = {
-  roles?: Role[];
-  modules?: { moduleId: number; moduleName: string }[];
+  roleMaster?: {
+    id: number;
+    roleName: string;
+    isActive: boolean;
+  }[];
+  modules?: { moduleId: number; moduleName: string; icon?: string | null }[];
 };
 
 export type AdmissionMasterData = {

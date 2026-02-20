@@ -6,22 +6,28 @@ import EmployeeListGrid from "@/components/users/employee-list-grid";
 import { LinkButton } from "@/components/controls/Buttons";
 import { UserPlus, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
+
+type EmployeeListItem = {
+  empId: number;
+  empName: string;
+  initials?: string;
+  profileId: number;
+  userName: string | null;
+  roleName: string;
+  isActive: boolean;
+};
 
 export default async function EmployeesPage() {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/auth/login");
 
-  let employees: Awaited<ReturnType<typeof getEmployeeList>>["data"] = [];
-  let fetchError: string | null = null;
+  const res = await getEmployeeList({ orgId: session.user.orgId });
 
-  try {
-    const res = await getEmployeeList({ orgId: session.user.orgId });
-    employees = Array.isArray(res?.data) ? res.data : [];
-  } catch (err) {
-    fetchError =
-      err instanceof Error ? err.message : "Failed to load employees";
+  if (!res?.status) {
+    throw new Error(res?.message || "Failed to fetch employees");
   }
+
+  const employees = Array.isArray(res?.data) ? res.data : [];
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
@@ -35,15 +41,7 @@ export default async function EmployeesPage() {
         </Link>
       </div>
 
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
-            Employees
-          </h1>
-          <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
-            All staff members in your organisation
-          </p>
-        </div>
+      <div className="mb-6 flex items-center justify-end">
         <LinkButton
           href="/dashboard/users/employees/create"
           color={session.user.brandColor}
@@ -53,20 +51,10 @@ export default async function EmployeesPage() {
         </LinkButton>
       </div>
 
-      {fetchError ? (
-        <Card>
-          <CardContent className="py-10 text-center">
-            <p className="text-sm text-red-600 dark:text-red-400">
-              {fetchError}
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <EmployeeListGrid
-          data={employees}
-          brandColor={session.user.brandColor}
-        />
-      )}
+      <EmployeeListGrid
+        data={employees}
+        brandColor={session.user.brandColor}
+      />
     </div>
   );
 }
