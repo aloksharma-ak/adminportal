@@ -4,8 +4,9 @@ import { redirect } from "next/navigation";
 import { getStudentsByOrgId } from "./action";
 import StudentsGrid from "@/components/admission/students-grid";
 import { LinkButton } from "@/components/controls/Buttons";
-import { UserPlus } from "lucide-react";
+import { ArrowLeft, UserPlus } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import Link from "next/link";
 
 export default async function AdmissionPage() {
   const session = await getServerSession(authOptions);
@@ -22,6 +23,15 @@ export default async function AdmissionPage() {
 
   return (
     <div className="mx-auto max-w-8xl px-4 py-6 sm:px-6">
+      <div className="mb-6">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-500 transition hover:text-slate-900 dark:hover:text-white"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Dashboard
+        </Link>
+      </div>
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">

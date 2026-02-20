@@ -5,28 +5,51 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { DataGrid } from "../controls/data-grid";
 import type { Student } from "@/app/dashboard/admission/action";
+import Link from "next/link";
+import { Pencil } from "lucide-react";
 
-const columns: ColumnDef<Student>[] = [
+const getColumns = (brandColor?: string): ColumnDef<Student>[] => [
+  {
+    id: "sino",
+    header: "#",
+    cell: ({ row }) => (
+      <span className="text-sm text-slate-500">
+        {row.index + 1}
+      </span>
+    ),
+  },
+
   {
     accessorKey: "studentId",
     header: "Student ID",
-    cell: ({ row, getValue }) => (
-      <a
-        href={`/dashboard/admission/${row.original.studentId}`}
-        className="font-semibold hover:underline"
-      >
-        {String(getValue())}
-      </a>
-    ),
+    cell: ({ getValue }) => {
+      const studentId = getValue<number>();
+
+      return (
+        <Badge
+          variant="outline"
+          style={
+            brandColor
+              ? {
+                borderColor: brandColor,
+                backgroundColor: brandColor,
+                color: "#fff",
+              }
+              : undefined
+          }
+          className="w-12 justify-center"
+        >
+          {studentId}
+        </Badge>
+      );
+    },
   },
+
   {
     id: "name",
     header: "Name",
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
-        {/* <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-semibold">
-          {row.original.initials}
-        </div> */}
         <div className="leading-tight">
           <a
             href={`/dashboard/admission/${row.original.studentId}`}
@@ -38,6 +61,7 @@ const columns: ColumnDef<Student>[] = [
       </div>
     ),
   },
+
   {
     accessorKey: "enrolledClass",
     header: "Enrolled Class",
@@ -50,6 +74,7 @@ const columns: ColumnDef<Student>[] = [
       );
     },
   },
+
   {
     accessorKey: "isActive",
     header: "Status",
@@ -68,6 +93,20 @@ const columns: ColumnDef<Student>[] = [
         </Badge>
       );
     },
+  },
+
+  {
+    id: "edit",
+    header: "Edit",
+    cell: ({ row }) => (
+      <Link
+        href={`/dashboard/admission/${row.original.studentId}/edit`}
+        className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
+      >
+        <Pencil className="h-4 w-4" />
+        Edit
+      </Link>
+    ),
   },
 ];
 
@@ -95,12 +134,13 @@ export default function StudentsGrid({
     });
   }, [data, search]);
 
+
   return (
     <DataGrid
       title="Students"
       subtitle={`${filtered.length} results`}
       data={filtered}
-      columns={columns}
+      columns={getColumns(brandColor)}
       searchValue={search}
       onSearchChange={setSearch}
       searchPlaceholder="Search by name, id, class..."

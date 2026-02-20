@@ -40,6 +40,7 @@ export default async function DashboardLayout({
       ? (empResult.value?.data?.profilePicture ?? "")
       : "";
 
+
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       <Navbar

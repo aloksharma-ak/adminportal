@@ -14,7 +14,7 @@ import { ToggleControl } from "@/components/controls/ToggleControl";
 import { ActionButton } from "@/components/controls/Buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { createEmployee } from "@/app/utils";
+import { createEmployee, type EmployeeDetail } from "@/app/utils";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { fileToBase64 } from "@/lib/image-session.client";
@@ -29,10 +29,10 @@ type Address = {
   state: string;
 };
 
-// Mirrors the API request body exactly
 type FormValues = {
   orgId: number;
-  roleId: string | undefined;       // string for dropdown, converted to number on submit
+  empId: number;
+  roleId: string | undefined;
   firstName: string;
   middleName: string;
   lastName: string;
@@ -42,7 +42,7 @@ type FormValues = {
   email: string;
   panNo: string;
   aadharNo: string;
-  passportNo: string;               // was missing from the original form render
+  passportNo: string;
   profilePicture: string;
   permanantAddress: Address;
   isCommunicationAddressSameAsPermanant: boolean;
@@ -61,31 +61,76 @@ type Props = {
   orgName?: string;
   brandColor?: string;
   roles: { roleId: number; roleName: string }[];
+  employee: EmployeeDetail;
 };
 
-export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }: Props) {
+/** Compares two address objects shallowly to detect "same address" pre-fill. */
+function addressesEqual(a: Address, b: Address) {
+  return (
+    a.addressLine1 === b.addressLine1 &&
+    a.addressLine2 === b.addressLine2 &&
+    a.pinCode === b.pinCode &&
+    a.city === b.city &&
+    a.state === b.state
+  );
+}
+
+export default function EditEmployeeForm({
+  orgId, orgName, brandColor, roles, employee,
+}: Props) {
   const [loading, setLoading] = React.useState(false);
-  const [preview, setPreview] = React.useState("");
+  const [preview, setPreview] = React.useState(
+    employee.profilePicture
+      ? `data:image/jpeg;base64,${employee.profilePicture}`
+      : "",
+  );
 
   const roleOptions: DropdownOption[] = roles.map((r) => ({
     value: String(r.roleId),
     label: r.roleName,
   }));
 
+  const permAddr: Address = {
+    addressLine1: employee.permanantAddress?.addressLine1 ?? "",
+    addressLine2: employee.permanantAddress?.addressLine2 ?? "",
+    pinCode: employee.permanantAddress?.pinCode ?? "",
+    city: employee.permanantAddress?.city ?? "",
+    state: employee.permanantAddress?.state ?? "",
+  };
+
+  const commAddr: Address = {
+    addressLine1: employee.communicationAddress?.addressLine1 ?? "",
+    addressLine2: employee.communicationAddress?.addressLine2 ?? "",
+    pinCode: employee.communicationAddress?.pinCode ?? "",
+    city: employee.communicationAddress?.city ?? "",
+    state: employee.communicationAddress?.state ?? "",
+  };
+
+  const isSameAddr = addressesEqual(permAddr, commAddr);
+
   const form = useForm<FormValues>({
     mode: "onSubmit",
     defaultValues: {
       orgId,
-      roleId: undefined,
-      firstName: "", middleName: "", lastName: "", initials: "",
-      phone: "", secondaryPhone: "",
-      email: "", panNo: "", aadharNo: "", passportNo: "",
-      profilePicture: "",
-      permanantAddress: { ...EMPTY_ADDRESS },
-      isCommunicationAddressSameAsPermanant: true,
-      communicationAddress: { ...EMPTY_ADDRESS },
-      isCreateCredential: true,
-      userName: "", password: "",
+      empId: employee.empId,
+      roleId: employee.role?.id ? String(employee.role.id) : undefined,
+      firstName: employee.firstName ?? "",
+      middleName: employee.middleName ?? "",
+      lastName: employee.lastName ?? "",
+      initials: employee.initials ?? "",
+      phone: employee.phone ?? "",
+      secondaryPhone: employee.secondaryPhone ?? "",
+      email: employee.email ?? "",
+      panNo: employee.panNo ?? "",
+      aadharNo: employee.aadharNo ?? "",
+      passportNo: employee.passportNo ?? "",
+      profilePicture: employee.profilePicture ?? "",
+      permanantAddress: permAddr,
+      isCommunicationAddressSameAsPermanant: isSameAddr,
+      communicationAddress: isSameAddr ? { ...permAddr } : commAddr,
+      isCreateCredential: employee.isCredentialsCreated,
+      userName: employee.username ?? "",
+      password: "",  // never pre-fill password
     },
   });
 
@@ -96,7 +141,6 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
   const permState   = watch("permanantAddress.state");
   const commState   = watch("communicationAddress.state");
 
-  // Watch individual primitive fields — avoids object-reference churn that causes infinite loop
   const p1 = watch("permanantAddress.addressLine1");
   const p2 = watch("permanantAddress.addressLine2");
   const p3 = watch("permanantAddress.pinCode");
@@ -174,19 +218,16 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
       : v.communicationAddress;
 
     setLoading(true);
-    const tId = toast.loading("Creating employee...");
+    const tId = toast.loading("Updating employee...");
     try {
-      // empId: 0 → tells the API this is a new record (not an update)
       await createEmployee({
         ...v,
         orgId: v.orgId,
-        empId: 0,
+        empId: v.empId,
         roleId: roleIdNum,
         communicationAddress: commAddress,
       });
-      toast.success("Employee created successfully", { id: tId });
-      form.reset();
-      setPreview("");
+      toast.success("Employee updated successfully", { id: tId });
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Something went wrong",
@@ -200,7 +241,7 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
   return (
     <Card className="rounded-3xl border-slate-200 dark:border-slate-700">
       <CardHeader>
-        <CardTitle className="text-xl">Create Employee</CardTitle>
+        <CardTitle className="text-xl">Edit Employee</CardTitle>
         {orgName && (
           <p className="text-sm text-slate-500">
             Organisation:{" "}
@@ -216,7 +257,6 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
 
           {/* ── Organisation (display only) + Role ── */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {/* Replaced disabled InputField showing raw orgId with a clean read-only pill */}
             <div className="flex h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 dark:border-slate-700 dark:bg-slate-900">
               <Building2 className="h-4 w-4 shrink-0 text-slate-400" />
               <span className="truncate text-sm text-slate-500">
@@ -331,7 +371,6 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
               />
             </div>
 
-            {/* passportNo — present in API schema, was not rendered in the original form */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <InputField
                 control={control} name="passportNo" label="Passport No"
@@ -414,8 +453,8 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
 
           {/* ── Credentials toggle ── */}
           <ToggleRow
-            title="Create login credentials"
-            description="Enable to set a username and password for this employee"
+            title="Update login credentials"
+            description="Enable to update username / password for this employee"
             checked={createCred}
             onChange={(v) => setValue("isCreateCredential", v)}
             color={brandColor}
@@ -428,7 +467,6 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
                 placeholder="username" className="h-11 rounded-2xl"
                 leftIcon={<User2 className="h-4 w-4" />}
                 rules={{
-                  // Fixed operator-precedence bug: added explicit parentheses + .length check
                   validate: (v) =>
                     !createCred || String(v).trim().length > 0
                       ? true
@@ -436,16 +474,10 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
                 }}
               />
               <InputField
-                control={control} name="password" label="Password" type="password"
-                placeholder="••••••••" className="h-11 rounded-2xl"
+                control={control} name="password" label="New Password" type="password"
+                placeholder="Leave blank to keep current" className="h-11 rounded-2xl"
                 leftIcon={<LockIcon className="h-4 w-4" />}
                 showPasswordToggle
-                rules={{
-                  validate: (v) =>
-                    !createCred || String(v).trim().length > 0
-                      ? true
-                      : "Password is required",
-                }}
               />
             </div>
           )}
@@ -457,7 +489,7 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
             disabled={loading}
             className="h-11 w-full rounded-2xl"
           >
-            Create Employee
+            Save Changes
           </ActionButton>
         </form>
       </CardContent>
@@ -465,7 +497,7 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
   );
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// ─── Sub-components (identical to CreateEmployeeForm) ─────────────────────────
 
 function Section({
   title, icon, children,
@@ -546,7 +578,7 @@ function AddressFields({
                 value={field.value}
                 onChange={(val) => {
                   field.onChange(val);
-                  setValue(`${prefix}.city`, ""); // reset city on state change
+                  setValue(`${prefix}.city`, "");
                 }}
                 placeholder="Select State"
                 options={stateOptions}

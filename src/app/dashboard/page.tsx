@@ -17,7 +17,7 @@ import {
 
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getAllowModules } from "../utils";
+import { getAllowModules, getEmployee } from "../utils";
 
 // ─────────────────────────────────────────────────────────
 // Types
@@ -92,6 +92,8 @@ export default async function DashboardPage() {
     modules = [];
   }
 
+  const employee = await getEmployee({profileId: session.user.profileId, orgId: session.user.orgId})
+
   const greeting = (() => {
     const h = new Date().getHours();
     if (h < 12) return "Good morning";
@@ -103,7 +105,7 @@ export default async function DashboardPage() {
     <section className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
-          {greeting}, {session.user.userName} 👋
+          {greeting}, {employee.data.firstName} 👋
         </h1>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           {modules.length > 0

@@ -27,7 +27,6 @@ export default function NavProfileCard({
 }: Props) {
   const imgSrc = toImageSrc(profilePicture);
 
-  console.log("-------------->", profilePicture);
 
   return (
     <DropdownMenu>

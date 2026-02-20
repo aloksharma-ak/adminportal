@@ -1,19 +1,33 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
-import { getMasterData, type Role } from "@/app/utils";  // ← import Role
+import { getEmployee, getMasterData, type Role } from "@/app/utils";
 import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import CreateEmployeeForm from "@/components/users/create-employee-form";
+import EditEmployeeForm from "@/components/users/edit-employee-form";
 
-export default async function CreateEmployeePage() {
+interface Props {
+  params: { id: string };
+}
+
+export default async function EditEmployeePage({ params }: Props) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/auth/login");
 
+   const { id } = await params;
+
+  const empId = Number(id);
+  if (!Number.isFinite(empId) || empId <= 0) notFound();
+
+  // Fetch roles and employee detail in parallel
   let roles: Role[] = [];
+  let employee;
 
   try {
-    const masterData = await getMasterData({ orgId: session.user.orgId });
+    const [masterData, empDetail] = await Promise.all([
+      getMasterData({ orgId: session.user.orgId }),
+      getEmployee({ profileId: empId, orgId: session.user.orgId }),
+    ]);
 
     roles = (masterData?.data?.roleMaster ?? [])
       .filter((r) => r.isActive)
@@ -21,9 +35,16 @@ export default async function CreateEmployeePage() {
         roleId: r.id,
         roleName: r.roleName,
       }));
+
+    employee = empDetail?.data;
   } catch {
     roles = [];
   }
+
+  if (!employee) notFound();
+
+  console.log('-------------->', roles)
+  console.log('-------------->', employee)
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
@@ -37,11 +58,12 @@ export default async function CreateEmployeePage() {
         </Link>
       </div>
 
-      <CreateEmployeeForm
+      <EditEmployeeForm
         orgId={session.user.orgId}
         orgName={session.user.orgName ?? ""}
         brandColor={session.user.brandColor ?? ""}
         roles={roles}
+        employee={employee}
       />
     </div>
   );

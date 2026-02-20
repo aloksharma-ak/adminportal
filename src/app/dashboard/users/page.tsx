@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { Card, CardContent } from "@/components/ui/card";
-import { UserPlus, Users, Shield } from "lucide-react";
+import { ArrowLeft, UserPlus, Users } from "lucide-react";
 
 const tiles = [
   {
@@ -22,14 +22,6 @@ const tiles = [
     title: "Add Employee",
     description: "Onboard a new staff member",
   },
-  {
-    href: "/dashboard/users/profile",
-    icon: Shield,
-    iconBg: "bg-violet-50 dark:bg-violet-950",
-    iconColor: "text-violet-600 dark:text-violet-400",
-    title: "My Profile",
-    description: "View your account & permissions",
-  },
 ];
 
 export default async function UsersPage() {
@@ -38,6 +30,15 @@ export default async function UsersPage() {
 
   return (
     <section className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
+      <div className="mb-6">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-500 transition hover:text-slate-900 dark:hover:text-white"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Dashboard
+        </Link>
+      </div>
       <div className="mb-8">
         <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
           Users
