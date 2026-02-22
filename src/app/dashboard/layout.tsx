@@ -21,7 +21,8 @@ export default async function DashboardLayout({
   const [orgResult, empResult] = await Promise.allSettled([
     getOrganisationDetail(session.user.orgCode),
     getEmployee({
-      empId: session.user.profileId,
+      profileId: session.user.profileId,
+      empId: 0,
       orgId: session.user.orgId,
     }),
   ]);
@@ -40,6 +41,7 @@ export default async function DashboardLayout({
       ? (empResult.value?.data?.profilePicture ?? "")
       : "";
 
+      console.log("===========>", empResult)
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">

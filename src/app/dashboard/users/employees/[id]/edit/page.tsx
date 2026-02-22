@@ -26,7 +26,7 @@ export default async function EditEmployeePage({ params }: Props) {
   try {
     const [masterData, empDetail] = await Promise.all([
       getMasterData({ orgId: session.user.orgId }),
-      getEmployee({ empId: empId, orgId: session.user.orgId }),
+      getEmployee({profileId: 0, empId: empId, orgId: session.user.orgId }),
     ]);
 
     roles = (masterData?.data?.roleMaster ?? [])
