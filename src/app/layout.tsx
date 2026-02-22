@@ -9,16 +9,16 @@ import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
-  subsets:  ["latin"],
+  subsets: ["latin"],
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
-  subsets:  ["latin"],
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title:       "Admin Portal",
+  title: "Admin Portal",
   description: "Organisation administration portal.",
 };
 
@@ -35,7 +35,7 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             <Suspense fallback={<Loading />}>{children}</Suspense>
-            <Toaster richColors position="top-right" closeButton />
+            <Toaster richColors position="bottom-right" closeButton />
           </AuthProvider>
         </ThemeProvider>
       </body>

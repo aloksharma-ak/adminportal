@@ -89,7 +89,7 @@ export default function LoginPage() {
         form.setValue(
           "orgCode",
           organisation.orgCode?.trim().toUpperCase() ??
-            orgCode.trim().toUpperCase(),
+          orgCode.trim().toUpperCase(),
         );
 
         setStep("login");
@@ -198,7 +198,7 @@ export default function LoginPage() {
       />
 
       <section
-        className={`mx-auto min-h-screen max-w-8xl flex flex-col ${step === "org" ? "justify-center" : "justify-between"} items-center px-4 py-10`}
+        className={`mx-auto min-h-screen max-w-8xl flex flex-col justify-center items-center px-4 py-10`}
       >
         <section className="relative mx-auto w-full max-w-lg overflow-hidden rounded-3xl border border-slate-200 bg-white/70 p-6 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/55">
           <BorderBeam size={260} duration={12} delay={4} />

@@ -140,11 +140,11 @@ export default function Navbar(props: {
                   brandColor={props.brandColor}
                 />
               )}
-              <HamburgerButton
+              {/* <HamburgerButton
                 open={open}
                 onClick={toggleMenu}
                 barClassName="h-[2px] w-5 origin-center rounded-full bg-gray-900 dark:bg-white"
-              />
+              /> */}
             </div>
           </div>
         </Container>
