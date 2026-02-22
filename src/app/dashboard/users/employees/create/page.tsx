@@ -17,7 +17,7 @@ export default async function CreateEmployeePage() {
     const masterData = await getMasterData({ orgId: session.user.orgId });
     roles = (masterData?.data?.roleMaster ?? [])
       .filter((r) => r.isActive)
-      .map((r) => ({ roleId: r.id, roleName: r.roleName }));
+      .map((r) => ({ roleId: r.roleId, roleName: r.roleName }));
   } catch (err) {
     masterError = err instanceof Error ? err.message : "Could not load roles";
   }

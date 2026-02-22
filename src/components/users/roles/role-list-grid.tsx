@@ -22,14 +22,14 @@ const getColumns = (brandColor?: string | null): ColumnDef<Role>[] => [
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <Link
-          href={`/dashboard/users/roles/${row.original.id}`}
+          href={`/dashboard/users/roles/${row.original.roleId}`}
           className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"
           title="View"
         >
           <Eye className="h-4 w-4" />
         </Link>
         <Link
-          href={`/dashboard/users/roles/${row.original.id}/edit`}
+          href={`/dashboard/users/roles/${row.original.roleId}/edit`}
           className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"
           title="Edit"
         >
@@ -81,7 +81,7 @@ const getColumns = (brandColor?: string | null): ColumnDef<Role>[] => [
     header: "Role Name",
     cell: ({ row }) => (
       <Link
-        href={`/dashboard/users/roles/${row.original.id}`}
+        href={`/dashboard/users/roles/${row.original.roleId}`}
         className="font-semibold text-slate-900 hover:underline dark:text-slate-100"
       >
         {row.original.roleName}
@@ -106,7 +106,7 @@ export default function RoleListGrid({
     if (!q) return data;
 
     return data.filter(
-      (r) => r.roleName.toLowerCase().includes(q) || String(r.id).includes(q),
+      (r) => r.roleName.toLowerCase().includes(q) || String(r.roleId).includes(q),
     );
   }, [data, search]);
 

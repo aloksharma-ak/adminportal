@@ -364,9 +364,9 @@ export async function createPermission(params: {
 // ─────────────────────────────────────────────────────────
 
 export type Role = {
-  id: number;
+  roleId: number;
   roleName: string;
-  isActive: boolean;
+  isActive?: boolean;
 };
 
 export type RolesResponse = {
@@ -451,11 +451,7 @@ export type ClassOption = {
 };
 
 export type MasterData = {
-  roleMaster?: {
-    id: number;
-    roleName: string;
-    isActive: boolean;
-  }[];
+  roleMaster?: Role[];
   modules?: { moduleId: number; moduleName: string; icon?: string | null }[];
 };
 
