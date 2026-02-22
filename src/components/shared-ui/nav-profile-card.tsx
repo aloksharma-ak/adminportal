@@ -27,7 +27,6 @@ export default function NavProfileCard({
 }: Props) {
   const imgSrc = toImageSrc(profilePicture);
 
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -43,7 +42,7 @@ export default function NavProfileCard({
               width={40}
               height={40}
               className="h-10 w-10 rounded-full object-cover"
-              unoptimized={imgSrc.startsWith("data:image/")} // helps for base64/data urls
+              unoptimized={imgSrc.startsWith("data:image/")}
             />
           ) : (
             <div className="text-2xl font-bold leading-none">{initials}</div>

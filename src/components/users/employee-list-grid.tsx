@@ -7,116 +7,115 @@ import { DataGrid } from "@/components/controls/data-grid";
 import Link from "next/link";
 import { EmployeeListItem } from "@/app/utils";
 import { Pencil } from "lucide-react";
+import { redirect } from "next/navigation";
 
 const getColumns = (
   brandColor?: string | null
 ): ColumnDef<EmployeeListItem>[] => [
-  {
-    id: "sino",
-    header: "#",
-    cell: ({ row }) => (
-      <span className="text-sm text-slate-500">
-        {row.index + 1}
-      </span>
-    ),
-  },
-
-  {
-    accessorKey: "empId",
-    header: "Emp ID",
-    cell: ({ getValue }) => {
-      const empId = getValue<number>();
-
-
-
-      return (
-        <Badge
-          variant="outline"
-          style={{
-            borderColor: brandColor ?? undefined,
-            backgroundColor: brandColor ?? undefined,
-            color: "#fff",
-          }}
-          className="w-12"
-        >
-          {empId}
-        </Badge>
-      );
+    {
+      id: "sino",
+      header: "#",
+      cell: ({ row }) => (
+        <span className="text-sm text-slate-500">
+          {row.index + 1}
+        </span>
+      ),
     },
-  },
 
-  {
-    accessorKey: "empName",
-    header: "Employee",
-    cell: ({ row }) => (
-      <Link
-        href={`/dashboard/users/employees/${row.original.empId}`}
-        className="font-semibold text-slate-900 dark:text-slate-100 hover:underline"
-      >
-        {row.original.empName}
-      </Link>
-    ),
-  },
+    {
+      accessorKey: "empId",
+      header: "Emp ID",
+      cell: ({ row, getValue }) => {
+        const empId = getValue<number>();
 
-  {
-    accessorKey: "userName",
-    header: "Username",
-    cell: ({ getValue }) => (
-      <span className="text-sm">
-        {getValue<string | null>() || "—"}
-      </span>
-    ),
-  },
 
-  {
-    accessorKey: "roleName",
-    header: "Role",
-    cell: ({ getValue }) => (
-      <Badge variant="outline">
-        {getValue<string>()}
-      </Badge>
-    ),
-  },
 
-  {
-  accessorKey: "isActive",
-  header: "Status",
-  cell: ({ getValue }) => {
-    const active = Boolean(getValue());
+        return (
+          <Badge
+            variant="outline"
+            style={{
+              borderColor: brandColor ?? undefined,
+              backgroundColor: brandColor ?? undefined,
+              color: "#fff",
+            }}
+            className="w-12 cursor-pointer"
+            onClick={() => redirect(`/dashboard/users/employees/${row.original.empId}`)}
+          >
+            {empId}
+          </Badge>
+        );
+      },
+    },
 
-    return active ? (
-      <Badge
-        variant="outline"
-        style={{
-          borderColor: brandColor ?? undefined,
-          backgroundColor: brandColor ?? undefined,
-          color: "#fff",
-        }}
-      >
-        Active
-      </Badge>
-    ) : (
-      <Badge variant="outline">
-        Inactive
-      </Badge>
-    );
-  },
-},
+    {
+      id: "edit",
+      header: "Edit",
+      cell: ({ row }) => (
+        <Link
+          href={`/dashboard/users/employees/${row.original.empId}/edit`}
+          className="inline-flex items-center text-sm text-blue-600 hover:underline"
+        >
+          <Pencil className="h-4 w-4" />
 
-  {
-    id: "edit",
-    header: "Edit",
-    cell: ({ row }) => (
-      <Link
-        href={`/dashboard/users/employees/${row.original.empId}/edit`}
-        className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
-      >
-        <Pencil className="h-4 w-4" />
-        Edit
-      </Link>
-    ),
-  },
-];
+        </Link>
+      ),
+    },
+
+    {
+      accessorKey: "empName",
+      header: "Employee",
+      cell: ({ row }) => (
+        <span
+          className="font-semibold text-slate-900 dark:text-slate-100"
+        >
+          {row.original.empName}
+        </span>
+      ),
+    },
+
+    {
+      accessorKey: "userName",
+      header: "Username",
+      cell: ({ getValue }) => (
+        <span className="text-sm">
+          {getValue<string | null>() || "—"}
+        </span>
+      ),
+    },
+
+    {
+      accessorKey: "roleName",
+      header: "Role",
+      cell: ({ getValue }) => (
+        <Badge variant="outline">
+          {getValue<string>()}
+        </Badge>
+      ),
+    },
+
+    {
+      accessorKey: "isActive",
+      header: "Status",
+      cell: ({ getValue }) => {
+        const active = Boolean(getValue());
+
+        return (
+          <Badge
+            variant="outline"
+            className={
+              active
+                ? "border-green-500 text-green-600 bg-green-50"
+                : "border-gray-400 text-gray-500 bg-gray-50"
+            }
+          >
+            {active ? "Active" : "Inactive"}
+          </Badge>
+        );
+      },
+    }
+
+
+  ];
 
 export default function EmployeeListGrid({
   data,

@@ -92,7 +92,9 @@ export default async function DashboardPage() {
     modules = [];
   }
 
-  const employee = await getEmployee({profileId: session.user.profileId, orgId: session.user.orgId})
+  console.log("------------->", session)
+
+  const employee = await getEmployee({empId: session.user.profileId, orgId: session.user.orgId})
 
   const greeting = (() => {
     const h = new Date().getHours();
