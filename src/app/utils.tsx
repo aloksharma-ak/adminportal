@@ -369,8 +369,14 @@ export type Role = {
   isActive?: boolean;
 };
 
+export type RolePermission = {
+  id: number;
+  roleName: string;
+  isActive: boolean;
+};
+
 export type RolesResponse = {
-  roles: Role[];
+  roles: RolePermission[];
 };
 
 export type Permission = {

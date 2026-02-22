@@ -1,5 +1,5 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
-import { getRoles, Role } from "@/app/utils";
+import { getRoles, RolePermission } from "@/app/utils";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import RoleListGrid from "@/components/users/roles/role-list-grid";
@@ -12,7 +12,7 @@ export default async function RolesPage() {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/auth/login");
 
-  let roles: Role[] = [];
+  let roles: RolePermission[] = [];
   let fetchError: string | null = null;
 
   try {
@@ -25,6 +25,8 @@ export default async function RolesPage() {
     fetchError =
       err instanceof Error ? err.message : "Failed to load roles";
   }
+
+  console.log("--->", roles)
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
