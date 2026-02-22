@@ -1,14 +1,14 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
-import StudentDetails from "@/components/admission/student-details";
 import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
 import { getStudentDetail } from "../action";
-import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { Pencil } from "lucide-react";
+import { PageHeader } from "@/components/shared-ui/page-header";
+import { ErrorCard } from "@/components/shared-ui/states";
+import StudentDetails from "@/components/admission/student-details";
 
-type PageProps = {
-  params: Promise<{ id: string }>;
-};
+type PageProps = { params: Promise<{ id: string }> };
 
 export default async function StudentDetailPage({ params }: PageProps) {
   const session = await getServerSession(authOptions);
@@ -16,35 +16,45 @@ export default async function StudentDetailPage({ params }: PageProps) {
 
   const { id } = await params;
   const studentId = Number(id);
-
   if (!Number.isInteger(studentId) || studentId <= 0) notFound();
 
   let student;
+  let fetchError: string | null = null;
+
   try {
-    const res = await getStudentDetail({
-      orgId: session.user.orgId,
-      studentId,
-    });
+    const res = await getStudentDetail({ orgId: session.user.orgId, studentId });
     student = res?.data;
-  } catch {
-    notFound();
+    if (!student) fetchError = "Student not found";
+  } catch (err) {
+    fetchError = err instanceof Error ? err.message : "Failed to load student";
   }
 
-  if (!student) notFound();
+  if (!fetchError && !student) notFound();
+
+  const brandColor = session.user.brandColor ?? undefined;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
-      <div className="mb-6">
-        <Link
-          href="/dashboard/admission"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-500 transition hover:text-slate-900 dark:hover:text-white"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Admissions
-        </Link>
-      </div>
+      <PageHeader
+        title={student ? `${student.firstName ?? ""} ${student.lastName ?? ""}`.trim() || "Student Details" : "Student Details"}
+        backHref="/dashboard/admission"
+        backLabel="Back to Admissions"
+        actions={
+          student && (
+            <Link
+              href={`/dashboard/admission/${studentId}/edit`}
+              className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:opacity-90"
+              style={{ backgroundColor: brandColor ?? "#3b82f6" }}
+            >
+              <Pencil className="h-4 w-4" />
+              Edit Student
+            </Link>
+          )
+        }
+      />
 
-      <StudentDetails student={student} />
+      {fetchError && <ErrorCard message={fetchError} />}
+      {student && <StudentDetails student={student} brandColor={brandColor} />}
     </div>
   );
 }

@@ -22,15 +22,25 @@ function reqMeta() {
 }
 
 async function parseError(res: Response): Promise<string> {
+  const ct = res.headers.get("content-type") ?? "";
   try {
-    const j = await res.json();
-    return j?.message || j?.title || res.statusText;
-  } catch {
-    try {
-      return await res.text();
-    } catch {
-      return res.statusText;
+    if (ct.includes("application/json")) {
+      const j = await res.json();
+      // ASP.NET ValidationProblemDetails
+      if (j?.errors && typeof j.errors === "object") {
+        const details = Object.entries(j.errors)
+          .map(([field, msgs]) => {
+            const arr = Array.isArray(msgs) ? msgs : [String(msgs)];
+            return `${field}: ${arr.join(", ")}`;
+          })
+          .join(" | ");
+        return `${j.title || "Validation failed"}: ${details}`;
+      }
+      return j?.message || j?.title || res.statusText;
     }
+    return await res.text();
+  } catch {
+    return res.statusText;
   }
 }
 
@@ -146,10 +156,12 @@ export async function getOrganisationDetail(
   const code = orgCode.trim().toUpperCase();
   if (!code) throw new Error("Organisation code is required");
 
+  // The OpenAPI spec defines the field as "orgCode" (camelCase).
+  // Send both casing variants to stay compatible with older/newer backend versions.
   const body = await apiPost<OrgApiResponse>(
     base,
     "/api/Organisation/GetDetail",
-    { OrgCode: code },
+    { orgCode: code, OrgCode: code },
   );
   const raw = body?.data;
   const orgId = Number(raw?.orgId ?? raw?.OrgId ?? 0);
@@ -184,6 +196,10 @@ export async function getOrganisationDetail(
   };
 }
 
+// ─────────────────────────────────────────────────────────
+// User / Employee APIs (API_URL)
+// ─────────────────────────────────────────────────────────
+
 export async function getEmployee(params: {
   profileId: number;
   empId: number;
@@ -214,7 +230,6 @@ export async function getEmployeeList(params: { orgId: number }) {
 export async function createEmployee(input: CreateEmployeePayload) {
   const base = requireUrl(API_URL, "API_URL");
 
-
   const normalized = {
     ...input,
     communicationAddress: input.isCommunicationAddressSameAsPermanant
@@ -232,6 +247,9 @@ export async function createEmployee(input: CreateEmployeePayload) {
   });
 }
 
+// ─────────────────────────────────────────────────────────
+// Modules API (API_URL)
+// ─────────────────────────────────────────────────────────
 
 export async function getAllowModules(params: { orgId: number }) {
   const base = requireUrl(API_URL, "API_URL");
@@ -239,6 +257,7 @@ export async function getAllowModules(params: { orgId: number }) {
   if (!Number.isFinite(orgId) || orgId <= 0)
     throw new Error("Invalid organisation ID");
 
+  // OpenAPI schema uses "orgid" (lowercase) for GetAllowModulesRequest
   const url = `${base}/api/Modules/GetAllowModules`;
   const res = await fetch(url, {
     method: "POST",
@@ -261,7 +280,7 @@ export async function getAllowModules(params: { orgId: number }) {
 }
 
 // ─────────────────────────────────────────────────────────
-// Master Data (works for BOTH API_URL and ADMISSION_API_URL)
+// Master Data (API_URL + ADMISSION_API_URL)
 // ─────────────────────────────────────────────────────────
 
 export async function getMasterData(params: { orgId: number }) {
@@ -364,7 +383,7 @@ export type RolePermissionDetail = {
 };
 
 export type EmployeeListItem = {
- empId: number;
+  empId: number;
   empName: string;
   initials?: string;
   profileId: number;
@@ -434,6 +453,23 @@ export type MasterData = {
   modules?: { moduleId: number; moduleName: string; icon?: string | null }[];
 };
 
+export type ClassMaster = {
+  id: number;
+  class: number;
+  section: string;
+  classText: string;
+  noOfStudents: number;
+  classTeacherId: number;
+  orgId: number;
+  isActive: boolean;
+  createdOn: string;
+  updatedOn: string;
+  createdBy: number;
+  updatedBy: number;
+  eventId: string;
+};
+
 export type AdmissionMasterData = {
-  classes?: ClassOption[];
+  classMasters: ClassMaster[];
+  cateogryMaster: string[];
 };

@@ -18,6 +18,7 @@ import { createEmployee } from "@/app/utils";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { fileToBase64 } from "@/lib/image-session.client";
+import { redirect } from "next/navigation";
 
 const MAX_IMAGE_BYTES = 500 * 1024;
 
@@ -92,9 +93,9 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
   const { control, handleSubmit, setValue, watch } = form;
 
   const sameAddress = watch("isCommunicationAddressSameAsPermanant");
-  const createCred  = watch("isCreateCredential");
-  const permState   = watch("permanantAddress.state");
-  const commState   = watch("communicationAddress.state");
+  const createCred = watch("isCreateCredential");
+  const permState = watch("permanantAddress.state");
+  const commState = watch("communicationAddress.state");
 
   // Watch individual primitive fields — avoids object-reference churn that causes infinite loop
   const p1 = watch("permanantAddress.addressLine1");
@@ -110,7 +111,7 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
       { addressLine1: p1, addressLine2: p2, pinCode: p3, city: p4, state: p5 },
       { shouldValidate: false },
     );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sameAddress, p1, p2, p3, p4, p5, setValue]);
 
   const stateOptions = React.useMemo<DropdownOption[]>(
@@ -194,6 +195,7 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
       );
     } finally {
       setLoading(false);
+      redirect("/dashboard/users/employees/")
     }
   });
 

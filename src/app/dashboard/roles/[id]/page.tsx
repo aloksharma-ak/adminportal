@@ -2,8 +2,8 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { getRolePermissions } from "@/app/utils";
 import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { PageHeader } from "@/components/shared-ui/page-header";
+import { ErrorCard } from "@/components/shared-ui/states";
 import RolePermissionsEditor from "@/components/roles/role-permissions-editor";
 
 type PageProps = { params: Promise<{ id: string }> };
@@ -16,8 +16,7 @@ export default async function RoleDetailPage({ params }: PageProps) {
   const roleId = Number(id);
   if (!Number.isInteger(roleId) || roleId <= 0) notFound();
 
-  let roleData: Awaited<ReturnType<typeof getRolePermissions>>["data"] | null =
-    null;
+  let roleData: Awaited<ReturnType<typeof getRolePermissions>>["data"] | null = null;
   let fetchError: string | null = null;
 
   try {
@@ -30,19 +29,16 @@ export default async function RoleDetailPage({ params }: PageProps) {
   if (!fetchError && !roleData) notFound();
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
-      <div className="mb-6">
-        <Link
-          href="/dashboard/roles"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900 dark:hover:text-white transition"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Roles
-        </Link>
-      </div>
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
+      <PageHeader
+        title={roleData?.roleName ?? "Role Permissions"}
+        description="Manage which permissions are enabled for this role"
+        backHref="/dashboard/roles"
+        backLabel="Back to Roles"
+      />
 
       {fetchError ? (
-        <p className="text-sm text-red-600 dark:text-red-400">{fetchError}</p>
+        <ErrorCard message={fetchError} />
       ) : (
         <RolePermissionsEditor
           roleData={roleData!}

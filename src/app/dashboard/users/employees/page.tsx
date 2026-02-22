@@ -4,49 +4,47 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import EmployeeListGrid from "@/components/users/employee-list-grid";
 import { LinkButton } from "@/components/controls/Buttons";
-import { UserPlus, ArrowLeft } from "lucide-react";
-import Link from "next/link";
-
-
+import { UserPlus } from "lucide-react";
+import { PageHeader } from "@/components/shared-ui/page-header";
+import { ErrorCard } from "@/components/shared-ui/states";
 
 export default async function EmployeesPage() {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/auth/login");
 
-  const res = await getEmployeeList({ orgId: session.user.orgId });
+  let employees: Awaited<ReturnType<typeof getEmployeeList>>["data"] = [];
+  let fetchError: string | null = null;
 
-  if (!res?.status) {
-    throw new Error(res?.message || "Failed to fetch employees");
+  try {
+    const res = await getEmployeeList({ orgId: session.user.orgId });
+    employees = Array.isArray(res?.data) ? res.data : [];
+  } catch (err) {
+    fetchError = err instanceof Error ? err.message : "Failed to load employees";
   }
-
-  const employees = Array.isArray(res?.data) ? res.data : [];
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
-      <div className="mb-4">
-        <Link
-          href="/dashboard/users"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900 dark:hover:text-white transition"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Users
-        </Link>
-      </div>
-
-      <div className="mb-6 flex items-center justify-end">
-        <LinkButton
-          href="/dashboard/users/employees/create"
-          color={session.user.brandColor}
-          leftIcon={<UserPlus className="h-4 w-4" />}
-        >
-          Add Employee
-        </LinkButton>
-      </div>
-
-      <EmployeeListGrid
-        data={employees}
-        brandColor={session.user.brandColor}
+      <PageHeader
+        title="Employees"
+        description="View, edit and manage all staff members"
+        backHref="/dashboard/users"
+        backLabel="Back to Users"
+        actions={
+          <LinkButton
+            href="/dashboard/users/employees/create"
+            color={session.user.brandColor}
+            leftIcon={<UserPlus className="h-4 w-4" />}
+          >
+            Add Employee
+          </LinkButton>
+        }
       />
+
+      {fetchError ? (
+        <ErrorCard message={fetchError} />
+      ) : (
+        <EmployeeListGrid data={employees} brandColor={session.user.brandColor} />
+      )}
     </div>
   );
 }

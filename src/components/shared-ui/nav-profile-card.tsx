@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import {
   DropdownMenu,
@@ -10,69 +9,80 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { toImageSrc } from "@/lib/image-session.client";
+import { Avatar } from "@/components/shared-ui/avatar";
 
 type Props = {
   initials: string;
   profilePicture?: string | null;
+  firstName?: string;
+  lastName?: string;
   doLogout: () => void;
   username: string;
+  brandColor?: string | null;
 };
 
 export default function NavProfileCard({
   initials,
   profilePicture,
+  firstName,
+  lastName,
   doLogout,
   username,
+  brandColor,
 }: Props) {
-  const imgSrc = toImageSrc(profilePicture);
-
-  console.log("-------------->", profilePicture)
+  const displayName = [firstName, lastName].filter(Boolean).join(" ") || username;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="inline-flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-white/70 text-sm font-bold text-blue-700 shadow-sm transition hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-blue-200 dark:hover:bg-white/10"
+          className="rounded-full transition-all hover:ring-2 hover:ring-offset-1 focus-visible:outline-none focus-visible:ring-2"
+          style={{ "--tw-ring-color": brandColor ?? "#3b82f6" } as React.CSSProperties}
           aria-label="Open user menu"
         >
-          {imgSrc ? (
-            <Image
-              alt="profile"
-              src={imgSrc}
-              width={40}
-              height={40}
-              className="h-10 w-10 rounded-full object-cover"
-              unoptimized={imgSrc.startsWith("data:image/")}
-            />
-          ) : (
-            <div className="text-2xl font-bold leading-none">{initials}</div>
-          )}
+          <Avatar
+            src={profilePicture}
+            firstName={firstName}
+            lastName={lastName}
+            initials={initials}
+            size="sm"
+            brandColor={brandColor}
+            className="cursor-pointer"
+          />
         </button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
         align="end"
-        className="w-64 rounded-2xl border-slate-200 bg-white/90 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/80"
+        className="w-64 rounded-2xl border-slate-200 bg-white/95 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/95"
       >
-        <DropdownMenuLabel className="px-2 py-1.5">
-          <div className="text-sm font-semibold text-slate-900 dark:text-white">
-            {/* optional: display name here */}
-          </div>
-          <div className="text-xs text-slate-600 dark:text-slate-300">
-            @{username}
+        <DropdownMenuLabel className="px-3 py-3">
+          <div className="flex items-center gap-3">
+            <Avatar
+              src={profilePicture}
+              firstName={firstName}
+              lastName={lastName}
+              initials={initials}
+              size="sm"
+              brandColor={brandColor}
+            />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
+                {displayName}
+              </p>
+              <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+                @{username}
+              </p>
+            </div>
           </div>
         </DropdownMenuLabel>
 
-        <DropdownMenuSeparator className="bg-slate-200 dark:bg-white/10" />
+        <DropdownMenuSeparator />
 
         <DropdownMenuItem asChild>
-          <Link
-            href="/dashboard/users/profile"
-            className="cursor-pointer rounded-xl"
-          >
-            Profile
+          <Link href="/dashboard/users/profile" className="cursor-pointer rounded-xl">
+            My Profile
           </Link>
         </DropdownMenuItem>
 
@@ -82,13 +92,13 @@ export default function NavProfileCard({
           </Link>
         </DropdownMenuItem>
 
-        <DropdownMenuSeparator className="bg-slate-200 dark:bg-white/10" />
+        <DropdownMenuSeparator />
 
         <DropdownMenuItem
           onClick={doLogout}
-          className="cursor-pointer rounded-xl text-red-700 focus:text-red-700 dark:text-red-300 dark:focus:text-red-300"
+          className="cursor-pointer rounded-xl text-red-600 focus:text-red-600 dark:text-red-400"
         >
-          Logout
+          Sign out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

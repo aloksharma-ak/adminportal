@@ -218,3 +218,4 @@ export type Student = {
   isActive: boolean;
   initials: string;
 };
+

@@ -6,75 +6,69 @@ import { Badge } from "@/components/ui/badge";
 import { DataGrid } from "../controls/data-grid";
 import type { Student } from "@/app/dashboard/admission/action";
 import Link from "next/link";
-import { Pencil } from "lucide-react";
+import { Eye, Pencil, UserPlus } from "lucide-react";
+import { Avatar } from "@/components/shared-ui/avatar";
 
 const getColumns = (brandColor?: string): ColumnDef<Student>[] => [
   {
     id: "sino",
     header: "#",
     cell: ({ row }) => (
-      <span className="text-sm text-slate-500">
-        {row.index + 1}
-      </span>
+      <span className="text-sm text-slate-400">{row.index + 1}</span>
     ),
   },
-
   {
-    accessorKey: "studentId",
-    header: "Student ID",
-    cell: ({ getValue }) => {
-      const studentId = getValue<number>();
-
+    id: "student",
+    header: "Student",
+    cell: ({ row }) => {
+      const s = row.original;
       return (
-        <Badge
-          variant="outline"
-          style={
-            brandColor
-              ? {
-                borderColor: brandColor,
-                backgroundColor: brandColor,
-                color: "#fff",
-              }
-              : undefined
-          }
-          className="w-12 justify-center"
-        >
-          {studentId}
-        </Badge>
+        <div className="flex items-center gap-3">
+          <Avatar
+            firstName={s.firstName}
+            lastName={s.lastName}
+            initials={s.initials}
+            size="sm"
+            brandColor={brandColor}
+          />
+          <div>
+            <Link
+              href={`/dashboard/admission/${s.studentId}`}
+              className="font-semibold text-slate-900 hover:underline dark:text-slate-100"
+            >
+              {s.firstName} {s.lastName}
+            </Link>
+
+          </div>
+        </div>
       );
     },
   },
-
   {
-    id: "name",
-    header: "Name",
-    cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <div className="leading-tight">
-          <a
-            href={`/dashboard/admission/${row.original.studentId}`}
-            className="font-semibold hover:underline"
-          >
-            {row.original.firstName} {row.original.lastName}
-          </a>
-        </div>
-      </div>
+    accessorKey: "studentId",
+    header: "ID",
+    cell: ({ getValue }) => (
+      <Badge
+        variant="outline"
+        className="font-mono text-xs"
+        style={brandColor ? { borderColor: brandColor, color: brandColor } : undefined}
+      >
+        #{getValue<number>()}
+      </Badge>
     ),
   },
-
   {
     accessorKey: "enrolledClass",
-    header: "Enrolled Class",
+    header: "Class",
     cell: ({ getValue }) => {
       const v = getValue<string | null>();
       return v ? (
-        <span>{v}</span>
+        <Badge variant="outline" className="text-xs">{v}</Badge>
       ) : (
-        <span className="text-muted-foreground">—</span>
+        <span className="text-slate-400">—</span>
       );
     },
   },
-
   {
     accessorKey: "isActive",
     header: "Status",
@@ -85,8 +79,8 @@ const getColumns = (brandColor?: string): ColumnDef<Student>[] => [
           variant="outline"
           className={
             active
-              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-              : "border-slate-200 bg-slate-50 text-slate-600"
+              ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30"
+              : "border-gray-300 bg-gray-50 text-gray-500"
           }
         >
           {active ? "Active" : "Inactive"}
@@ -94,18 +88,26 @@ const getColumns = (brandColor?: string): ColumnDef<Student>[] => [
       );
     },
   },
-
   {
-    id: "edit",
-    header: "Edit",
+    id: "actions",
+    header: "",
     cell: ({ row }) => (
-      <Link
-        href={`/dashboard/admission/${row.original.studentId}/edit`}
-        className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
-      >
-        <Pencil className="h-4 w-4" />
-        Edit
-      </Link>
+      <div className="flex items-center gap-2">
+        <Link
+          href={`/dashboard/admission/${row.original.studentId}`}
+          className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"
+          title="View"
+        >
+          <Eye className="h-4 w-4" />
+        </Link>
+        <Link
+          href={`/dashboard/admission/${row.original.studentId}/edit`}
+          className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"
+          title="Edit"
+        >
+          <Pencil className="h-4 w-4" />
+        </Link>
+      </div>
     ),
   },
 ];
@@ -115,14 +117,15 @@ export default function StudentsGrid({
   brandColor,
 }: {
   data: Student[];
-  brandColor: string | undefined;
+  brandColor?: string | null;
 }) {
   const [search, setSearch] = React.useState("");
+
+  const columns = React.useMemo(() => getColumns(brandColor ?? undefined), [brandColor]);
 
   const filtered = React.useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return data;
-
     return data.filter((s) => {
       const fullName = `${s.firstName} ${s.lastName}`.toLowerCase();
       return (
@@ -134,28 +137,21 @@ export default function StudentsGrid({
     });
   }, [data, search]);
 
-
   return (
     <DataGrid
       title="Students"
-      subtitle={`${filtered.length} results`}
+      subtitle={`${filtered.length} of ${data.length} students`}
       data={filtered}
-      columns={getColumns(brandColor)}
+      columns={columns}
       searchValue={search}
       onSearchChange={setSearch}
-      searchPlaceholder="Search by name, id, class..."
-      actionsRight={[
-        {
-          label: "Refresh",
-          variant: "outline",
-          onClick: () => window.location.reload(),
-        },
-      ]}
+      searchPlaceholder="Search by name, ID, class…"
       onExport={(rows) => {
-        const headers = ["Student ID", "Name", "Class", "Status"];
+        const headers = ["ID", "First Name", "Last Name", "Class", "Status"];
         const csvRows = rows.map((s) => [
           s.studentId,
-          `${s.firstName} ${s.lastName}`.trim(),
+          s.firstName,
+          s.lastName,
           s.enrolledClass ?? "",
           s.isActive ? "Active" : "Inactive",
         ]);
@@ -166,16 +162,14 @@ export default function StudentsGrid({
           .join("\n");
         const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
         const url = URL.createObjectURL(blob);
-        const a = Object.assign(document.createElement("a"), {
+        Object.assign(document.createElement("a"), {
           href: url,
           download: "students.csv",
-        });
-        a.click();
+        }).click();
         URL.revokeObjectURL(url);
       }}
-      defaultPageSize={10}
-      className="max-w-8xl mx-auto px-4"
-      brandColor={brandColor}
+      defaultPageSize={15}
+      brandColor={brandColor ?? undefined}
     />
   );
 }

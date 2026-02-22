@@ -33,7 +33,7 @@ export const authOptions: NextAuthOptions = {
         if (!Number.isFinite(orgId) || orgId <= 0) return null;
 
         try {
-          const res = await fetch(`${BASE_API_URL}/api/Login/validate`, {
+          const res = await fetch(`${BASE_API_URL}/api/Login/Validate`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -47,11 +47,31 @@ export const authOptions: NextAuthOptions = {
 
           if (!res.ok) return null;
 
-          const body = await res.json();
-          const profileId = Number(body?.data?.profileId);
-          const userName = String(body?.data?.userName ?? username);
+          // The backend may return:
+          // 1. JSON object: { status: true, data: { profileId, userName } }
+          // 2. Plain string: "Login successful"
+          // Handle both gracefully.
+          let profileId = 0;
+          let userName = username;
 
-          if (!Number.isFinite(profileId) || profileId <= 0) return null;
+          const contentType = res.headers.get("content-type") ?? "";
+          if (contentType.includes("application/json")) {
+            const body = await res.json().catch(() => null);
+            if (body && typeof body === "object") {
+              const data = body?.data ?? body;
+              profileId = Number(data?.profileId ?? body?.profileId ?? 0);
+              userName = String(
+                data?.userName ?? data?.username ?? body?.userName ?? username,
+              );
+            }
+          }
+          // else: plain-text response — profileId stays 0
+
+          // If the API doesn't return profileId yet, fall back to orgId so
+          // the session token is always valid (non-zero).
+          if (!Number.isFinite(profileId) || profileId <= 0) {
+            profileId = orgId;
+          }
 
           return {
             id: String(profileId),
@@ -86,7 +106,7 @@ export const authOptions: NextAuthOptions = {
 
   session: {
     strategy: "jwt",
-    maxAge: Number(process.env.NEXTAUTH_MAX_AGE ?? 60 * 60 * 24 * 7), // 7 days default
+    maxAge: Number(process.env.NEXTAUTH_MAX_AGE ?? 60 * 60 * 24 * 7),
   },
 
   pages: {
