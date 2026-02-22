@@ -313,7 +313,7 @@ export async function getAdmissionMasterData(params: { orgId: number }) {
 
 export async function getRoles() {
   const base = requireUrl(API_URL, "API_URL");
-  return apiPost<ApiResponse<Role[]>>(
+  return apiPost<ApiResponse<RolesResponse>>(
     base,
     "/api/RolePermission/GetRoles",
     reqMeta(),
@@ -325,7 +325,7 @@ export async function getRolePermissions(params: { roleId: number }) {
   const roleId = Number(params.roleId);
   if (!Number.isFinite(roleId) || roleId <= 0)
     throw new Error("Invalid role ID");
-  return apiPost<ApiResponse<RolePermissionDetail>>(
+  return apiPost<ApiResponse<RolePermissionDetail[]>>(
     base,
     "/api/RolePermission/GetRolesPermissions",
     { ...reqMeta(), roleId },
@@ -364,8 +364,13 @@ export async function createPermission(params: {
 // ─────────────────────────────────────────────────────────
 
 export type Role = {
-  roleId: number;
+  id: number;
   roleName: string;
+  isActive: boolean;
+};
+
+export type RolesResponse = {
+  roles: Role[];
 };
 
 export type Permission = {
@@ -377,10 +382,10 @@ export type Permission = {
 };
 
 export type RolePermissionDetail = {
-  roleId: number;
-  roleName: string;
-  permissions: Permission[];
-  allPermissions: Permission[];
+  id: number;
+  code: string;
+  description: string;
+  permissionGroup: number;
 };
 
 export type EmployeeListItem = {

@@ -1,37 +1,40 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
-import { getRolePermissions } from "@/app/utils";
+import { getRolePermissions, RolePermissionDetail } from "@/app/utils";
 import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
 import { PageHeader } from "@/components/shared-ui/page-header";
 import { ErrorCard } from "@/components/shared-ui/states";
-import RolePermissionsEditor from "@/components/roles/role-permissions-editor";
+import RolePermissionsEditor from "@/components/users/roles/role-permissions-editor";
 
-type PageProps = { params: Promise<{ id: string }> };
+type PageProps = { params: { id: string } };
 
 export default async function RoleDetailPage({ params }: PageProps) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/auth/login");
 
-  const { id } = await params;
+  const {id} = await params;
+
   const roleId = Number(id);
   if (!Number.isInteger(roleId) || roleId <= 0) notFound();
 
-  let roleData: Awaited<ReturnType<typeof getRolePermissions>>["data"] | null = null;
+  let permissions: RolePermissionDetail[] = [];
   let fetchError: string | null = null;
 
   try {
     const res = await getRolePermissions({ roleId });
-    roleData = res?.data ?? null;
+    if (res?.status && Array.isArray(res.data)) {
+      permissions = res.data;
+    }
   } catch (err) {
-    fetchError = err instanceof Error ? err.message : "Failed to load role";
+    fetchError = err instanceof Error ? err.message : "Failed to load role permissions";
   }
 
-  if (!fetchError && !roleData) notFound();
+  if (!fetchError && permissions.length === 0) notFound();
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
       <PageHeader
-        title={roleData?.roleName ?? "Role Permissions"}
+        title="Role Permissions"
         description="Manage which permissions are enabled for this role"
         backLabel="Back to Roles"
       />
@@ -40,7 +43,8 @@ export default async function RoleDetailPage({ params }: PageProps) {
         <ErrorCard message={fetchError} />
       ) : (
         <RolePermissionsEditor
-          roleData={roleData!}
+          roleId={roleId}
+          permissions={permissions}
           brandColor={session.user.brandColor}
         />
       )}

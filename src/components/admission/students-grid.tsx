@@ -16,6 +16,57 @@ const getColumns = (brandColor?: string): ColumnDef<Student>[] => [
     cell: ({ row }) => (
       <span className="text-sm text-slate-400">{row.index + 1}</span>
     ),
+  }, {
+    id: "actions",
+    header: "Actions",
+    cell: ({ row }) => (
+      <div className="flex items-center gap-2">
+        <Link
+          href={`/dashboard/admission/${row.original.studentId}`}
+          className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"
+          title="View"
+        >
+          <Eye className="h-4 w-4" />
+        </Link>
+        <Link
+          href={`/dashboard/admission/${row.original.studentId}/edit`}
+          className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"
+          title="Edit"
+        >
+          <Pencil className="h-4 w-4" />
+        </Link>
+      </div>
+    ),
+  }, {
+    accessorKey: "studentId",
+    header: "ID",
+    cell: ({ getValue }) => (
+      <Badge
+        variant="outline"
+        className="font-mono text-xs"
+        style={brandColor ? { borderColor: brandColor, color: brandColor } : undefined}
+      >
+        #{getValue<number>()}
+      </Badge>
+    ),
+  }, {
+    accessorKey: "isActive",
+    header: "Status",
+    cell: ({ getValue }) => {
+      const active = Boolean(getValue());
+      return (
+        <Badge
+          variant="outline"
+          className={
+            active
+              ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30"
+              : "border-gray-300 bg-gray-50 text-gray-500"
+          }
+        >
+          {active ? "Active" : "Inactive"}
+        </Badge>
+      );
+    },
   },
   {
     id: "student",
@@ -44,19 +95,7 @@ const getColumns = (brandColor?: string): ColumnDef<Student>[] => [
       );
     },
   },
-  {
-    accessorKey: "studentId",
-    header: "ID",
-    cell: ({ getValue }) => (
-      <Badge
-        variant="outline"
-        className="font-mono text-xs"
-        style={brandColor ? { borderColor: brandColor, color: brandColor } : undefined}
-      >
-        #{getValue<number>()}
-      </Badge>
-    ),
-  },
+
   {
     accessorKey: "enrolledClass",
     header: "Class",
@@ -69,47 +108,8 @@ const getColumns = (brandColor?: string): ColumnDef<Student>[] => [
       );
     },
   },
-  {
-    accessorKey: "isActive",
-    header: "Status",
-    cell: ({ getValue }) => {
-      const active = Boolean(getValue());
-      return (
-        <Badge
-          variant="outline"
-          className={
-            active
-              ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30"
-              : "border-gray-300 bg-gray-50 text-gray-500"
-          }
-        >
-          {active ? "Active" : "Inactive"}
-        </Badge>
-      );
-    },
-  },
-  {
-    id: "actions",
-    header: "",
-    cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <Link
-          href={`/dashboard/admission/${row.original.studentId}`}
-          className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"
-          title="View"
-        >
-          <Eye className="h-4 w-4" />
-        </Link>
-        <Link
-          href={`/dashboard/admission/${row.original.studentId}/edit`}
-          className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"
-          title="Edit"
-        >
-          <Pencil className="h-4 w-4" />
-        </Link>
-      </div>
-    ),
-  },
+
+
 ];
 
 export default function StudentsGrid({
@@ -139,7 +139,7 @@ export default function StudentsGrid({
 
   return (
     <DataGrid
-      title="Students"
+      title=""
       subtitle={`${filtered.length} of ${data.length} students`}
       data={filtered}
       columns={columns}
@@ -168,7 +168,7 @@ export default function StudentsGrid({
         }).click();
         URL.revokeObjectURL(url);
       }}
-      defaultPageSize={15}
+      defaultPageSize={10}
       brandColor={brandColor ?? undefined}
     />
   );

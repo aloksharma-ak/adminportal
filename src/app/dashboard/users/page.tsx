@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { Card, CardContent } from "@/components/ui/card";
-import { UserPlus, Users, type LucideIcon } from "lucide-react";
+import { ShieldCheck, UserPlus, Users, type LucideIcon } from "lucide-react";
 import { PageHeader } from "@/components/shared-ui/page-header";
 
 const tiles: {
@@ -26,6 +26,13 @@ const tiles: {
       gradient: "from-emerald-500 to-teal-500",
       title: "Add Employee",
       description: "Onboard a new staff member to the organisation",
+    },
+    {
+      href: "/dashboard/users/roles",
+      Icon: ShieldCheck,
+      gradient: "from-purple-500 to-violet-500",
+      title: "Roles & Permissions",
+      description: "Manage user roles and access control",
     },
   ];
 
