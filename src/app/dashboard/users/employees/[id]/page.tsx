@@ -20,6 +20,7 @@ export default async function EmployeeDetailPage({ params }: Props) {
   const empId = Number(id);
 
   const res = await getEmployee({
+    profileId: 0,
     empId,
     orgId: session.user.orgId,
   });
@@ -30,6 +31,9 @@ export default async function EmployeeDetailPage({ params }: Props) {
 
   const e = res.data;
   const brandColor = session.user.brandColor ?? undefined;
+
+
+  console.log("----------->", empId)
 
 
   return (
