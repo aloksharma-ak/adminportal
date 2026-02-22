@@ -26,7 +26,7 @@ export default function Footer({
               className="group flex items-center gap-1.5 text-xs text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             >
               <Globe className="h-3 w-3 shrink-0" />
-              <span className="truncate max-w-[180px] hidden sm:block">{website}</span>
+              <span className="truncate max-w-44 hidden sm:block">{website}</span>
               <ExternalLink className="h-3 w-3 shrink-0 opacity-0 transition group-hover:opacity-70 hidden sm:block" />
             </a>
           )}

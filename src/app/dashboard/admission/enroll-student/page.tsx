@@ -16,7 +16,6 @@ export default async function EnrollStudentPage() {
 
     const master = await getAdmissionMasterData({ orgId: session.user.orgId });
 
-
     classOptions = master.data.classMasters.map((c) => ({
       classId: c.id,
       className: c.classText, // use classText like "1-A"

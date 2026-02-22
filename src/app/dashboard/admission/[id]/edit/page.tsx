@@ -28,16 +28,29 @@ export default async function EditStudentPage({ params }: Props) {
       getAdmissionMasterData({ orgId: session.user.orgId }),
     ]);
 
+    // ---------------- Student ----------------
     if (studentRes.status === "fulfilled") {
       student = studentRes.value?.data;
-      if (!student) fetchError = "Student not found";
+
+      if (!student) {
+        fetchError = "Student not found";
+      }
     } else {
-      fetchError = (studentRes.reason as Error)?.message ?? "Failed to load student";
+      fetchError =
+        (studentRes.reason as Error)?.message ??
+        "Failed to load student";
     }
 
+    // ---------------- Master ----------------
     if (masterRes.status === "fulfilled") {
-      classOptions = Array.isArray(masterRes.value?.data?.classes)
-        ? masterRes.value.data.classes : [];
+      const master = masterRes.value;
+
+      classOptions = Array.isArray(master?.data.classMasters)
+        ? master.data.classMasters.map((c) => ({
+          classId: c.id,
+          className: c.classText,
+        }))
+        : [];
     }
   } catch (err) {
     fetchError = err instanceof Error ? err.message : "Failed to load data";
