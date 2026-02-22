@@ -185,16 +185,18 @@ export async function getOrganisationDetail(
 }
 
 export async function getEmployee(params: {
-  profileId: number;
+  empId: number;
   orgId: number;
 }): Promise<ApiResponse<EmployeeDetail>> {
   const base = requireUrl(API_URL, "API_URL");
-  if (!Number.isFinite(params.profileId) || params.profileId <= 0)
+
+
+  if (!Number.isFinite(params.empId) || params.empId <= 0)
     throw new Error("Invalid employee ID");
   if (!Number.isFinite(params.orgId) || params.orgId <= 0)
     throw new Error("Invalid organisation ID");
   return apiPost(base, "/api/User/GetEmployee", {
-    profileId: params.profileId,
+    empId: params.empId,
     orgId: params.orgId,
   });
 }
@@ -213,6 +215,9 @@ export async function getEmployeeList(params: { orgId: number }) {
 
 export async function createEmployee(input: CreateEmployeePayload) {
   const base = requireUrl(API_URL, "API_URL");
+
+  console.log("------------------->",input)
+
   const normalized = {
     ...input,
     communicationAddress: input.isCommunicationAddressSameAsPermanant

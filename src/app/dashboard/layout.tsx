@@ -21,7 +21,7 @@ export default async function DashboardLayout({
   const [orgResult, empResult] = await Promise.allSettled([
     getOrganisationDetail(session.user.orgCode),
     getEmployee({
-      profileId: session.user.profileId,
+      empId: session.user.profileId,
       orgId: session.user.orgId,
     }),
   ]);

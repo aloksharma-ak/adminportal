@@ -17,12 +17,10 @@ export default async function EmployeeDetailPage({ params }: Props) {
 
     const { id } = await params;
 
-  const profileId = Number(id);
-  if (!profileId || profileId <= 0) redirect("/dashboard/users/employees");
-  if (!Number.isInteger(profileId) || profileId <= 0) notFound();
+  const empId = Number(id);
 
   const res = await getEmployee({
-    profileId,
+    empId,
     orgId: session.user.orgId,
   });
 
@@ -33,7 +31,6 @@ export default async function EmployeeDetailPage({ params }: Props) {
   const e = res.data;
   const brandColor = session.user.brandColor ?? undefined;
 
-  console.log("------------->", res)
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
@@ -54,7 +51,7 @@ export default async function EmployeeDetailPage({ params }: Props) {
         </div>
 
         <Link
-          href={`/dashboard/users/employees/${profileId}/edit`}
+          href={`/dashboard/users/employees/${empId}/edit`}
           className="inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm text-white"
           style={{ backgroundColor: brandColor }}
         >

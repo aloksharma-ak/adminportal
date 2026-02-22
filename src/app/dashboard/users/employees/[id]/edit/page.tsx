@@ -26,7 +26,7 @@ export default async function EditEmployeePage({ params }: Props) {
   try {
     const [masterData, empDetail] = await Promise.all([
       getMasterData({ orgId: session.user.orgId }),
-      getEmployee({ profileId: empId, orgId: session.user.orgId }),
+      getEmployee({ empId: empId, orgId: session.user.orgId }),
     ]);
 
     roles = (masterData?.data?.roleMaster ?? [])
@@ -42,9 +42,6 @@ export default async function EditEmployeePage({ params }: Props) {
   }
 
   if (!employee) notFound();
-
-  console.log('-------------->', roles)
-  console.log('-------------->', employee)
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">

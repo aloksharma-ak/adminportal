@@ -137,7 +137,6 @@ export default function EditEmployeeForm({
   const { control, handleSubmit, setValue, watch } = form;
 
   const sameAddress = watch("isCommunicationAddressSameAsPermanant");
-  const createCred  = watch("isCreateCredential");
   const permState   = watch("permanantAddress.state");
   const commState   = watch("communicationAddress.state");
 
@@ -226,6 +225,7 @@ export default function EditEmployeeForm({
         empId: v.empId,
         roleId: roleIdNum,
         communicationAddress: commAddress,
+        isCreateCredential: false,
       });
       toast.success("Employee updated successfully", { id: tId });
     } catch (err) {
@@ -451,36 +451,9 @@ export default function EditEmployeeForm({
 
           <Separator />
 
-          {/* ── Credentials toggle ── */}
-          <ToggleRow
-            title="Update login credentials"
-            description="Enable to update username / password for this employee"
-            checked={createCred}
-            onChange={(v) => setValue("isCreateCredential", v)}
-            color={brandColor}
-          />
+         
 
-          {createCred && (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <InputField
-                control={control} name="userName" label="Username"
-                placeholder="username" className="h-11 rounded-2xl"
-                leftIcon={<User2 className="h-4 w-4" />}
-                rules={{
-                  validate: (v) =>
-                    !createCred || String(v).trim().length > 0
-                      ? true
-                      : "Username is required",
-                }}
-              />
-              <InputField
-                control={control} name="password" label="New Password" type="password"
-                placeholder="Leave blank to keep current" className="h-11 rounded-2xl"
-                leftIcon={<LockIcon className="h-4 w-4" />}
-                showPasswordToggle
-              />
-            </div>
-          )}
+          
 
           <ActionButton
             type="submit"

@@ -20,7 +20,7 @@ export default async function ProfilePage() {
   }
 
   const res = await getEmployee({
-    profileId: session.user.profileId,
+    empId: session.user.profileId,
     orgId: session.user.orgId,
   });
 

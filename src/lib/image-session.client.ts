@@ -74,7 +74,23 @@ export function toImageSrc(rawLogo?: string | null) {
     return raw;
   }
 
-  return `data:image/png;base64,${raw}`;
+  // SVG detection (most important for your case)
+  if (raw.startsWith("PD94") || raw.includes("PHN2Zy")) {
+    return `data:image/svg+xml;base64,${raw}`;
+  }
+
+  const signatures: Record<string, string> = {
+    "/9j/": "image/jpeg",
+    "iVBORw0KGgo": "image/png",
+    "R0lGOD": "image/gif",
+    "UklGR": "image/webp",
+  };
+
+  const detectedType =
+    Object.entries(signatures).find(([sig]) => raw.startsWith(sig))?.[1] ||
+    "image/png";
+
+  return `data:${detectedType};base64,${raw}`;
 }
 
 export async function fileToBase64(file: File): Promise<{

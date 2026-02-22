@@ -7,15 +7,7 @@ import { LinkButton } from "@/components/controls/Buttons";
 import { UserPlus, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
-type EmployeeListItem = {
-  empId: number;
-  empName: string;
-  initials?: string;
-  profileId: number;
-  userName: string | null;
-  roleName: string;
-  isActive: boolean;
-};
+
 
 export default async function EmployeesPage() {
   const session = await getServerSession(authOptions);
