@@ -28,7 +28,7 @@ export default async function EditEmployeePage({ params }: Props) {
   if (masterResult.status === "fulfilled") {
     roles = (masterResult.value?.data?.roleMaster ?? [])
       .filter((r) => r.isActive)
-      .map((r) => ({ roleId: r.id, roleName: r.roleName }));
+      .map((r) => ({ roleId: r.roleId, roleName: r.roleName }));
   }
 
   if (empResult.status === "fulfilled") {
