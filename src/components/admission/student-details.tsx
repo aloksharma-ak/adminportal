@@ -50,7 +50,7 @@ function getClassText(v?: EnrolledClass | null) {
 async function copyText(text?: string | null) {
   const v = clean(text);
   if (!v) return;
-  await navigator.clipboard.writeText(v).catch(() => {});
+  await navigator.clipboard.writeText(v).catch(() => { });
 }
 
 function Field({ label, value }: { label: string; value?: React.ReactNode }) {
@@ -113,7 +113,7 @@ export default function StudentDetails({ student, brandColor }: { student: Stude
   return (
     <div className="space-y-6">
       {/* Hero */}
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden pt-0">
         <div
           className="h-24"
           style={{ background: brandColor ? `linear-gradient(135deg, ${brandColor}40, ${brandColor}15)` : "linear-gradient(135deg, #10b98120, #3b82f615)" }}

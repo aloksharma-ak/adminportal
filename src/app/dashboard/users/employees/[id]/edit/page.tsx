@@ -42,16 +42,15 @@ export default async function EditEmployeePage({ params }: Props) {
 
   const fullName = employee
     ? [employee.firstName, employee.middleName, employee.lastName]
-        .filter(Boolean)
-        .join(" ")
+      .filter(Boolean)
+      .join(" ")
     : "Employee";
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
+    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
         title={`Edit: ${fullName}`}
         description="Update employee information"
-        backHref={`/dashboard/users/employees/${empId}`}
         backLabel="Back to Employee"
       />
 

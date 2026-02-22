@@ -53,11 +53,10 @@ export default async function EmployeeDetailPage({ params }: Props) {
   const fullName = emp ? [emp.firstName, emp.middleName, emp.lastName].filter(Boolean).join(" ") : "";
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
         title={fullName || "Employee Details"}
         description={emp?.role?.roleName}
-        backHref="/dashboard/users/employees"
         backLabel="Back to Employees"
         actions={
           emp && (

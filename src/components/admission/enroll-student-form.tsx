@@ -218,7 +218,7 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
   });
 
   return (
-    <section className="mx-auto w-full max-w-5xl">
+    <section className="">
       <Card className="rounded-3xl border-slate-200/70 dark:border-slate-700/70">
         <CardHeader>
           <CardTitle>{isEditing ? "Edit Student" : "Enroll Student"}</CardTitle>
@@ -272,7 +272,7 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
                 <InputField control={control} name="lastName" label="Last Name" placeholder="Last name" className="h-11 rounded-2xl" rules={{ required: "Last name is required" }} />
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <InputField control={control} name="initials" label="Initials" placeholder="e.g. VM" className="h-11 rounded-2xl" leftIcon={<GraduationCap className="h-4 w-4" />} />
+                <InputField control={control} name="initials" label="Initials" placeholder="e.g. VM" className="h-11 rounded-2xl" leftIcon={<GraduationCap className="h-4 w-4" />} rules={{ required: "Initial is required" }} />
                 <InputField control={control} name="email" label="Email" placeholder="name@domain.com" className="h-11 rounded-2xl" leftIcon={<Mail className="h-4 w-4" />} />
                 <InputField control={control} name="dob" label="Date of Birth" type="date" className="h-11 rounded-2xl" leftIcon={<CalendarDays className="h-4 w-4" />} />
               </div>
@@ -372,7 +372,7 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
                     placeholder="Select Category"
                     options={categoryDropdownOptions}
                     className="h-11 rounded-2xl"
-                    allowClear
+                    allowClear={false}
                   />
                 )}
               />

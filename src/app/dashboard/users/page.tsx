@@ -38,7 +38,6 @@ export default async function UsersPage() {
       <PageHeader
         title="Users"
         description="Manage employees and account settings"
-        backHref="/dashboard"
         backLabel="Back to Dashboard"
       />
 

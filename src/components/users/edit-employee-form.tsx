@@ -137,8 +137,8 @@ export default function EditEmployeeForm({
   const { control, handleSubmit, setValue, watch } = form;
 
   const sameAddress = watch("isCommunicationAddressSameAsPermanant");
-  const permState   = watch("permanantAddress.state");
-  const commState   = watch("communicationAddress.state");
+  const permState = watch("permanantAddress.state");
+  const commState = watch("communicationAddress.state");
 
   const p1 = watch("permanantAddress.addressLine1");
   const p2 = watch("permanantAddress.addressLine2");
@@ -153,7 +153,7 @@ export default function EditEmployeeForm({
       { addressLine1: p1, addressLine2: p2, pinCode: p3, city: p4, state: p5 },
       { shouldValidate: false },
     );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sameAddress, p1, p2, p3, p4, p5, setValue]);
 
   const stateOptions = React.useMemo<DropdownOption[]>(
@@ -223,6 +223,7 @@ export default function EditEmployeeForm({
         ...v,
         orgId: v.orgId,
         empId: v.empId,
+        profileId: employee.profileId,
         roleId: roleIdNum,
         communicationAddress: commAddress,
         isCreateCredential: false,
@@ -451,9 +452,9 @@ export default function EditEmployeeForm({
 
           <Separator />
 
-         
 
-          
+
+
 
           <ActionButton
             type="submit"

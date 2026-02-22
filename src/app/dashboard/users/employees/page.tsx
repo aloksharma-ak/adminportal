@@ -27,7 +27,6 @@ export default async function EmployeesPage() {
       <PageHeader
         title="Employees"
         description="View, edit and manage all staff members"
-        backHref="/dashboard/users"
         backLabel="Back to Users"
         actions={
           <LinkButton

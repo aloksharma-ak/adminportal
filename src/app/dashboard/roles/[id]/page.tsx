@@ -33,7 +33,6 @@ export default async function RoleDetailPage({ params }: PageProps) {
       <PageHeader
         title={roleData?.roleName ?? "Role Permissions"}
         description="Manage which permissions are enabled for this role"
-        backHref="/dashboard/roles"
         backLabel="Back to Roles"
       />
 

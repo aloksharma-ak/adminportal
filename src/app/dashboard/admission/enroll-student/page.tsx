@@ -4,12 +4,13 @@ import { getAdmissionMasterData } from "@/app/utils";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/shared-ui/page-header";
-import { Container } from "@/components/shared-ui/container";
+import { ErrorCard } from "@/components/shared-ui/states";
 
 export default async function EnrollStudentPage() {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/auth/login");
 
+  let fetchError: string | null = null;
   let classOptions: { classId: number; className: string }[] = [];
   let categoryOptions: string[] = [];
   try {
@@ -22,18 +23,18 @@ export default async function EnrollStudentPage() {
     }));
 
     categoryOptions = master.data.cateogryMaster ?? [];
-  } catch {
-    // Fallback: form shows class ID text input
+  } catch (err) {
+    fetchError = err instanceof Error ? err.message : "Failed to load data";
   }
 
   return (
-    <Container className="py-6">
+    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
         title="Enroll Student"
         description="Register a new student into the organisation"
-        backHref="/dashboard/admission"
         backLabel="Back to Admissions"
       />
+      {fetchError && <ErrorCard message={fetchError} />}
       <EnrollStudentForm
         orgId={session.user.orgId}
         orgName={session.user.orgName ?? ""}
@@ -41,6 +42,6 @@ export default async function EnrollStudentPage() {
         classOptions={classOptions}
         categoryOptions={categoryOptions}
       />
-    </Container>
+    </div>
   );
 }

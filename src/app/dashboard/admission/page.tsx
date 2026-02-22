@@ -26,7 +26,6 @@ export default async function AdmissionPage() {
       <PageHeader
         title="Admissions"
         description="Manage student enrolments and records"
-        backHref="/dashboard"
         backLabel="Back to Dashboard"
         actions={
           <LinkButton

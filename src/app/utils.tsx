@@ -115,6 +115,7 @@ const CreateEmployeeSchema = z
     userName: z.string().trim().optional().default(""),
     password: z.string().optional().default(""),
     orgId: z.number().int().positive("Org ID is required"),
+    profileId: z.number().int().optional()
   })
   .superRefine((val, ctx) => {
     if (val.isCreateCredential) {

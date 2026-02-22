@@ -5,34 +5,45 @@
 
 /** Convert a raw base64 / URL string into a renderable <img> src, or null. */
 export function toAvatarSrc(raw?: string | null): string | null {
-  const v = (raw ?? "").trim();
-  if (!v) return null;
+  if (!raw) return null;
 
-  // Already a valid URL or data-URI
-  if (
-    v.startsWith("http://") ||
-    v.startsWith("https://") ||
-    v.startsWith("/") ||
-    v.startsWith("data:image/")
-  )
-    return v;
+  const value = raw.trim();
+  if (!value) return null;
 
-  // SVG base64
-  if (v.startsWith("PD94") || v.includes("PHN2Zy")) {
-    return `data:image/svg+xml;base64,${v}`;
+  // If already a full data URL
+  if (value.startsWith("data:image/")) {
+    return value.replace(/\s/g, "");
   }
 
-  // Sniff common image signatures
-  const signatures: [string, string][] = [
-    ["/9j/", "image/jpeg"],
-    ["iVBORw0KGgo", "image/png"],
-    ["R0lGOD", "image/gif"],
-    ["UklGR", "image/webp"],
-  ];
-  const mime =
-    signatures.find(([sig]) => v.startsWith(sig))?.[1] ?? "image/png";
+  // Clean whitespace/newlines
+  const cleaned = value.replace(/\s/g, "");
 
-  return `data:${mime};base64,${v}`;
+  // Try to detect mime type from base64 header
+  const mime = detectMimeType(cleaned);
+
+  return `data:${mime};base64,${cleaned}`;
+}
+
+/**
+ * Detect mime type from base64 signature
+ * Covers ALL common formats
+ */
+function detectMimeType(base64: string): string {
+  if (base64.startsWith("/9j")) return "image/jpeg";
+  if (base64.startsWith("iVBORw0KGgo")) return "image/png";
+  if (base64.startsWith("R0lGOD")) return "image/gif";
+  if (base64.startsWith("UklGR")) return "image/webp";
+  if (base64.startsWith("PD94") || base64.includes("PHN2Zy"))
+    return "image/svg+xml";
+  if (base64.startsWith("Qk")) return "image/bmp";
+  if (base64.startsWith("SUkq") || base64.startsWith("TU0AKg"))
+    return "image/tiff";
+  if (base64.startsWith("AAABAA")) return "image/x-icon";
+  if (base64.startsWith("AAAAIGZ0eXBhdmlm"))
+    return "image/avif";
+
+  // Safe fallback
+  return "image/jpeg";
 }
 
 /** Generate initials from a full name or separate parts. */

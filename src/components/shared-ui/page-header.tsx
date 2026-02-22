@@ -1,6 +1,8 @@
+'use client'
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 interface PageHeaderProps {
   title: string;
@@ -19,9 +21,11 @@ export function PageHeader({
   actions,
   className,
 }: PageHeaderProps) {
+  const router = useRouter();
+
   return (
     <div className={cn("mb-6 space-y-4", className)}>
-      {backHref && (
+      {backHref ? (
         <Link
           href={backHref}
           className="inline-flex items-center gap-1.5 text-sm text-slate-500 transition hover:text-slate-900 dark:hover:text-white"
@@ -29,7 +33,14 @@ export function PageHeader({
           <ArrowLeft className="h-4 w-4" />
           {backLabel}
         </Link>
-      )}
+      ) : <button
+        type="button"
+        onClick={() => router.back()}
+        className="inline-flex items-center gap-1.5 text-sm text-slate-500 transition hover:text-slate-900 dark:hover:text-white"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        {backLabel}
+      </button>}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">

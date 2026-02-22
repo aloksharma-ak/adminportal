@@ -51,13 +51,10 @@ export function Avatar({
           className,
         )}
       >
-        <Image
+        <img
           src={imgSrc}
-          alt={"Avatar"}
-          fill
-          sizes="96px"
-          className="object-cover"
-          unoptimized={imgSrc.startsWith("data:image/")}
+          alt="Avatar"
+          className="absolute inset-0 h-full w-full object-cover"
         />
       </div>
     );

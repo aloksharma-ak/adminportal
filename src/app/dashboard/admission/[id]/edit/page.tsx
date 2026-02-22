@@ -4,7 +4,6 @@ import { notFound, redirect } from "next/navigation";
 import { getStudentDetail } from "../../action";
 import { getAdmissionMasterData } from "@/app/utils";
 import EnrollStudentForm from "@/components/admission/enroll-student-form";
-import { Container } from "@/components/shared-ui/container";
 import { PageHeader } from "@/components/shared-ui/page-header";
 import { ErrorCard } from "@/components/shared-ui/states";
 
@@ -21,6 +20,7 @@ export default async function EditStudentPage({ params }: Props) {
   let student;
   let fetchError: string | null = null;
   let classOptions: { classId: number; className: string }[] = [];
+  let categoryOptions: string[] = [];
 
   try {
     const [studentRes, masterRes] = await Promise.allSettled([
@@ -45,12 +45,12 @@ export default async function EditStudentPage({ params }: Props) {
     if (masterRes.status === "fulfilled") {
       const master = masterRes.value;
 
-      classOptions = Array.isArray(master?.data.classMasters)
-        ? master.data.classMasters.map((c) => ({
-          classId: c.id,
-          className: c.classText,
-        }))
-        : [];
+      classOptions = master.data.classMasters.map((c) => ({
+        classId: c.id,
+        className: c.classText, // use classText like "1-A"
+      }));
+
+      categoryOptions = master.data.cateogryMaster ?? [];
     }
   } catch (err) {
     fetchError = err instanceof Error ? err.message : "Failed to load data";
@@ -59,10 +59,9 @@ export default async function EditStudentPage({ params }: Props) {
   if (!fetchError && !student) notFound();
 
   return (
-    <Container className="py-6">
+    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
         title="Edit Student"
-        backHref={`/dashboard/admission/${studentId}`}
         backLabel="Back to Student"
       />
       {fetchError && <ErrorCard message={fetchError} />}
@@ -72,10 +71,11 @@ export default async function EditStudentPage({ params }: Props) {
           orgName={session.user.orgName ?? ""}
           brandColor={session.user.brandColor ?? ""}
           classOptions={classOptions}
+          categoryOptions={categoryOptions}
           studentId={studentId}
           defaultValues={student}
         />
       )}
-    </Container>
+    </div>
   );
 }

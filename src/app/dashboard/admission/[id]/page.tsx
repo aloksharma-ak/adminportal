@@ -34,10 +34,9 @@ export default async function StudentDetailPage({ params }: PageProps) {
   const brandColor = session.user.brandColor ?? undefined;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
         title={student ? `${student.firstName ?? ""} ${student.lastName ?? ""}`.trim() || "Student Details" : "Student Details"}
-        backHref="/dashboard/admission"
         backLabel="Back to Admissions"
         actions={
           student && (

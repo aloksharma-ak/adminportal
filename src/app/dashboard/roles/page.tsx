@@ -37,7 +37,6 @@ export default async function RolesPage() {
       <PageHeader
         title="Roles & Permissions"
         description="Select a role to view and manage its permissions"
-        backHref="/dashboard"
         backLabel="Back to Dashboard"
       />
 

@@ -61,36 +61,46 @@ export function clearImageFromSession() {
   sessionStorage.removeItem(FULL_LOGO_KEY);
 }
 
-export function toImageSrc(rawLogo?: string | null) {
-  const raw = rawLogo?.trim();
+export function toImageSrc(rawLogo?: string | null): string | null {
+  if (!rawLogo) return null;
+
+  const raw = rawLogo.trim();
   if (!raw) return null;
 
+  // Already valid URL or full data URL
   if (
     raw.startsWith("http://") ||
     raw.startsWith("https://") ||
     raw.startsWith("/") ||
     raw.startsWith("data:image/")
   ) {
-    return raw;
+    return raw.replace(/\s/g, "");
   }
 
-  // SVG detection (most important for your case)
-  if (raw.startsWith("PD94") || raw.includes("PHN2Zy")) {
-    return `data:image/svg+xml;base64,${raw}`;
-  }
+  // Remove whitespace / line breaks from backend base64
+  const cleaned = raw.replace(/\s/g, "");
 
-  const signatures: Record<string, string> = {
-    "/9j/": "image/jpeg",
-    "iVBORw0KGgo": "image/png",
-    "R0lGOD": "image/gif",
-    "UklGR": "image/webp",
-  };
+  const mimeType = detectMimeType(cleaned);
 
-  const detectedType =
-    Object.entries(signatures).find(([sig]) => raw.startsWith(sig))?.[1] ||
-    "image/png";
+  return `data:${mimeType};base64,${cleaned}`;
+}
 
-  return `data:${detectedType};base64,${raw}`;
+function detectMimeType(base64: string): string {
+  if (base64.startsWith("/9j")) return "image/jpeg";
+  if (base64.startsWith("iVBORw0KGgo")) return "image/png";
+  if (base64.startsWith("R0lGOD")) return "image/gif";
+  if (base64.startsWith("UklGR")) return "image/webp";
+  if (base64.startsWith("PD94") || base64.includes("PHN2Zy"))
+    return "image/svg+xml";
+  if (base64.startsWith("Qk")) return "image/bmp";
+  if (base64.startsWith("SUkq") || base64.startsWith("TU0AKg"))
+    return "image/tiff";
+  if (base64.startsWith("AAABAA")) return "image/x-icon";
+  if (base64.startsWith("AAAAIGZ0eXBhdmlm"))
+    return "image/avif";
+
+  // Safe fallback
+  return "image/jpeg";
 }
 
 export async function fileToBase64(file: File): Promise<{

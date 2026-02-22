@@ -55,7 +55,6 @@ export default async function ProfilePage() {
       <PageHeader
         title="My Profile"
         description="Your personal account information"
-        backHref="/dashboard"
         backLabel="Back to Dashboard"
         actions={
           emp && (
