@@ -307,10 +307,9 @@ export async function getAdmissionMasterData(params: { orgId: number }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────
-// Roles & Permissions (API_URL)
-// ─────────────────────────────────────────────────────────
+// ─── Role Permission API calls ────────────────────────────────────────────────
 
+/** GET /api/RolePermission/GetRoles — all roles in the system */
 export async function getRoles() {
   const base = requireUrl(API_URL, "API_URL");
   return apiPost<ApiResponse<RolesResponse>>(
@@ -320,6 +319,17 @@ export async function getRoles() {
   );
 }
 
+/** GET /api/RolePermission/GetPermissions — ALL permissions in the system */
+export async function getAllSystemPermissions() {
+  const base = requireUrl(API_URL, "API_URL");
+  return apiPost<ApiResponse<RolePermissionDetail[]>>(
+    base,
+    "/api/RolePermission/GetPermissions",
+    reqMeta(),
+  );
+}
+
+/** GET /api/RolePermission/GetRolesPermissions — permissions assigned to a role */
 export async function getRolePermissions(params: { roleId: number }) {
   const base = requireUrl(API_URL, "API_URL");
   const roleId = Number(params.roleId);
@@ -332,6 +342,7 @@ export async function getRolePermissions(params: { roleId: number }) {
   );
 }
 
+/** POST /api/RolePermission/UpdateRolePermission — save permission assignments */
 export async function updateRolePermissions(params: {
   roleId: number;
   permissionIds: number[];
@@ -347,6 +358,7 @@ export async function updateRolePermissions(params: {
   });
 }
 
+/** POST /api/RolePermission/CreatePermission — create a new permission */
 export async function createPermission(params: {
   name: string;
   description: string;
@@ -363,12 +375,7 @@ export async function createPermission(params: {
 // Shared Types
 // ─────────────────────────────────────────────────────────
 
-export type Role = {
-  roleId: number;
-  roleName: string;
-  isActive?: boolean;
-};
-
+// Role & Permission
 export type RolePermission = {
   id: number;
   roleName: string;
@@ -379,6 +386,13 @@ export type RolesResponse = {
   roles: RolePermission[];
 };
 
+export type RolePermissionDetail = {
+  id: number;
+  code: string;
+  description: string;
+  permissionGroup: number;
+};
+
 export type Permission = {
   permissionId: number;
   name: string;
@@ -387,13 +401,14 @@ export type Permission = {
   moduleName?: string;
 };
 
-export type RolePermissionDetail = {
-  id: number;
-  code: string;
-  description: string;
-  permissionGroup: number;
+export type Role = {
+  roleId: number;
+  roleName: string;
+  isActive?: boolean;
 };
 
+
+// Employee
 export type EmployeeListItem = {
   empId: number;
   empName: string;

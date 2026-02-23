@@ -5,8 +5,8 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { DataGrid } from "@/components/controls/data-grid";
 import Link from "next/link";
-import { RolePermission } from "@/app/utils";
 import { Eye, Pencil } from "lucide-react";
+import type { RolePermission } from "@/app/utils";
 
 const getColumns = (brandColor?: string | null): ColumnDef<RolePermission>[] => [
   {
@@ -24,21 +24,13 @@ const getColumns = (brandColor?: string | null): ColumnDef<RolePermission>[] => 
         <Link
           href={`/dashboard/users/roles/${row.original.id}`}
           className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"
-          title="View"
+          title="View / Edit Permissions"
         >
           <Eye className="h-4 w-4" />
-        </Link>
-        <Link
-          href={`/dashboard/users/roles/${row.original.id}/edit`}
-          className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"
-          title="Edit"
-        >
-          <Pencil className="h-4 w-4" />
         </Link>
       </div>
     ),
   },
-
   {
     accessorKey: "id",
     header: "ID",
@@ -61,14 +53,13 @@ const getColumns = (brandColor?: string | null): ColumnDef<RolePermission>[] => 
     header: "Status",
     cell: ({ getValue }) => {
       const active = Boolean(getValue());
-
       return (
         <Badge
           variant="outline"
           className={
             active
-              ? "border-green-500 bg-green-50 text-green-600 dark:bg-green-950/30"
-              : "border-gray-300 bg-gray-50 text-gray-500"
+              ? "border-emerald-400 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30"
+              : "border-slate-300 bg-slate-50 text-slate-500"
           }
         >
           {active ? "Active" : "Inactive"}
@@ -88,7 +79,7 @@ const getColumns = (brandColor?: string | null): ColumnDef<RolePermission>[] => 
       </Link>
     ),
   },
-];
+  ];
 
 export default function RoleListGrid({
   data,
@@ -104,9 +95,9 @@ export default function RoleListGrid({
   const filtered = React.useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return data;
-
     return data.filter(
-      (r) => r.roleName.toLowerCase().includes(q) || String(r.id).includes(q),
+      (r) =>
+        r.roleName.toLowerCase().includes(q) || String(r.id).includes(q),
     );
   }, [data, search]);
 
