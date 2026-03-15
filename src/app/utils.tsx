@@ -14,6 +14,7 @@ function requireUrl(url: string | undefined, label: string): string {
   return url;
 }
 
+/** Generates standard request metadata for API compatibility. */
 function reqMeta(userId?: number) {
   return {
     requestGuid: crypto.randomUUID(),
@@ -23,6 +24,7 @@ function reqMeta(userId?: number) {
   };
 }
 
+/** Robustly parses error responses from the backend. */
 async function parseError(res: Response): Promise<string> {
   const ct = res.headers.get("content-type") ?? "";
   try {
@@ -46,6 +48,7 @@ async function parseError(res: Response): Promise<string> {
   }
 }
 
+/** Standardized POST request wrapper with error handling. */
 async function apiPost<T = unknown>(
   base: string,
   path: string,
@@ -149,8 +152,6 @@ export async function getOrganisationDetail(
   const code = orgCode.trim().toUpperCase();
   if (!code) throw new Error("Organisation code is required");
 
-  // The OpenAPI spec defines the field as "orgCode" (camelCase).
-  // Send both casing variants to stay compatible with older/newer backend versions.
   const body = await apiPost<OrgApiResponse>(
     base,
     "/api/Organisation/GetDetail",
@@ -212,7 +213,6 @@ export async function getEmployee(params: {
   userId: number;
 }): Promise<ApiResponse<EmployeeDetail>> {
   const base = requireUrl(API_URL, "API_URL");
-
   return apiPost(base, "/api/User/GetEmployee", {
     ...reqMeta(params.userId),
     profileId: params.profileId,
@@ -245,9 +245,7 @@ export async function createEmployee(input: CreateEmployeePayload & { userId: nu
   const data = CreateEmployeeSchema.parse(normalized);
 
   return apiPost(base, "/api/User/CreateEmployee", {
-    requestGuid: crypto.randomUUID(),
-    requestTime: new Date().toISOString(),
-    userId: input.userId,
+    ...reqMeta(input.userId),
     ...data,
     communicationAddress: data.isCommunicationAddressSameAsPermanant
       ? data.permanantAddress
@@ -265,26 +263,17 @@ export async function getAllowModules(params: { orgId: number; userId: number })
   if (!Number.isFinite(orgId) || orgId <= 0)
     throw new Error("Invalid organisation ID");
 
-  // OpenAPI schema uses "orgid" (lowercase) for GetAllowModulesRequest
-  const url = `${base}/api/Modules/GetAllowModules`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    cache: "no-store",
-    body: JSON.stringify({ ...reqMeta(params.userId), orgid: orgId }),
-  });
-  const json = await res.json().catch(() => null);
-  if (!res.ok) {
-    if (
-      res.status === 400 &&
-      json?.message?.toLowerCase().includes("no modules")
-    )
-      return { ...json, data: [] };
-    throw new Error(
-      `GetAllowModules failed (${res.status}): ${json?.message ?? res.statusText}`,
-    );
+  try {
+    return await apiPost(base, "/api/Modules/GetAllowModules", {
+      ...reqMeta(params.userId),
+      orgid: orgId, // Legacy lowercase key compatibility
+    });
+  } catch (err) {
+    if (err instanceof Error && err.message.toLowerCase().includes("no modules")) {
+      return { status: true, message: "No modules assigned", data: [] };
+    }
+    throw err;
   }
-  return json;
 }
 
 // ─────────────────────────────────────────────────────────
@@ -316,7 +305,6 @@ export async function getAdmissionMasterData(params: { orgId: number; userId: nu
 
 // ─── Role Permission API calls ────────────────────────────────────────────────
 
-/** GET /api/RolePermission/GetRoles — all roles in the system */
 export async function getRoles(params: { userId: number }) {
   const base = requireUrl(API_URL, "API_URL");
   return apiPost<ApiResponse<RolesResponse>>(
@@ -326,7 +314,6 @@ export async function getRoles(params: { userId: number }) {
   );
 }
 
-/** GET /api/RolePermission/GetPermissions — ALL permissions in the system */
 export async function getAllSystemPermissions(params: { userId: number }) {
   const base = requireUrl(API_URL, "API_URL");
   return apiPost<ApiResponse<RolePermissionDetail[]>>(
@@ -336,7 +323,6 @@ export async function getAllSystemPermissions(params: { userId: number }) {
   );
 }
 
-/** GET /api/RolePermission/GetRolesPermissions — permissions assigned to a role */
 export async function getRolePermissions(params: { roleId: number; userId: number }) {
   const base = requireUrl(API_URL, "API_URL");
   const roleId = Number(params.roleId);
@@ -349,7 +335,6 @@ export async function getRolePermissions(params: { roleId: number; userId: numbe
   );
 }
 
-/** POST /api/RolePermission/UpdateRolePermission — save permission assignments */
 export async function updateRolePermissions(params: {
   roleId: number;
   permissionIds: number[];
@@ -366,7 +351,6 @@ export async function updateRolePermissions(params: {
   });
 }
 
-/** POST /api/RolePermission/CreatePermission — create a new permission */
 export async function createPermission(params: {
   name: string;
   description: string;
@@ -384,7 +368,6 @@ export async function createPermission(params: {
 // Shared Types
 // ─────────────────────────────────────────────────────────
 
-// Role & Permission
 export type RolePermission = {
   id: number;
   roleName: string;
@@ -402,22 +385,6 @@ export type RolePermissionDetail = {
   permissionGroup: number;
 };
 
-export type Permission = {
-  permissionId: number;
-  name: string;
-  description: string;
-  moduleId: number;
-  moduleName?: string;
-};
-
-export type Role = {
-  roleId: number;
-  roleName: string;
-  isActive?: boolean;
-};
-
-
-// Employee
 export type EmployeeListItem = {
   empId: number;
   empName: string;
@@ -475,9 +442,10 @@ export type EmployeeDetail = {
   permissions: EmployeePermission[];
 };
 
-export type ClassOption = {
-  classId: number;
-  className: string;
+export type Role = {
+  roleId: number;
+  roleName: string;
+  isActive?: boolean;
 };
 
 export type MasterData = {

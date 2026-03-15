@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useForm, Controller } from "react-hook-form";
-import Indian_states_cities_list from "indian-states-cities-list";
 import { toast } from "sonner";
 import {
   User2, LockIcon, Mail, Phone, ImageIcon, MapPin, Building2,
@@ -10,7 +9,6 @@ import {
 
 import { InputField } from "@/components/controls/InputField";
 import { DropdownFilter, type DropdownOption } from "@/components/controls/DropdownFilter";
-import { ToggleControl } from "@/components/controls/ToggleControl";
 import { ActionButton } from "@/components/controls/Buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -21,44 +19,17 @@ import { fileToBase64 } from "@/lib/image-session.client";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
-const MAX_IMAGE_BYTES = 500 * 1024;
+import {
+  MAX_IMAGE_BYTES,
+  EMPTY_ADDRESS,
+  type EmployeeFormValues,
+  FormSection,
+  FormToggleRow,
+  AddressFields,
+  useIndianStatesAndCities,
+} from "./employee-form-shared";
 
-type Address = {
-  addressLine1: string;
-  addressLine2: string;
-  pinCode: string;
-  city: string;
-  state: string;
-};
-
-// Mirrors the API request body exactly
-type FormValues = {
-  orgId: number;
-  empId: number;
-  profileId: number;
-  roleId: string | undefined;
-  firstName: string;
-  middleName: string;
-  lastName: string;
-  initials: string;
-  phone: string;
-  secondaryPhone: string;
-  email: string;
-  panNo: string;
-  aadharNo: string;
-  passportNo: string;
-  profilePicture: string;
-  permanantAddress: Address;
-  isCommunicationAddressSameAsPermanant: boolean;
-  communicationAddress: Address;
-  isCreateCredential: boolean;
-  userName: string;
-  password: string;
-};
-
-const EMPTY_ADDRESS: Address = {
-  addressLine1: "", addressLine2: "", pinCode: "", city: "", state: "",
-};
+type FormValues = EmployeeFormValues;
 
 type Props = {
   orgId: number;
@@ -104,6 +75,8 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
   const permState = watch("permanantAddress.state");
   const commState = watch("communicationAddress.state");
 
+  const { stateOptions, permCityOptions, commCityOptions } = useIndianStatesAndCities(permState, commState);
+
   // Watch individual primitive fields — avoids object-reference churn that causes infinite loop
   const p1 = watch("permanantAddress.addressLine1");
   const p2 = watch("permanantAddress.addressLine2");
@@ -120,31 +93,6 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sameAddress, p1, p2, p3, p4, p5, setValue]);
-
-  const stateOptions = React.useMemo<DropdownOption[]>(
-    () =>
-      (Indian_states_cities_list.STATES_OBJECT ?? []).map((s) => ({
-        value: s.name,
-        label: s.label,
-      })),
-    [],
-  );
-
-  const permCityOptions = React.useMemo<DropdownOption[]>(() => {
-    if (!permState) return [];
-    return (Indian_states_cities_list.STATE_WISE_CITIES?.[permState] ?? []).map((c) => ({
-      value: c.value,
-      label: c.label,
-    }));
-  }, [permState]);
-
-  const commCityOptions = React.useMemo<DropdownOption[]>(() => {
-    if (!commState) return [];
-    return (Indian_states_cities_list.STATE_WISE_CITIES?.[commState] ?? []).map((c) => ({
-      value: c.value,
-      label: c.label,
-    }));
-  }, [commState]);
 
   const onImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.currentTarget.files?.[0];
@@ -223,7 +171,6 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
 
           {/* ── Organisation (display only) + Role ── */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {/* Replaced disabled InputField showing raw orgId with a clean read-only pill */}
             <div className="flex h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 dark:border-slate-700 dark:bg-slate-900">
               <Building2 className="h-4 w-4 shrink-0 text-slate-400" />
               <span className="truncate text-sm text-slate-500">
@@ -270,7 +217,7 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
           <Separator />
 
           {/* ── Personal Details ── */}
-          <Section
+          <FormSection
             title="Personal Details"
             icon={<User2 className="h-4 w-4 text-slate-400" />}
           >
@@ -338,7 +285,6 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
               />
             </div>
 
-            {/* passportNo — present in API schema, was not rendered in the original form */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <InputField
                 control={control} name="passportNo" label="Passport No"
@@ -376,12 +322,12 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
                 </label>
               </div>
             </div>
-          </Section>
+          </FormSection>
 
           <Separator />
 
           {/* ── Permanent Address ── */}
-          <Section
+          <FormSection
             title="Permanent Address"
             icon={<MapPin className="h-4 w-4 text-slate-400" />}
           >
@@ -393,10 +339,10 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
               stateOptions={stateOptions}
               cityOptions={permCityOptions}
             />
-          </Section>
+          </FormSection>
 
           {/* Same-address toggle */}
-          <ToggleRow
+          <FormToggleRow
             title="Communication address same as permanent"
             description="Turn off to enter a different communication address"
             checked={sameAddress}
@@ -405,7 +351,7 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
           />
 
           {!sameAddress && (
-            <Section title="Communication Address">
+            <FormSection title="Communication Address">
               <AddressFields
                 prefix="communicationAddress"
                 control={control}
@@ -414,13 +360,13 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
                 stateOptions={stateOptions}
                 cityOptions={commCityOptions}
               />
-            </Section>
+            </FormSection>
           )}
 
           <Separator />
 
           {/* ── Credentials toggle ── */}
-          <ToggleRow
+          <FormToggleRow
             title="Create login credentials"
             description="Enable to set a username and password for this employee"
             checked={createCred}
@@ -435,7 +381,6 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
                 placeholder="username" className="h-11 rounded-2xl"
                 leftIcon={<User2 className="h-4 w-4" />}
                 rules={{
-                  // Fixed operator-precedence bug: added explicit parentheses + .length check
                   validate: (v) =>
                     !createCred || String(v).trim().length > 0
                       ? true
@@ -469,129 +414,5 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
         </form>
       </CardContent>
     </Card>
-  );
-}
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-function Section({
-  title, icon, children,
-}: {
-  title: string;
-  icon?: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</p>
-        {icon}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function ToggleRow({
-  title, description, checked, onChange, color,
-}: {
-  title: string;
-  description: string;
-  checked: boolean;
-  onChange: (v: boolean) => void;
-  color?: string | null;
-}) {
-  return (
-    <div className="flex items-center justify-between rounded-2xl border border-slate-200 dark:border-slate-700 p-4">
-      <div>
-        <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</p>
-        <p className="text-xs text-slate-500 dark:text-slate-400">{description}</p>
-      </div>
-      <ToggleControl color={color ?? undefined} label="" checked={checked} onChange={onChange} />
-    </div>
-  );
-}
-
-function AddressFields({
-  prefix, control, setValue, selectedState, stateOptions, cityOptions,
-}: {
-  prefix: "permanantAddress" | "communicationAddress";
-  control: ReturnType<typeof useForm<FormValues>>["control"];
-  setValue: ReturnType<typeof useForm<FormValues>>["setValue"];
-  selectedState: string;
-  stateOptions: DropdownOption[];
-  cityOptions: DropdownOption[];
-}) {
-  return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      <InputField
-        control={control} name={`${prefix}.addressLine1`}
-        label="Address Line 1" placeholder="House no, street"
-        className="h-11 rounded-2xl"
-        rules={{ required: "Address Line 1 is required" }}
-      />
-      <InputField
-        control={control} name={`${prefix}.addressLine2`}
-        label="Address Line 2" placeholder="Optional"
-        className="h-11 rounded-2xl"
-      />
-      <InputField
-        control={control} name={`${prefix}.pinCode`}
-        label="Pin Code" placeholder="e.g. 110001"
-        className="h-11 rounded-2xl"
-        rules={{ required: "Pin code is required" }}
-      />
-      <div className="flex gap-4">
-        <Controller
-          control={control}
-          name={`${prefix}.state`}
-          rules={{ required: "State is required" }}
-          render={({ field, fieldState }) => (
-            <div className="flex-1 space-y-1.5">
-              <DropdownFilter
-                label="State"
-                value={field.value}
-                onChange={(val) => {
-                  field.onChange(val);
-                  setValue(`${prefix}.city`, ""); // reset city on state change
-                }}
-                placeholder="Select State"
-                options={stateOptions}
-                className={cn("h-11 py-5 rounded-2xl", fieldState.invalid && "border-red-500")}
-                allowClear={false}
-              />
-              {fieldState.invalid && (
-                <p className="text-xs text-red-600 dark:text-red-400">
-                  {fieldState.error?.message}
-                </p>
-              )}
-            </div>
-          )}
-        />
-        <Controller
-          control={control}
-          name={`${prefix}.city`}
-          rules={{ required: "City is required" }}
-          render={({ field, fieldState }) => (
-            <div className="flex-1 space-y-1.5">
-              <DropdownFilter
-                label="City"
-                value={field.value}
-                onChange={field.onChange}
-                placeholder={selectedState ? "Select City" : "Select state first"}
-                options={cityOptions}
-                className={cn("h-11 py-5 rounded-2xl", fieldState.invalid && "border-red-500")}
-                allowClear={false}
-              />
-              {fieldState.invalid && (
-                <p className="text-xs text-red-600 dark:text-red-400">
-                  {fieldState.error?.message}
-                </p>
-              )}
-            </div>
-          )}
-        />
-      </div>
-    </div>
   );
 }
