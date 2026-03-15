@@ -33,6 +33,7 @@ type Address = {
 type FormValues = {
   orgId: number;
   empId: number;
+  profileId: number;
   roleId: string | undefined;
   firstName: string;
   middleName: string;
@@ -51,10 +52,6 @@ type FormValues = {
   isCreateCredential: boolean;
   userName: string;
   password: string;
-};
-
-const EMPTY_ADDRESS: Address = {
-  addressLine1: "", addressLine2: "", pinCode: "", city: "", state: "",
 };
 
 type Props = {
@@ -79,6 +76,7 @@ function addressesEqual(a: Address, b: Address) {
 export default function EditEmployeeForm({
   orgId, orgName, brandColor, roles, employee,
 }: Props) {
+  const { data: session } = useSession();
   const [loading, setLoading] = React.useState(false);
   const [preview, setPreview] = React.useState(
     employee.profilePicture
@@ -114,6 +112,7 @@ export default function EditEmployeeForm({
     defaultValues: {
       orgId,
       empId: employee.empId,
+      profileId: employee.profileId,
       roleId: employee.role?.id ? String(employee.role.id) : undefined,
       firstName: employee.firstName ?? "",
       middleName: employee.middleName ?? "",
@@ -138,6 +137,7 @@ export default function EditEmployeeForm({
   const { control, handleSubmit, setValue, watch } = form;
 
   const sameAddress = watch("isCommunicationAddressSameAsPermanant");
+  const createCred = watch("isCreateCredential");
   const permState = watch("permanantAddress.state");
   const commState = watch("communicationAddress.state");
 
@@ -154,7 +154,6 @@ export default function EditEmployeeForm({
       { addressLine1: p1, addressLine2: p2, pinCode: p3, city: p4, state: p5 },
       { shouldValidate: false },
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sameAddress, p1, p2, p3, p4, p5, setValue]);
 
   const stateOptions = React.useMemo<DropdownOption[]>(
@@ -222,12 +221,8 @@ export default function EditEmployeeForm({
     try {
       await createEmployee({
         ...v,
-        orgId: v.orgId,
-        empId: v.empId,
-        profileId: employee.profileId,
         roleId: roleIdNum,
         communicationAddress: commAddress,
-        isCreateCredential: false,
         userId: session?.user?.profileId ?? 0,
       });
       toast.success("Employee updated successfully", { id: tId });
@@ -454,9 +449,36 @@ export default function EditEmployeeForm({
 
           <Separator />
 
+          {/* ── Credentials toggle ── */}
+          <ToggleRow
+            title="Update login credentials"
+            description="Enable to change username or password for this employee"
+            checked={createCred}
+            onChange={(v) => setValue("isCreateCredential", v)}
+            color={brandColor}
+          />
 
-
-
+          {createCred && (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <InputField
+                control={control} name="userName" label="Username"
+                placeholder="username" className="h-11 rounded-2xl"
+                leftIcon={<User2 className="h-4 w-4" />}
+                rules={{
+                  validate: (v) =>
+                    !createCred || String(v).trim().length > 0
+                      ? true
+                      : "Username is required",
+                }}
+              />
+              <InputField
+                control={control} name="password" label="Password" type="password"
+                placeholder="Leave blank to keep current" className="h-11 rounded-2xl"
+                leftIcon={<LockIcon className="h-4 w-4" />}
+                showPasswordToggle
+              />
+            </div>
+          )}
 
           <ActionButton
             type="submit"

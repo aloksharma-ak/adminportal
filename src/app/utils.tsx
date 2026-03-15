@@ -106,19 +106,18 @@ const CreateEmployeeSchema = z
     panNo: z.string().trim().optional().default(""),
     aadharNo: z.string().trim().optional().default(""),
     passportNo: z.string().trim().optional().default(""),
-    email: z.string().trim().email("Invalid email address"),
+    email: z.string().trim().email("Invalid email address").or(z.literal("")).optional().default(""),
     roleId: z.number().int().positive("Role is required"),
-    empId: z.number().int().optional(),
+    empId: z.number().int().nonnegative().optional().default(0),
     profilePicture: z.string().optional().default(""),
     permanantAddress: AddressSchema,
     isCommunicationAddressSameAsPermanant: z.boolean(),
-    communicationAddress: AddressSchema.optional(),
+    communicationAddress: AddressSchema.optional().nullable(),
     isCreateCredential: z.boolean(),
     userName: z.string().trim().optional().default(""),
     password: z.string().optional().default(""),
     orgId: z.number().int().positive("Org ID is required"),
-    profileId: z.number().int().optional(),
-    userId: z.number().int().optional()
+    profileId: z.number().int().nonnegative().optional().default(0),
   })
   .superRefine((val, ctx) => {
     if (val.isCreateCredential) {
@@ -134,16 +133,6 @@ const CreateEmployeeSchema = z
           message: "Password is required when creating credentials",
           path: ["password"],
         });
-    }
-    if (
-      !val.isCommunicationAddressSameAsPermanant &&
-      !val.communicationAddress
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Communication address is required",
-        path: ["communicationAddress"],
-      });
     }
   });
 
@@ -207,9 +196,9 @@ export async function getOrganisationDetail(
 export async function getUser(params: {
   profileId: number;
   orgId: number;
-}): Promise<ApiResponse<EmployeeDetail>> {
+}): Promise<ApiResponse<{ details: EmployeeDetail }>> {
   const base = requireUrl(API_URL, "API_URL");
-  return apiPost(base, "/api/Users/GetUser", {
+  return apiPost(base, "/api/User/GetUser", {
     ...reqMeta(params.profileId),
     profileId: params.profileId,
     orgId: params.orgId,
@@ -256,7 +245,9 @@ export async function createEmployee(input: CreateEmployeePayload & { userId: nu
   const data = CreateEmployeeSchema.parse(normalized);
 
   return apiPost(base, "/api/User/CreateEmployee", {
-    ...reqMeta(input.userId),
+    requestGuid: crypto.randomUUID(),
+    requestTime: new Date().toISOString(),
+    userId: input.userId,
     ...data,
     communicationAddress: data.isCommunicationAddressSameAsPermanant
       ? data.permanantAddress

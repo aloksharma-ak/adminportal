@@ -34,7 +34,9 @@ type Address = {
 // Mirrors the API request body exactly
 type FormValues = {
   orgId: number;
-  roleId: string | undefined;       // string for dropdown, converted to number on submit
+  empId: number;
+  profileId: number;
+  roleId: string | undefined;
   firstName: string;
   middleName: string;
   lastName: string;
@@ -44,7 +46,7 @@ type FormValues = {
   email: string;
   panNo: string;
   aadharNo: string;
-  passportNo: string;               // was missing from the original form render
+  passportNo: string;
   profilePicture: string;
   permanantAddress: Address;
   isCommunicationAddressSameAsPermanant: boolean;
@@ -80,6 +82,8 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
     mode: "onSubmit",
     defaultValues: {
       orgId,
+      empId: 0,
+      profileId: 0,
       roleId: undefined,
       firstName: "", middleName: "", lastName: "", initials: "",
       phone: "", secondaryPhone: "",
@@ -180,11 +184,8 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
     setLoading(true);
     const tId = toast.loading("Creating employee...");
     try {
-      // empId: 0 → tells the API this is a new record (not an update)
       await createEmployee({
         ...v,
-        orgId: v.orgId,
-        empId: 0,
         roleId: roleIdNum,
         communicationAddress: commAddress,
         userId: session?.user?.profileId ?? 0,

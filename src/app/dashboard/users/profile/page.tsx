@@ -34,7 +34,7 @@ try {
     profileId: session.user.profileId,
     empId: 0,
     orgId: session.user.orgId,
-    userId: session.user.profileId
+    userId: 0
   });
   emp = res.data;
 

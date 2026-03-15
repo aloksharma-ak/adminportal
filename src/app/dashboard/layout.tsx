@@ -17,7 +17,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (orgResult.status === "rejected") redirect("/auth/login");
 
   const org = orgResult.value.organisation;
-  const emp = empResult.status === "fulfilled" ? empResult.value?.data : null;
+  const emp = empResult.status === "fulfilled" ? empResult.value?.data?.details : null;
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">

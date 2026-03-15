@@ -62,7 +62,7 @@ export default async function DashboardPage() {
       : Array.isArray(payload) ? payload : [];
   }
 
-  const emp = empResult.status === "fulfilled" ? empResult.value?.data : null;
+  const emp = empResult.status === "fulfilled" ? empResult.value?.data?.details : null;
   const firstName = emp?.firstName ?? session.user.userName ?? "";
   const lastName = emp?.lastName ?? "";
 

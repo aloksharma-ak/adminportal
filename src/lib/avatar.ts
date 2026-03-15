@@ -10,8 +10,13 @@ export function toAvatarSrc(raw?: string | null): string | null {
   const value = raw.trim();
   if (!value) return null;
 
-  // If already a full data URL
-  if (value.startsWith("data:image/")) {
+  // If already a full data URL, or a standard HTTP/HTTPS URL, or an absolute path
+  if (
+    value.startsWith("data:image/") ||
+    value.startsWith("http://") ||
+    value.startsWith("https://") ||
+    value.startsWith("/")
+  ) {
     return value.replace(/\s/g, "");
   }
 
