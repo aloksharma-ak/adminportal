@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { FileText, LayoutGrid, Shield } from "lucide-react";
 
@@ -35,6 +36,7 @@ export default function CreatePermissionForm({
   successRedirect,
 }: Props) {
   const router = useRouter();
+  const { data: session } = useSession();
   const [loading, setLoading] = React.useState(false);
 
   const moduleOptions = React.useMemo<DropdownOption[]>(
@@ -73,7 +75,7 @@ export default function CreatePermissionForm({
     const tId = toast.loading("Creating permission…");
 
     try {
-      await createPermission({ name, description, moduleId: moduleIdNum });
+      await createPermission({ name, description, moduleId: moduleIdNum, userId: session?.user?.profileId ?? 0 });
       toast.success("Permission created successfully", { id: tId });
       reset();
       if (successRedirect) router.push(successRedirect);

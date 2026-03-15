@@ -1,5 +1,5 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
-import { getEmployee, getMasterData, type Role } from "@/app/utils";
+import { getEmployee, getMasterData, getRoles, type Role } from "@/app/utils";
 import { getServerSession } from "next-auth";
 import { redirect, notFound } from "next/navigation";
 import EditEmployeeForm from "@/components/users/edit-employee-form";
@@ -20,16 +20,26 @@ export default async function EditEmployeePage({ params }: Props) {
   let employee;
   let fetchError: string | null = null;
 
-  const [masterResult, empResult] = await Promise.allSettled([
-    getMasterData({ orgId: session.user.orgId }),
-    getEmployee({ profileId: 0, empId, orgId: session.user.orgId }),
+  const [masterResult, empResult, rolesRes] = await Promise.allSettled([
+    getMasterData({ orgId: session.user.orgId, userId: session.user.profileId }),
+    getEmployee({ profileId: 0, empId, orgId: session.user.orgId, userId: session.user.profileId }),
+    getRoles({ userId: session.user.profileId }),
   ]);
 
-  if (masterResult.status === "fulfilled") {
-    roles = (masterResult.value?.data?.roleMaster ?? [])
-      .filter((r) => r.isActive)
-      .map((r) => ({ roleId: r.roleId, roleName: r.roleName }));
+  let rawRoles: any[] = [];
+  if (masterResult.status === "fulfilled" && masterResult.value?.data?.roleMaster) {
+    rawRoles = masterResult.value.data.roleMaster;
   }
+  if (rawRoles.length === 0 && rolesRes.status === "fulfilled" && rolesRes.value?.data?.roles) {
+    rawRoles = rolesRes.value.data.roles;
+  }
+
+  roles = rawRoles
+    .filter((r) => r.isActive !== false)
+    .map((r) => ({
+      roleId: r.roleId || r.id,
+      roleName: r.roleName
+    }));
 
   if (empResult.status === "fulfilled") {
     employee = empResult.value?.data;

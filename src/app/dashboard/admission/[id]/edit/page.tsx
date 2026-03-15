@@ -24,8 +24,8 @@ export default async function EditStudentPage({ params }: Props) {
 
   try {
     const [studentRes, masterRes] = await Promise.allSettled([
-      getStudentDetail({ orgId: session.user.orgId, studentId }),
-      getAdmissionMasterData({ orgId: session.user.orgId }),
+      getStudentDetail({ orgId: session.user.orgId, studentId, userId: session.user.profileId }),
+      getAdmissionMasterData({ orgId: session.user.orgId, userId: session.user.profileId }),
     ]);
 
     // ---------------- Student ----------------

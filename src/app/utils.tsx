@@ -14,10 +14,12 @@ function requireUrl(url: string | undefined, label: string): string {
   return url;
 }
 
-function reqMeta() {
+function reqMeta(userId?: number) {
   return {
     requestGuid: crypto.randomUUID(),
     requestTime: new Date().toISOString(),
+    userId: userId ?? 0,
+    UserId: userId ?? 0,
   };
 }
 
@@ -115,7 +117,8 @@ const CreateEmployeeSchema = z
     userName: z.string().trim().optional().default(""),
     password: z.string().optional().default(""),
     orgId: z.number().int().positive("Org ID is required"),
-    profileId: z.number().int().optional()
+    profileId: z.number().int().optional(),
+    userId: z.number().int().optional()
   })
   .superRefine((val, ctx) => {
     if (val.isCreateCredential) {
@@ -201,22 +204,35 @@ export async function getOrganisationDetail(
 // User / Employee APIs (API_URL)
 // ─────────────────────────────────────────────────────────
 
+export async function getUser(params: {
+  profileId: number;
+  orgId: number;
+}): Promise<ApiResponse<EmployeeDetail>> {
+  const base = requireUrl(API_URL, "API_URL");
+  return apiPost(base, "/api/Users/GetUser", {
+    ...reqMeta(params.profileId),
+    profileId: params.profileId,
+    orgId: params.orgId,
+  });
+}
+
 export async function getEmployee(params: {
   profileId: number;
   empId: number;
   orgId: number;
+  userId: number;
 }): Promise<ApiResponse<EmployeeDetail>> {
   const base = requireUrl(API_URL, "API_URL");
 
   return apiPost(base, "/api/User/GetEmployee", {
-    ...reqMeta(),
+    ...reqMeta(params.userId),
     profileId: params.profileId,
     empId: params.empId,
     orgId: params.orgId,
   });
 }
 
-export async function getEmployeeList(params: { orgId: number }) {
+export async function getEmployeeList(params: { orgId: number; userId: number }) {
   const base = requireUrl(API_URL, "API_URL");
   const orgId = Number(params.orgId);
   if (!Number.isFinite(orgId) || orgId <= 0)
@@ -224,11 +240,11 @@ export async function getEmployeeList(params: { orgId: number }) {
   return apiPost<ApiResponse<EmployeeListItem[]>>(
     base,
     "/api/User/GetEmployeeList",
-    { ...reqMeta(), orgId },
+    { ...reqMeta(params.userId), orgId },
   );
 }
 
-export async function createEmployee(input: CreateEmployeePayload) {
+export async function createEmployee(input: CreateEmployeePayload & { userId: number }) {
   const base = requireUrl(API_URL, "API_URL");
 
   const normalized = {
@@ -240,7 +256,7 @@ export async function createEmployee(input: CreateEmployeePayload) {
   const data = CreateEmployeeSchema.parse(normalized);
 
   return apiPost(base, "/api/User/CreateEmployee", {
-    ...reqMeta(),
+    ...reqMeta(input.userId),
     ...data,
     communicationAddress: data.isCommunicationAddressSameAsPermanant
       ? data.permanantAddress
@@ -252,7 +268,7 @@ export async function createEmployee(input: CreateEmployeePayload) {
 // Modules API (API_URL)
 // ─────────────────────────────────────────────────────────
 
-export async function getAllowModules(params: { orgId: number }) {
+export async function getAllowModules(params: { orgId: number; userId: number }) {
   const base = requireUrl(API_URL, "API_URL");
   const orgId = Number(params.orgId);
   if (!Number.isFinite(orgId) || orgId <= 0)
@@ -264,7 +280,7 @@ export async function getAllowModules(params: { orgId: number }) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     cache: "no-store",
-    body: JSON.stringify({ ...reqMeta(), orgid: orgId }),
+    body: JSON.stringify({ ...reqMeta(params.userId), orgid: orgId }),
   });
   const json = await res.json().catch(() => null);
   if (!res.ok) {
@@ -284,18 +300,18 @@ export async function getAllowModules(params: { orgId: number }) {
 // Master Data (API_URL + ADMISSION_API_URL)
 // ─────────────────────────────────────────────────────────
 
-export async function getMasterData(params: { orgId: number }) {
+export async function getMasterData(params: { orgId: number; userId: number }) {
   const base = requireUrl(API_URL, "API_URL");
   const orgId = Number(params.orgId);
   if (!Number.isFinite(orgId) || orgId <= 0)
     throw new Error("Invalid organisation ID");
   return apiPost<ApiResponse<MasterData>>(base, "/api/MasterData/Get", {
-    ...reqMeta(),
+    ...reqMeta(params.userId),
     orgId,
   });
 }
 
-export async function getAdmissionMasterData(params: { orgId: number }) {
+export async function getAdmissionMasterData(params: { orgId: number; userId: number }) {
   const base = requireUrl(ADMISSION_API_URL, "ADMISSION_API_URL");
   const orgId = Number(params.orgId);
   if (!Number.isFinite(orgId) || orgId <= 0)
@@ -303,34 +319,34 @@ export async function getAdmissionMasterData(params: { orgId: number }) {
   return apiPost<ApiResponse<AdmissionMasterData>>(
     base,
     "/api/MasterData/Get",
-    { ...reqMeta(), orgId },
+    { ...reqMeta(params.userId), orgId },
   );
 }
 
 // ─── Role Permission API calls ────────────────────────────────────────────────
 
 /** GET /api/RolePermission/GetRoles — all roles in the system */
-export async function getRoles() {
+export async function getRoles(params: { userId: number }) {
   const base = requireUrl(API_URL, "API_URL");
   return apiPost<ApiResponse<RolesResponse>>(
     base,
     "/api/RolePermission/GetRoles",
-    reqMeta(),
+    reqMeta(params.userId),
   );
 }
 
 /** GET /api/RolePermission/GetPermissions — ALL permissions in the system */
-export async function getAllSystemPermissions() {
+export async function getAllSystemPermissions(params: { userId: number }) {
   const base = requireUrl(API_URL, "API_URL");
   return apiPost<ApiResponse<RolePermissionDetail[]>>(
     base,
     "/api/RolePermission/GetPermissions",
-    reqMeta(),
+    reqMeta(params.userId),
   );
 }
 
 /** GET /api/RolePermission/GetRolesPermissions — permissions assigned to a role */
-export async function getRolePermissions(params: { roleId: number }) {
+export async function getRolePermissions(params: { roleId: number; userId: number }) {
   const base = requireUrl(API_URL, "API_URL");
   const roleId = Number(params.roleId);
   if (!Number.isFinite(roleId) || roleId <= 0)
@@ -338,7 +354,7 @@ export async function getRolePermissions(params: { roleId: number }) {
   return apiPost<ApiResponse<RolePermissionDetail[]>>(
     base,
     "/api/RolePermission/GetRolesPermissions",
-    { ...reqMeta(), roleId },
+    { ...reqMeta(params.userId), roleId },
   );
 }
 
@@ -346,13 +362,14 @@ export async function getRolePermissions(params: { roleId: number }) {
 export async function updateRolePermissions(params: {
   roleId: number;
   permissionIds: number[];
+  userId: number;
 }) {
   const base = requireUrl(API_URL, "API_URL");
   const roleId = Number(params.roleId);
   if (!Number.isFinite(roleId) || roleId <= 0)
     throw new Error("Invalid role ID");
   return apiPost(base, "/api/RolePermission/UpdateRolePermission", {
-    ...reqMeta(),
+    ...reqMeta(params.userId),
     roleId,
     permissionIds: params.permissionIds,
   });
@@ -363,10 +380,11 @@ export async function createPermission(params: {
   name: string;
   description: string;
   moduleId: number;
+  userId: number;
 }) {
   const base = requireUrl(API_URL, "API_URL");
   return apiPost(base, "/api/RolePermission/CreatePermission", {
-    ...reqMeta(),
+    ...reqMeta(params.userId),
     ...params,
   });
 }

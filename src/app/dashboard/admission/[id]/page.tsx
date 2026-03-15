@@ -22,7 +22,7 @@ export default async function StudentDetailPage({ params }: PageProps) {
   let fetchError: string | null = null;
 
   try {
-    const res = await getStudentDetail({ orgId: session.user.orgId, studentId });
+    const res = await getStudentDetail({ orgId: session.user.orgId, studentId, userId: session.user.profileId });
     student = res?.data;
     if (!student) fetchError = "Student not found";
   } catch (err) {

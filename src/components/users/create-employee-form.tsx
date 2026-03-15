@@ -18,7 +18,8 @@ import { createEmployee } from "@/app/utils";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { fileToBase64 } from "@/lib/image-session.client";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 const MAX_IMAGE_BYTES = 500 * 1024;
 
@@ -65,6 +66,8 @@ type Props = {
 };
 
 export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }: Props) {
+  const router = useRouter();
+  const { data: session } = useSession();
   const [loading, setLoading] = React.useState(false);
   const [preview, setPreview] = React.useState("");
 
@@ -184,10 +187,12 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
         empId: 0,
         roleId: roleIdNum,
         communicationAddress: commAddress,
+        userId: session?.user?.profileId ?? 0,
       });
       toast.success("Employee created successfully", { id: tId });
       form.reset();
       setPreview("");
+      router.push("/dashboard/users/employees/");
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Something went wrong",
@@ -195,7 +200,6 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
       );
     } finally {
       setLoading(false);
-      redirect("/dashboard/users/employees/")
     }
   });
 

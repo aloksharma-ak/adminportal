@@ -16,7 +16,7 @@ export default async function AdmissionPage() {
   let fetchError: string | null = null;
 
   try {
-    students = await getStudentsByOrgId(session.user.orgId);
+    students = await getStudentsByOrgId(session.user.orgId, session.user.profileId);
   } catch (err) {
     fetchError = err instanceof Error ? err.message : "Failed to load students";
   }

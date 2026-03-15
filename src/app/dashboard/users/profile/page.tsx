@@ -29,13 +29,15 @@ export default async function ProfilePage() {
 
   let emp;
   let fetchError: string | null = null;
+try {
+  const res = await getEmployee({
+    profileId: session.user.profileId,
+    empId: 0,
+    orgId: session.user.orgId,
+    userId: session.user.profileId
+  });
+  emp = res.data;
 
-  try {
-    const res = await getEmployee({
-      profileId: session.user.profileId,
-      empId: 0,
-      orgId: session.user.orgId,
-    });
     if (!res?.status || !res?.data) {
       fetchError = res?.message ?? "Employee record not found";
     } else {

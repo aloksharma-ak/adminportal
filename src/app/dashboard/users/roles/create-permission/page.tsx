@@ -21,9 +21,9 @@ export default async function CreatePermissionPage() {
   let masterError: string | null = null;
 
   try {
-    const masterData = await getMasterData({ orgId: session.user.orgId });
-
+    const masterData = await getMasterData({ orgId: session.user.orgId, userId: session.user.profileId });
     modules = (masterData?.data?.modules ?? [])
+
       .filter(
         (m) =>
           Number.isFinite(Number(m.moduleId)) &&

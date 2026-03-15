@@ -47,8 +47,8 @@ export default async function RoleDetailPage({ params }: PageProps) {
 
     // ✅ fetch both in parallel
     const [rolePermsRes, masterDataRes] = await Promise.all([
-      getRolePermissions({ roleId }),
-      getMasterData({ orgId }),
+      getRolePermissions({ roleId, userId: session.user.profileId }),
+      getMasterData({ orgId, userId: session.user.profileId }),
     ]);
 
     if (rolePermsRes?.status && Array.isArray(rolePermsRes.data)) {

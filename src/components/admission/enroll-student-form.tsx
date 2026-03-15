@@ -6,6 +6,7 @@ import Indian_states_cities_list from "indian-states-cities-list";
 import { toast } from "sonner";
 import { User2, Mail, Phone, ImageIcon, MapPin, GraduationCap, CalendarDays } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 import { InputField } from "@/components/controls/InputField";
 import { DropdownFilter, type DropdownOption } from "@/components/controls/DropdownFilter";
@@ -65,6 +66,7 @@ function addrFromStudent(a?: { addressLine1?: string; addressLine2?: string; pin
 
 export default function EnrollStudentForm({ orgId, orgName, brandColor, classOptions = [], categoryOptions = [], studentId = 0, defaultValues }: Props) {
   const router = useRouter();
+  const { data: session } = useSession();
   const isEditing = studentId > 0;
   const [loading, setLoading] = React.useState(false);
   const [preview, setPreview] = React.useState<string>(
@@ -202,7 +204,7 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
         contactPersonName: trim(v.contactPersonName) || null, contactPersonPhone: onlyDigits(v.contactPersonPhone),
       };
 
-      const res = await enrollStudent({ payload });
+      const res = await enrollStudent({ payload, userId: session?.user?.profileId ?? 0 });
       if (!res?.status) throw new Error(res?.message || "Failed");
       toast.success(res?.message || (isEditing ? "Student updated!" : "Student enrolled!"), { id: tId });
       if (isEditing) {

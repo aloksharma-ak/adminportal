@@ -18,6 +18,7 @@ import { createEmployee, type EmployeeDetail } from "@/app/utils";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { fileToBase64 } from "@/lib/image-session.client";
+import { useSession } from "next-auth/react";
 
 const MAX_IMAGE_BYTES = 500 * 1024;
 
@@ -227,6 +228,7 @@ export default function EditEmployeeForm({
         roleId: roleIdNum,
         communicationAddress: commAddress,
         isCreateCredential: false,
+        userId: session?.user?.profileId ?? 0,
       });
       toast.success("Employee updated successfully", { id: tId });
     } catch (err) {

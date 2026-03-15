@@ -42,6 +42,7 @@ export const authOptions: NextAuthOptions = {
               username,
               password,
               orgId,
+              userId: 0,
             }),
           });
 

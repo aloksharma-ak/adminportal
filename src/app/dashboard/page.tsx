@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { Card, CardContent } from "@/components/ui/card";
-import { getAllowModules, getEmployee } from "../utils";
+import { getAllowModules, getUser } from "../utils";
 import { Avatar } from "@/components/shared-ui/avatar";
 import { EmptyState } from "@/components/shared-ui/states";
 
@@ -50,8 +50,8 @@ export default async function DashboardPage() {
   if (!session) redirect("/auth/login");
 
   const [modulesResult, empResult] = await Promise.allSettled([
-    getAllowModules({ orgId: session.user.orgId }),
-    getEmployee({ profileId: session.user.profileId, empId: 0, orgId: session.user.orgId }),
+    getAllowModules({ orgId: session.user.orgId, userId: session.user.profileId }),
+    getUser({ profileId: session.user.profileId, orgId: session.user.orgId }),
   ]);
 
   let modules: AllowedModule[] = [];
