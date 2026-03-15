@@ -257,7 +257,7 @@ export async function createEmployee(input: CreateEmployeePayload & { userId: nu
 // Modules API (API_URL)
 // ─────────────────────────────────────────────────────────
 
-export async function getAllowModules(params: { orgId: number; userId: number }) {
+export async function getAllowModules(params: { orgId: number; userId: number }): Promise<ApiResponse<{ modules: { moduleId: number; moduleName: string; icon: string | null }[] }>> {
   const base = requireUrl(API_URL, "API_URL");
   const orgId = Number(params.orgId);
   if (!Number.isFinite(orgId) || orgId <= 0)
@@ -270,7 +270,7 @@ export async function getAllowModules(params: { orgId: number; userId: number })
     });
   } catch (err) {
     if (err instanceof Error && err.message.toLowerCase().includes("no modules")) {
-      return { status: true, message: "No modules assigned", data: [] };
+      return { status: true, message: "No modules assigned", data: { modules: [] } };
     }
     throw err;
   }

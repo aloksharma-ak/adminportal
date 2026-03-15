@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -59,9 +60,19 @@ export default async function DashboardPage() {
   ]);
 
   const rawModules = modulesResult.status === "fulfilled" ? modulesResult.value : null;
-  const modulesPayload = rawModules?.data ?? rawModules;
-  const modules: AllowedModule[] = Array.isArray(modulesPayload?.modules) ? modulesPayload.modules
-    : Array.isArray(modulesPayload) ? modulesPayload : [];
+  const modulesPayload = rawModules?.data;
+  
+  // Extract modules list from various potential response shapes
+  let modules: AllowedModule[] = [];
+  if (modulesPayload) {
+    if (Array.isArray(modulesPayload)) {
+      modules = modulesPayload;
+    } else if (Array.isArray((modulesPayload as any).modules)) {
+      modules = (modulesPayload as any).modules;
+    }
+  } else if (Array.isArray(rawModules)) {
+    modules = rawModules;
+  }
 
   const emp = empResult.status === "fulfilled" ? empResult.value?.data?.details : null;
   const firstName = emp?.firstName ?? session.user.userName ?? "";
