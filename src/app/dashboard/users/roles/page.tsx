@@ -17,7 +17,7 @@ export default async function RolesPage() {
   let fetchError: string | null = null;
 
   try {
-    const res = await getRoles();
+    const res = await getRoles({ userId: session.user.profileId });
     if (res?.status && Array.isArray(res?.data?.roles)) {
       roles = res.data.roles;
     } else {

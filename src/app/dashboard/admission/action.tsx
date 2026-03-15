@@ -13,10 +13,12 @@ function requireUrl(): string {
   return ADMISSION_API_URL;
 }
 
-function reqMeta() {
+function reqMeta(userId?: number) {
   return {
     requestGuid: crypto.randomUUID(),
     requestTime: new Date().toISOString(),
+    userId: userId ?? 0,
+    UserId: userId ?? 0,
   };
 }
 
@@ -149,9 +151,9 @@ export type ApiResponse<T> = {
 // API Actions
 // ─────────────────────────────────────────────────────────
 
-export async function getStudentsByOrgId(orgId: number) {
+export async function getStudentsByOrgId(orgId: number, userId: number) {
   const data = await post<ApiResponse<Student[]>>("/api/Student/GetStudents", {
-    ...reqMeta(),
+    ...reqMeta(userId),
     orgId,
     isActive: true,
   });
@@ -165,6 +167,7 @@ type GetStudentDetailResponse = {
 export async function getStudentDetail(params: {
   orgId: number;
   studentId: number | string;
+  userId: number;
 }): Promise<GetStudentDetailResponse> {
   const orgId = Number(params.orgId);
   const studentId = parseInt(String(params.studentId), 10);
@@ -174,13 +177,13 @@ export async function getStudentDetail(params: {
     throw new Error("Invalid student ID");
 
   return post("/api/Student/GetStudentDetail", {
-    ...reqMeta(),
+    ...reqMeta(params.userId),
     studentId,
     orgId,
   });
 }
 
-export async function enrollStudent(params: { payload: EnrollStudentPayload }) {
+export async function enrollStudent(params: { payload: EnrollStudentPayload; userId: number }) {
   const parsed = EnrollStudentSchema.safeParse(params.payload);
   if (!parsed.success) {
     throw new Error(parsed.error.issues[0]?.message ?? "Invalid student data");
@@ -198,7 +201,7 @@ export async function enrollStudent(params: { payload: EnrollStudentPayload }) {
 
 
   return post<ApiResponse<unknown>>("/api/Student/EnrollStudent", {
-    ...reqMeta(),
+    ...reqMeta(params.userId),
     ...p,
     id: p.id ?? 0,
     orgId: p.orgId, // ensure always present

@@ -1,5 +1,5 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
-import { getMasterData, type Role } from "@/app/utils";
+import { getMasterData, getRoles, type Role } from "@/app/utils";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import CreateEmployeeForm from "@/components/users/create-employee-form";
@@ -14,10 +14,29 @@ export default async function CreateEmployeePage() {
   let masterError: string | null = null;
 
   try {
-    const masterData = await getMasterData({ orgId: session.user.orgId });
-    roles = (masterData?.data?.roleMaster ?? [])
-      .filter((r) => r.isActive)
-      .map((r) => ({ roleId: r.roleId, roleName: r.roleName }));
+    const [masterRes, rolesRes] = await Promise.allSettled([
+      getMasterData({ orgId: session.user.orgId, userId: session.user.profileId }),
+      getRoles({ userId: session.user.profileId }),
+    ]);
+
+    let rawRoles: any[] = [];
+
+    if (masterRes.status === "fulfilled" && masterRes.value?.data?.roleMaster) {
+      rawRoles = masterRes.value.data.roleMaster;
+    }
+
+    // Fallback to getRoles if masterData is empty
+    if (rawRoles.length === 0 && rolesRes.status === "fulfilled" && rolesRes.value?.data?.roles) {
+      rawRoles = rolesRes.value.data.roles;
+    }
+
+    roles = rawRoles
+      .filter((r) => r.isActive !== false)
+      .map((r) => ({
+        roleId: r.roleId || r.id,
+        roleName: r.roleName
+      }));
+
   } catch (err) {
     masterError = err instanceof Error ? err.message : "Could not load roles";
   }

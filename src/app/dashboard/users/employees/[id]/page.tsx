@@ -37,7 +37,7 @@ export default async function EmployeeDetailPage({ params }: Props) {
   let fetchError: string | null = null;
 
   try {
-    const res = await getEmployee({ profileId: 0, empId, orgId: session.user.orgId });
+    const res = await getEmployee({ profileId: 0, empId, orgId: session.user.orgId, userId: session.user.profileId });
     if (!res?.status || !res?.data) {
       fetchError = res?.message || "Employee not found";
     } else {

@@ -1,9 +1,5 @@
-import { Loader2 } from "lucide-react";
+import { FullPageLoader } from "@/components/shared-ui/full-page-loader";
 
 export default function Loading() {
-  return (
-    <main className="grid min-h-screen place-items-center">
-      <Loader2 className="h-8 w-8 animate-spin text-slate-300" />
-    </main>
-  );
+  return <FullPageLoader label="Loading Portal" />;
 }

@@ -16,7 +16,7 @@ export default async function EmployeesPage() {
   let fetchError: string | null = null;
 
   try {
-    const res = await getEmployeeList({ orgId: session.user.orgId });
+    const res = await getEmployeeList({ orgId: session.user.orgId, userId: session.user.profileId });
     employees = Array.isArray(res?.data) ? res.data : [];
   } catch (err) {
     fetchError = err instanceof Error ? err.message : "Failed to load employees";

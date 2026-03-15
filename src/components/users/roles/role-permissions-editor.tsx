@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { ActionButton } from "@/components/controls/Buttons";
 import type { RolePermissionDetail } from "@/app/utils";
 import { updateRolePermissions, getAllSystemPermissions } from "@/app/utils";
+import { useSession } from "next-auth/react";
 
 type ModuleItem = {
   moduleId: number;
@@ -39,6 +40,7 @@ export default function RolePermissionsEditor({
   modules,
   brandColor,
 }: Props) {
+  const { data: session } = useSession();
   const [saving, setSaving] = React.useState(false);
   const [search, setSearch] = React.useState("");
 
@@ -65,7 +67,7 @@ export default function RolePermissionsEditor({
   React.useEffect(() => {
     (async () => {
       try {
-        const res = await getAllSystemPermissions();
+        const res = await getAllSystemPermissions({ userId: session?.user?.profileId ?? 0 });
         if (res?.status && Array.isArray(res.data)) {
           setAllPermissions(dedupeById(res.data));
         } else {
@@ -81,7 +83,7 @@ export default function RolePermissionsEditor({
         setLoadingAll(false);
       }
     })();
-  }, [assignedPermissions]);
+  }, [assignedPermissions, session?.user?.profileId]);
 
   // Filtered + grouped
   const byGroup = React.useMemo(() => {
@@ -125,6 +127,7 @@ export default function RolePermissionsEditor({
       await updateRolePermissions({
         roleId,
         permissionIds: Array.from(enabledIds),
+        userId: session?.user?.profileId ?? 0,
       });
       toast.success("Permissions updated successfully", { id: tId });
     } catch (err) {

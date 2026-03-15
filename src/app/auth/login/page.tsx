@@ -24,6 +24,7 @@ import {
 } from "@/lib/image-session.client";
 import { getOrganisationDetail } from "@/app/utils";
 import Footer from "@/app/footer";
+import { FullPageLoader } from "@/components/shared-ui/full-page-loader";
 
 function prettyAuthError(err?: string | null) {
   if (!err) return null;
@@ -189,6 +190,8 @@ export default function LoginPage() {
       fullLogoSrc: fullLogo,
     });
   }, [org?.orgCode, org?.logo, org?.fullLogo]);
+
+  if (status === "loading") return <FullPageLoader label="Checking session..." />;
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-white dark:bg-slate-950">

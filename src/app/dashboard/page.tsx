@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -7,37 +8,41 @@ import {
 } from "lucide-react";
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { Card, CardContent } from "@/components/ui/card";
-import { getAllowModules, getEmployee } from "../utils";
+import { getAllowModules, getUser } from "../utils";
 import { Avatar } from "@/components/shared-ui/avatar";
 import { EmptyState } from "@/components/shared-ui/states";
 
 type AllowedModule = { moduleId: number; moduleName: string; icon: string | null };
 type ModuleConfig = { href: string; Icon: LucideIcon; gradient: string };
 
-const MODULE_MAP: Record<string, ModuleConfig> = {
+const MODULE_CONFIGS: Record<string, ModuleConfig> = {
   users: { href: "/dashboard/users", Icon: Users, gradient: "from-blue-500 to-indigo-500" },
-  user: { href: "/dashboard/users", Icon: Users, gradient: "from-blue-500 to-indigo-500" },
   academics: { href: "/dashboard/academics", Icon: GraduationCap, gradient: "from-violet-500 to-purple-500" },
   admission: { href: "/dashboard/admission", Icon: ClipboardList, gradient: "from-emerald-500 to-teal-500" },
-  admissions: { href: "/dashboard/admission", Icon: ClipboardList, gradient: "from-emerald-500 to-teal-500" },
   leads: { href: "/dashboard/leads", Icon: Megaphone, gradient: "from-orange-500 to-amber-500" },
-  enquiries: { href: "/dashboard/enquiries", Icon: Megaphone, gradient: "from-orange-500 to-amber-500" },
   fees: { href: "/dashboard/fees", Icon: Wallet, gradient: "from-yellow-500 to-lime-500" },
   reports: { href: "/dashboard/reports", Icon: BarChart3, gradient: "from-rose-500 to-pink-500" },
   roles: { href: "/dashboard/roles", Icon: Shield, gradient: "from-slate-500 to-zinc-500" },
-  rolepermission: { href: "/dashboard/roles", Icon: Shield, gradient: "from-slate-500 to-zinc-500" },
   schedule: { href: "/dashboard/schedule", Icon: CalendarDays, gradient: "from-sky-500 to-cyan-500" },
-  timetable: { href: "/dashboard/timetable", Icon: CalendarDays, gradient: "from-sky-500 to-cyan-500" },
 };
 
-function normalizeKey(v?: string | null) {
-  return (v ?? "").replace(/[\s_-]/g, "").toLowerCase();
-}
+const MODULE_ALIAS_MAP: Record<string, string> = {
+  user: "users",
+  admissions: "admission",
+  enquiries: "leads",
+  rolepermission: "roles",
+  timetable: "schedule",
+};
 
 function getModuleConfig(iconName?: string | null, moduleName?: string | null): ModuleConfig {
+  const normalize = (v?: string | null) => (v ?? "").replace(/[\s_-]/g, "").toLowerCase();
+  const iconKey = normalize(iconName);
+  const nameKey = normalize(moduleName);
+
+  const key = MODULE_ALIAS_MAP[iconKey] || iconKey || MODULE_ALIAS_MAP[nameKey] || nameKey;
+
   return (
-    MODULE_MAP[normalizeKey(iconName)] ??
-    MODULE_MAP[normalizeKey(moduleName)] ?? {
+    MODULE_CONFIGS[key] ?? {
       href: `/dashboard/${(moduleName ?? "").toLowerCase().replace(/\s+/g, "-")}`,
       Icon: LayoutGrid,
       gradient: "from-slate-400 to-slate-500",
@@ -50,19 +55,26 @@ export default async function DashboardPage() {
   if (!session) redirect("/auth/login");
 
   const [modulesResult, empResult] = await Promise.allSettled([
-    getAllowModules({ orgId: session.user.orgId }),
-    getEmployee({ profileId: session.user.profileId, empId: 0, orgId: session.user.orgId }),
+    getAllowModules({ orgId: session.user.orgId, userId: session.user.profileId }),
+    getUser({ profileId: session.user.profileId, orgId: session.user.orgId }),
   ]);
 
+  const rawModules = modulesResult.status === "fulfilled" ? modulesResult.value : null;
+  const modulesPayload = rawModules?.data;
+  
+  // Extract modules list from various potential response shapes
   let modules: AllowedModule[] = [];
-  if (modulesResult.status === "fulfilled") {
-    const result = modulesResult.value;
-    const payload = result?.data ?? result;
-    modules = Array.isArray(payload?.modules) ? payload.modules
-      : Array.isArray(payload) ? payload : [];
+  if (modulesPayload) {
+    if (Array.isArray(modulesPayload)) {
+      modules = modulesPayload;
+    } else if (Array.isArray((modulesPayload as any).modules)) {
+      modules = (modulesPayload as any).modules;
+    }
+  } else if (Array.isArray(rawModules)) {
+    modules = rawModules;
   }
 
-  const emp = empResult.status === "fulfilled" ? empResult.value?.data : null;
+  const emp = empResult.status === "fulfilled" ? empResult.value?.data?.details : null;
   const firstName = emp?.firstName ?? session.user.userName ?? "";
   const lastName = emp?.lastName ?? "";
 
@@ -75,7 +87,6 @@ export default async function DashboardPage() {
 
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      {/* Hero greeting */}
       <div className="mb-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
           <Avatar
@@ -109,7 +120,6 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Modules */}
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
           Your Modules

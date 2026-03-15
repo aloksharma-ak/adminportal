@@ -15,7 +15,7 @@ export default async function EnrollStudentPage() {
   let categoryOptions: string[] = [];
   try {
 
-    const master = await getAdmissionMasterData({ orgId: session.user.orgId });
+    const master = await getAdmissionMasterData({ orgId: session.user.orgId, userId: session.user.profileId });
 
     classOptions = master.data.classMasters.map((c) => ({
       classId: c.id,
