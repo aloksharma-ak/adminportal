@@ -5,6 +5,8 @@ import Footer from "../footer";
 import { authOptions } from "../api/auth/[...nextauth]/auth";
 import { getUser, getOrganisationDetail } from "../utils";
 
+import { toImageSrc } from "@/lib/image-utils";
+
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.orgCode) redirect("/auth/login");
@@ -25,7 +27,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         orgCode={session.user.orgCode}
         brandColor={session.user.brandColor ?? ""}
         initials={emp?.initials ?? ""}
-        profilePicture={emp?.profilePicture ?? ""}
+        profilePicture={toImageSrc(emp?.profilePicture) ?? ""}
         firstName={emp?.firstName ?? ""}
         lastName={emp?.lastName ?? ""}
       />

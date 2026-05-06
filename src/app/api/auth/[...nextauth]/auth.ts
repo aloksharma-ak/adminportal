@@ -60,9 +60,21 @@ export const authOptions: NextAuthOptions = {
             const body = await res.json().catch(() => null);
             if (body && typeof body === "object") {
               const data = body?.data ?? body;
-              profileId = Number(data?.profileId ?? body?.profileId ?? 0);
+              profileId = Number(
+                data?.profileId ??
+                  data?.ProfileId ??
+                  body?.profileId ??
+                  body?.ProfileId ??
+                  0,
+              );
               userName = String(
-                data?.userName ?? data?.username ?? body?.userName ?? username,
+                data?.userName ??
+                  data?.username ??
+                  data?.UserName ??
+                  data?.Username ??
+                  body?.userName ??
+                  body?.username ??
+                  username,
               );
             }
           }

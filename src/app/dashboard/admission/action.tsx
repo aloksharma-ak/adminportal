@@ -1,67 +1,24 @@
 "use server";
 import { z } from "zod";
 
+import { apiPost, reqMeta, requireUrl } from "@/lib/api-client";
+
 const ADMISSION_API_URL = process.env.ADMISSION_API_URL;
 
 // ─────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────
 
-function requireUrl(): string {
-  if (!ADMISSION_API_URL)
-    throw new Error("ADMISSION_API_URL is not configured");
-  return ADMISSION_API_URL;
-}
-
-function reqMeta(userId?: number) {
-  return {
-    requestGuid: crypto.randomUUID(),
-    requestTime: new Date().toISOString(),
-    userId: userId ?? 0,
-    UserId: userId ?? 0,
-  };
-}
-
-async function parseError(res: Response): Promise<string> {
-  const ct = res.headers.get("content-type") || "";
-
-  if (ct.includes("application/json")) {
-    const j = await res.json().catch(() => null);
-
-    // ASP.NET ValidationProblemDetails
-    if (j?.errors && typeof j.errors === "object") {
-      const details = Object.entries(j.errors)
-        .map(([field, msgs]) => {
-          const arr = Array.isArray(msgs) ? msgs : [String(msgs)];
-          return `${field}: ${arr.join(", ")}`;
-        })
-        .join(" | ");
-      return `${j.title || "Validation failed"}: ${details}`;
-    }
-
-    return j?.detail || j?.message || j?.title || res.statusText;
-  }
-
-  const text = await res.text().catch(() => "");
-  return text || res.statusText;
+function requireAdmissionUrl(): string {
+  return requireUrl(ADMISSION_API_URL, "ADMISSION_API_URL");
 }
 
 async function post<T = unknown>(
   path: string,
   body: Record<string, unknown>,
 ): Promise<T> {
-  const url = `${requireUrl()}${path}`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    cache: "no-store",
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const msg = await parseError(res);
-    throw new Error(`${path} failed (${res.status}): ${msg}`);
-  }
-  return res.json() as Promise<T>;
+  const base = requireAdmissionUrl();
+  return apiPost(base, path, body);
 }
 
 // ---------- helpers ----------
@@ -151,9 +108,9 @@ export type ApiResponse<T> = {
 // API Actions
 // ─────────────────────────────────────────────────────────
 
-export async function getStudentsByOrgId(orgId: number, userId: number) {
+export async function getStudentsByOrgId(orgId: number, userId?: number) {
   const data = await post<ApiResponse<Student[]>>("/api/Student/GetStudents", {
-    ...reqMeta(userId),
+    ...(await reqMeta(userId)),
     orgId,
     isActive: true,
   });
@@ -167,7 +124,7 @@ type GetStudentDetailResponse = {
 export async function getStudentDetail(params: {
   orgId: number;
   studentId: number | string;
-  userId: number;
+  userId?: number;
 }): Promise<GetStudentDetailResponse> {
   const orgId = Number(params.orgId);
   const studentId = parseInt(String(params.studentId), 10);
@@ -177,13 +134,13 @@ export async function getStudentDetail(params: {
     throw new Error("Invalid student ID");
 
   return post("/api/Student/GetStudentDetail", {
-    ...reqMeta(params.userId),
+    ...(await reqMeta(params.userId)),
     studentId,
     orgId,
   });
 }
 
-export async function enrollStudent(params: { payload: EnrollStudentPayload; userId: number }) {
+export async function enrollStudent(params: { payload: EnrollStudentPayload; userId?: number }) {
   const parsed = EnrollStudentSchema.safeParse(params.payload);
   if (!parsed.success) {
     throw new Error(parsed.error.issues[0]?.message ?? "Invalid student data");
@@ -201,7 +158,7 @@ export async function enrollStudent(params: { payload: EnrollStudentPayload; use
 
 
   return post<ApiResponse<unknown>>("/api/Student/EnrollStudent", {
-    ...reqMeta(params.userId),
+    ...(await reqMeta(params.userId)),
     ...p,
     id: p.id ?? 0,
     orgId: p.orgId, // ensure always present

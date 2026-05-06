@@ -15,7 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { createEmployee } from "@/app/utils";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { fileToBase64 } from "@/lib/image-session.client";
+import { toImageSrc, fileToDataUrl } from "@/lib/image-utils";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
@@ -108,9 +108,9 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
       return;
     }
     try {
-      const { dataUrl, base64 } = await fileToBase64(file);
+      const dataUrl = await fileToDataUrl(file);
       setPreview(dataUrl);
-      setValue("profilePicture", base64, { shouldDirty: true });
+      setValue("profilePicture", stripDataUrl(dataUrl), { shouldDirty: true });
     } catch {
       toast.error("Unable to process image");
     } finally {

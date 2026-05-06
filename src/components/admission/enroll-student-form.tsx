@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { fileToBase64, toImageSrc } from "@/lib/image-session.client";
+import { toImageSrc, fileToDataUrl, stripDataUrl } from "@/lib/image-utils";
 import { enrollStudent } from "@/app/dashboard/admission/action";
 import type { StudentDetail } from "@/components/admission/student-details";
 
@@ -160,14 +160,25 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
   const onImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.currentTarget.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) { toast.error("Please select a valid image file"); e.currentTarget.value = ""; return; }
-    if (file.size > MAX_IMAGE_BYTES) { toast.error("Image must be under 500 KB"); e.currentTarget.value = ""; return; }
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select a valid image file");
+      e.currentTarget.value = "";
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      toast.error("Image must be under 500 KB");
+      e.currentTarget.value = "";
+      return;
+    }
     try {
-      const { dataUrl, base64 } = await fileToBase64(file);
+      const dataUrl = await fileToDataUrl(file);
       setPreview(dataUrl);
-      setValue("profilePicture", base64, { shouldDirty: true });
-    } catch { toast.error("Unable to process image"); }
-    finally { e.currentTarget.value = ""; }
+      setValue("profilePicture", stripDataUrl(dataUrl), { shouldDirty: true });
+    } catch {
+      toast.error("Unable to process image");
+    } finally {
+      e.currentTarget.value = "";
+    }
   };
 
   const categoryDropdownOptions: DropdownOption[] = categoryOptions.map((c) => ({

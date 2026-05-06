@@ -28,6 +28,7 @@ export default async function RoleDetailPage({ params }: PageProps) {
   if (!session) redirect("/auth/login");
 
   const { id } = await params;
+  console.log(`[RoleDetailPage] Accessing ID: ${id}`);
 
   const roleId = Number(id);
   if (!Number.isInteger(roleId) || roleId <= 0) notFound();
@@ -69,8 +70,8 @@ export default async function RoleDetailPage({ params }: PageProps) {
       err instanceof Error ? err.message : "Failed to load role permissions";
   }
 
-  // 404 only when there's no API error but nothing came back at all
-  if (!fetchError && assignedPermissions.length === 0) notFound();
+  // Remove the notFound() check when assignedPermissions.length === 0
+  // because we want to see the editor even if a role has no permissions yet.
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">

@@ -1,15 +1,16 @@
 "use client";
 
+import * as React from "react";
 import Image from "next/image";
-import { toAvatarSrc, getInitials } from "@/lib/avatar";
+import { toImageSrc, getInitials } from "@/lib/image-utils";
 import { cn } from "@/lib/utils";
 
 interface AvatarProps {
   src?: string | null;
   firstName?: string;
   lastName?: string;
-  name?: string;        // fallback full name string
-  initials?: string;    // explicit initials override
+  name?: string; // fallback full name string
+  initials?: string; // explicit initials override
   size?: "xs" | "sm" | "md" | "lg" | "xl";
   className?: string;
   brandColor?: string | null;
@@ -33,7 +34,13 @@ export function Avatar({
   className,
   brandColor,
 }: AvatarProps) {
-  const imgSrc = toAvatarSrc(src);
+  const [error, setError] = React.useState(false);
+  const imgSrc = toImageSrc(src);
+
+  React.useEffect(() => {
+    setError(false);
+  }, [src]);
+
   const initials =
     initialsOverride ||
     getInitials(firstName, lastName) ||
@@ -42,7 +49,7 @@ export function Avatar({
 
   const sz = sizes[size];
 
-  if (imgSrc) {
+  if (imgSrc && !error) {
     return (
       <div
         className={cn(
@@ -52,9 +59,11 @@ export function Avatar({
         )}
       >
         <img
+          key={imgSrc}
           src={imgSrc}
           alt="Avatar"
           className="absolute inset-0 h-full w-full object-cover"
+          onError={() => setError(true)}
         />
       </div>
     );

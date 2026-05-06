@@ -4,18 +4,27 @@ import * as React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { toast } from "sonner";
 import {
-  User2, LockIcon, Mail, Phone, ImageIcon, MapPin, Building2,
+  User2,
+  LockIcon,
+  Mail,
+  Phone,
+  ImageIcon,
+  MapPin,
+  Building2,
 } from "lucide-react";
 
 import { InputField } from "@/components/controls/InputField";
-import { DropdownFilter, type DropdownOption } from "@/components/controls/DropdownFilter";
+import {
+  DropdownFilter,
+  type DropdownOption,
+} from "@/components/controls/DropdownFilter";
 import { ActionButton } from "@/components/controls/Buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { createEmployee, type EmployeeDetail } from "@/app/utils";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { fileToBase64 } from "@/lib/image-session.client";
+import { toImageSrc, fileToDataUrl, stripDataUrl } from "@/lib/image-utils";
 import { useSession } from "next-auth/react";
 
 import {
@@ -40,14 +49,16 @@ type Props = {
 };
 
 export default function EditEmployeeForm({
-  orgId, orgName, brandColor, roles, employee,
+  orgId,
+  orgName,
+  brandColor,
+  roles,
+  employee,
 }: Props) {
   const { data: session } = useSession();
   const [loading, setLoading] = React.useState(false);
   const [preview, setPreview] = React.useState(
-    employee.profilePicture
-      ? `data:image/jpeg;base64,${employee.profilePicture}`
-      : "",
+    toImageSrc(employee.profilePicture) ?? "",
   );
 
   const roleOptions: DropdownOption[] = roles.map((r) => ({
@@ -96,7 +107,7 @@ export default function EditEmployeeForm({
       communicationAddress: isSameAddr ? { ...permAddr } : commAddr,
       isCreateCredential: employee.isCredentialsCreated,
       userName: employee.username ?? "",
-      password: "",  // never pre-fill password
+      password: "", // never pre-fill password
     },
   });
 
@@ -107,7 +118,8 @@ export default function EditEmployeeForm({
   const permState = watch("permanantAddress.state");
   const commState = watch("communicationAddress.state");
 
-  const { stateOptions, permCityOptions, commCityOptions } = useIndianStatesAndCities(permState, commState);
+  const { stateOptions, permCityOptions, commCityOptions } =
+    useIndianStatesAndCities(permState, commState);
 
   const p1 = watch("permanantAddress.addressLine1");
   const p2 = watch("permanantAddress.addressLine2");
@@ -138,9 +150,9 @@ export default function EditEmployeeForm({
       return;
     }
     try {
-      const { dataUrl, base64 } = await fileToBase64(file);
+      const dataUrl = await fileToDataUrl(file);
       setPreview(dataUrl);
-      setValue("profilePicture", base64, { shouldDirty: true });
+      setValue("profilePicture", stripDataUrl(dataUrl), { shouldDirty: true });
     } catch {
       toast.error("Unable to process image");
     } finally {
@@ -150,10 +162,6 @@ export default function EditEmployeeForm({
 
   const onSubmit = handleSubmit(async (v) => {
     const roleIdNum = Number(v.roleId);
-    if (!roleIdNum || roleIdNum <= 0) {
-      toast.error("Please select a role");
-      return;
-    }
 
     const commAddress = v.isCommunicationAddressSameAsPermanant
       ? v.permanantAddress
@@ -170,10 +178,9 @@ export default function EditEmployeeForm({
       });
       toast.success("Employee updated successfully", { id: tId });
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Something went wrong",
-        { id: tId },
-      );
+      toast.error(err instanceof Error ? err.message : "Something went wrong", {
+        id: tId,
+      });
     } finally {
       setLoading(false);
     }
@@ -195,7 +202,6 @@ export default function EditEmployeeForm({
 
       <CardContent>
         <form onSubmit={onSubmit} className="space-y-8" noValidate>
-
           {/* ── Organisation (display only) + Role ── */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div className="flex h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 dark:border-slate-700 dark:bg-slate-900">
@@ -214,7 +220,6 @@ export default function EditEmployeeForm({
                 <Controller
                   control={control}
                   name="roleId"
-                  rules={{ required: "Role is required" }}
                   render={({ field, fieldState }) => (
                     <div className="space-y-1.5">
                       <DropdownFilter
@@ -250,49 +255,73 @@ export default function EditEmployeeForm({
           >
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <InputField
-                control={control} name="firstName" label="First Name"
-                placeholder="First name" className="h-11 rounded-2xl"
+                control={control}
+                name="firstName"
+                label="First Name"
+                placeholder="First name"
+                className="h-11 rounded-2xl"
                 leftIcon={<User2 className="h-4 w-4" />}
                 rules={{
                   required: "First name is required",
-                  validate: (v) => String(v).trim().length > 0 || "First name is required",
+                  validate: (v) =>
+                    String(v).trim().length > 0 || "First name is required",
                 }}
               />
               <InputField
-                control={control} name="middleName" label="Middle Name"
-                placeholder="Optional" className="h-11 rounded-2xl"
+                control={control}
+                name="middleName"
+                label="Middle Name"
+                placeholder="Optional"
+                className="h-11 rounded-2xl"
               />
               <InputField
-                control={control} name="lastName" label="Last Name"
-                placeholder="Last name" className="h-11 rounded-2xl"
+                control={control}
+                name="lastName"
+                label="Last Name"
+                placeholder="Last name"
+                className="h-11 rounded-2xl"
                 rules={{
                   required: "Last name is required",
-                  validate: (v) => String(v).trim().length > 0 || "Last name is required",
+                  validate: (v) =>
+                    String(v).trim().length > 0 || "Last name is required",
                 }}
               />
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <InputField
-                control={control} name="initials" label="Initials"
-                placeholder="e.g. JS" className="h-11 rounded-2xl"
+                control={control}
+                name="initials"
+                label="Initials"
+                placeholder="e.g. JS"
+                className="h-11 rounded-2xl"
               />
               <InputField
-                control={control} name="phone" label="Phone"
-                placeholder="0123456789" className="h-11 rounded-2xl"
+                control={control}
+                name="phone"
+                label="Phone"
+                placeholder="0123456789"
+                className="h-11 rounded-2xl"
                 leftIcon={<Phone className="h-4 w-4" />}
                 rules={{ required: "Phone is required" }}
               />
               <InputField
-                control={control} name="secondaryPhone" label="Secondary Phone"
-                placeholder="Optional" className="h-11 rounded-2xl"
+                control={control}
+                name="secondaryPhone"
+                label="Secondary Phone"
+                placeholder="Optional"
+                className="h-11 rounded-2xl"
               />
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <InputField
-                control={control} name="email" label="Email" type="email"
-                placeholder="email@example.com" className="h-11 rounded-2xl"
+                control={control}
+                name="email"
+                label="Email"
+                type="email"
+                placeholder="email@example.com"
+                className="h-11 rounded-2xl"
                 leftIcon={<Mail className="h-4 w-4" />}
                 rules={{
                   required: "Email is required",
@@ -303,19 +332,28 @@ export default function EditEmployeeForm({
                 }}
               />
               <InputField
-                control={control} name="panNo" label="PAN No"
-                placeholder="Optional" className="h-11 rounded-2xl"
+                control={control}
+                name="panNo"
+                label="PAN No"
+                placeholder="Optional"
+                className="h-11 rounded-2xl"
               />
               <InputField
-                control={control} name="aadharNo" label="Aadhar No"
-                placeholder="Optional" className="h-11 rounded-2xl"
+                control={control}
+                name="aadharNo"
+                label="Aadhar No"
+                placeholder="Optional"
+                className="h-11 rounded-2xl"
               />
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <InputField
-                control={control} name="passportNo" label="Passport No"
-                placeholder="Optional" className="h-11 rounded-2xl"
+                control={control}
+                name="passportNo"
+                label="Passport No"
+                placeholder="Optional"
+                className="h-11 rounded-2xl"
               />
             </div>
 
@@ -330,7 +368,10 @@ export default function EditEmployeeForm({
               <div className="flex items-center gap-3">
                 {preview ? (
                   <Image
-                    src={preview} alt="Preview" width={48} height={48}
+                    src={preview}
+                    alt="Preview"
+                    width={48}
+                    height={48}
                     className="h-12 w-12 rounded-xl border object-cover dark:border-slate-700"
                     unoptimized
                   />
@@ -343,7 +384,9 @@ export default function EditEmployeeForm({
                   <ImageIcon className="h-3.5 w-3.5" />
                   Upload
                   <input
-                    type="file" accept="image/*" className="hidden"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
                     onChange={onImageChange}
                   />
                 </label>
@@ -373,7 +416,9 @@ export default function EditEmployeeForm({
             title="Communication address same as permanent"
             description="Turn off to enter a different communication address"
             checked={sameAddress}
-            onChange={(v) => setValue("isCommunicationAddressSameAsPermanant", v)}
+            onChange={(v) =>
+              setValue("isCommunicationAddressSameAsPermanant", v)
+            }
             color={brandColor}
           />
 
@@ -404,8 +449,11 @@ export default function EditEmployeeForm({
           {createCred && (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <InputField
-                control={control} name="userName" label="Username"
-                placeholder="username" className="h-11 rounded-2xl"
+                control={control}
+                name="userName"
+                label="Username"
+                placeholder="username"
+                className="h-11 rounded-2xl"
                 leftIcon={<User2 className="h-4 w-4" />}
                 rules={{
                   validate: (v) =>
@@ -415,8 +463,12 @@ export default function EditEmployeeForm({
                 }}
               />
               <InputField
-                control={control} name="password" label="Password" type="password"
-                placeholder="Leave blank to keep current" className="h-11 rounded-2xl"
+                control={control}
+                name="password"
+                label="Password"
+                type="password"
+                placeholder="Leave blank to keep current"
+                className="h-11 rounded-2xl"
                 leftIcon={<LockIcon className="h-4 w-4" />}
                 showPasswordToggle
               />

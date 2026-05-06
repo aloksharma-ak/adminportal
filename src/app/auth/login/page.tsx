@@ -20,8 +20,8 @@ import {
   clearImageFromSession,
   getImagesFromSession,
   setImagesToSession,
-  toImageSrc,
 } from "@/lib/image-session.client";
+import { toImageSrc } from "@/lib/image-utils";
 import { getOrganisationDetail } from "@/app/utils";
 import Footer from "@/app/footer";
 import { FullPageLoader } from "@/components/shared-ui/full-page-loader";
@@ -44,6 +44,11 @@ export default function LoginPage() {
   const [step, setStep] = React.useState<"org" | "login">("org");
   const [org, setOrg] = React.useState<Organisation | null>(null);
   const [logoSrc, setLogoSrc] = React.useState<string | null>(null);
+  const [logoError, setLogoError] = React.useState(false);
+
+  React.useEffect(() => {
+    setLogoError(false);
+  }, [logoSrc]);
 
   const form = useForm<LoginFormValues>({
     defaultValues: {
@@ -208,7 +213,7 @@ export default function LoginPage() {
 
           {/* centered header */}
           <div className="flex flex-col items-center justify-center gap-4 text-center">
-            {logoSrc && (
+            {logoSrc && !logoError && (
               <div className="relative aspect-square w-16 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 dark:border-white/10 sm:w-20 md:w-24">
                 <Image
                   src={logoSrc}
@@ -218,6 +223,7 @@ export default function LoginPage() {
                   priority
                   unoptimized={logoSrc.startsWith("data:image/")}
                   className="object-contain"
+                  onError={() => setLogoError(true)}
                 />
               </div>
             )}
