@@ -15,7 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { createEmployee } from "@/app/utils";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { toImageSrc, fileToDataUrl } from "@/lib/image-utils";
+import { toImageSrc, fileToDataUrl, stripDataUrl } from "@/lib/image-utils";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
