@@ -282,7 +282,7 @@ export async function updateRolePermissions(params: {
   const roleId = Number(params.roleId);
   if (!Number.isFinite(roleId) || roleId <= 0)
     throw new Error("Invalid role ID");
-  return apiPost(base, "/api/RolePermission/UpdateRolePermission", {
+  return apiPost<ApiResponse<any>>(base, "/api/RolePermission/UpdateRolePermission", {
     ...(await reqMeta(params.userId)),
     roleId,
     permissionIds: params.permissionIds,
@@ -296,7 +296,7 @@ export async function createPermission(params: {
   userId?: number;
 }) {
   const base = requireUrl(API_URL, "API_URL");
-  return apiPost(base, "/api/RolePermission/CreatePermission", {
+  return apiPost<ApiResponse<any>>(base, "/api/RolePermission/CreatePermission", {
     ...(await reqMeta(params.userId)),
     ...params,
   });

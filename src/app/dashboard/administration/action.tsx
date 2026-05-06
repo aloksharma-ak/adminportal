@@ -18,7 +18,7 @@ async function post<T = unknown>(
   body: Record<string, unknown>,
 ): Promise<T> {
   const base = requireAdmissionUrl();
-  return apiPost(base, path, body);
+  return apiPost<T>(base, path, body);
 }
 
 // ---------- helpers ----------
