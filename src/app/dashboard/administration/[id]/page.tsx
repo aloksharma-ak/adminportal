@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Pencil } from "lucide-react";
 import { PageHeader } from "@/components/shared-ui/page-header";
 import { ErrorCard } from "@/components/shared-ui/states";
-import StudentDetails from "@/components/admission/student-details";
+import StudentDetails from "@/components/administration/student-details";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -37,11 +37,12 @@ export default async function StudentDetailPage({ params }: PageProps) {
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
         title={student ? `${student.firstName ?? ""} ${student.lastName ?? ""}`.trim() || "Student Details" : "Student Details"}
-        backLabel="Back to Admissions"
+        backLabel="Back to Administration"
         actions={
           student && (
             <Link
-              href={`/dashboard/admission/${studentId}/edit`}
+              href={`/dashboard/administration/${studentId}/edit`}
+
               className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:opacity-90"
               style={{ backgroundColor: brandColor ?? "#3b82f6" }}
             >

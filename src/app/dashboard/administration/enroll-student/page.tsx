@@ -1,5 +1,5 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
-import EnrollStudentForm from "@/components/admission/enroll-student-form";
+import EnrollStudentForm from "@/components/administration/enroll-student-form";
 import { getAdmissionMasterData } from "@/app/utils";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
@@ -32,7 +32,7 @@ export default async function EnrollStudentPage() {
       <PageHeader
         title="Enroll Student"
         description="Register a new student into the organisation"
-        backLabel="Back to Admissions"
+        backLabel="Back to Administration"
       />
       {fetchError && <ErrorCard message={fetchError} />}
       <EnrollStudentForm

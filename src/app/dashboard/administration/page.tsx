@@ -2,7 +2,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { getStudentsByOrgId } from "./action";
-import StudentsGrid from "@/components/admission/students-grid";
+import StudentsGrid from "@/components/administration/students-grid";
 import { LinkButton } from "@/components/controls/Buttons";
 import { UserPlus } from "lucide-react";
 import { PageHeader } from "@/components/shared-ui/page-header";
@@ -24,13 +24,14 @@ export default async function AdmissionPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
       <PageHeader
-        title="Admissions"
+        title="Administration"
         description="Manage student enrolments and records"
         backLabel="Back to Dashboard"
         actions={
           <LinkButton
             color={session.user.brandColor}
-            href="/dashboard/admission/enroll-student"
+            href="/dashboard/administration/enroll-student"
+
             leftIcon={<UserPlus className="h-4 w-4" />}
           >
             Enroll Student

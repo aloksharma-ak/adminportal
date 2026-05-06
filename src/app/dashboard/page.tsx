@@ -40,8 +40,8 @@ const MODULE_CONFIGS: Record<string, ModuleConfig> = {
     Icon: GraduationCap,
     gradient: "from-violet-500 to-purple-500",
   },
-  admission: {
-    href: "/dashboard/admission",
+  administration: {
+    href: "/dashboard/administration",
     Icon: ClipboardList,
     gradient: "from-emerald-500 to-teal-500",
   },
@@ -74,7 +74,8 @@ const MODULE_CONFIGS: Record<string, ModuleConfig> = {
 
 const MODULE_ALIAS_MAP: Record<string, string> = {
   user: "users",
-  admissions: "admission",
+  admissions: "administration",
+  admission: "administration",
   enquiries: "leads",
   rolepermission: "roles",
   timetable: "schedule",
@@ -143,8 +144,6 @@ export default async function DashboardPage() {
     if (h < 17) return "Good afternoon";
     return "Good evening";
   })();
-
-  console.log("------------>", emp?.profilePicture);
 
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">

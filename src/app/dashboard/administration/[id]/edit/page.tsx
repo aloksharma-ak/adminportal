@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
 import { getStudentDetail } from "../../action";
 import { getAdmissionMasterData } from "@/app/utils";
-import EnrollStudentForm from "@/components/admission/enroll-student-form";
+import EnrollStudentForm from "@/components/administration/enroll-student-form";
 import { PageHeader } from "@/components/shared-ui/page-header";
 import { ErrorCard } from "@/components/shared-ui/states";
 
