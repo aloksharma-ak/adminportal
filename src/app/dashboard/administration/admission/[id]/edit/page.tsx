@@ -63,6 +63,7 @@ export default async function EditStudentPage({ params }: Props) {
       <PageHeader
         title="Edit Student"
         backLabel="Back to Student"
+        backHref={`/dashboard/administration/admission/${studentId}`}
       />
       {fetchError && <ErrorCard message={fetchError} />}
       {student && (

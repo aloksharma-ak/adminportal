@@ -17,7 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { toImageSrc, fileToDataUrl, stripDataUrl } from "@/lib/image-utils";
-import { enrollStudent } from "@/app/dashboard/administration/action";
+import { enrollStudent } from "@/app/dashboard/administration/admission/action";
 import type { StudentDetail } from "@/components/administration/student-details";
 
 const MAX_IMAGE_BYTES = 500 * 1024;
@@ -219,7 +219,7 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
       if (!res?.status) throw new Error(res?.message || "Failed");
       toast.success(res?.message || (isEditing ? "Student updated!" : "Student enrolled!"), { id: tId });
       if (isEditing) {
-        router.push(`/dashboard/administration/${studentId}`);
+        router.push(`/dashboard/administration/admission/${studentId}`);
         router.refresh();
       } else {
         form.reset({ ...form.getValues(), classId: "", firstName: "", middleName: "", lastName: "", initials: "", phone: "", secondaryPhone: "", aadharNo: "", email: "", profilePicture: "", permanantAddress: { ...EMPTY_ADDR }, isCommunicationAddressSameAsPermanant: true, communicationAddress: { ...EMPTY_ADDR }, previousSchoolName: "", previousSchoolAddress: "", fatherName: "", fatherPhone: "", fatherSecondaryPhone: "", fatherAadharNo: "", fatherEmail: "", motherName: "", motherPhone: "", motherSecondaryPhone: "", motherAadharNo: "", motherEmail: "", dob: "", religion: "", cateogry: "", contactPersonName: "", contactPersonPhone: "" });

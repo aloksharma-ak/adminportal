@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { Card, CardContent } from "@/components/ui/card";
-import { GraduationCap, Wallet, type LucideIcon } from "lucide-react";
+import { ReceiptText, Coins, Truck, type LucideIcon } from "lucide-react";
 import { PageHeader } from "@/components/shared-ui/page-header";
 
 const tiles: {
@@ -14,32 +14,39 @@ const tiles: {
   description: string;
 }[] = [
   {
-    href: "/dashboard/administration/admission",
-    Icon: GraduationCap,
+    href: "/dashboard/administration/fee-slabs/admission-charges",
+    Icon: ReceiptText,
     gradient: "from-blue-500 to-indigo-500",
-    title: "Admission",
-    description: "Manage student enrolments, records and details",
+    title: "Admission Charges",
+    description: "Manage one-time or recurring admission related charges",
   },
   {
-    href: "/dashboard/administration/fee-slabs",
-    Icon: Wallet,
+    href: "/dashboard/administration/fee-slabs/fee-charges",
+    Icon: Coins,
     gradient: "from-emerald-500 to-teal-500",
-    title: "Fee Slabs",
-    description: "Configure admission, fee and transport charges",
+    title: "Fee Charges",
+    description: "Configure regular tuition and other fee charges by grade",
+  },
+  {
+    href: "/dashboard/administration/fee-slabs/transport-charges",
+    Icon: Truck,
+    gradient: "from-orange-500 to-amber-500",
+    title: "Transport Charges",
+    description: "Set transport fees based on distance and frequency",
   },
 ];
 
-export default async function AdministrationPage() {
+export default async function FeeSlabsPage() {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/auth/login");
 
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
       <PageHeader
-        title="Administration"
-        description="Manage school operations and financial configurations"
-        backLabel="Back to Dashboard"
-        backHref="/dashboard"
+        title="Fee Slabs"
+        description="Configure various charges and fee structures"
+        backLabel="Back to Administration"
+        backHref="/dashboard/administration"
       />
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
