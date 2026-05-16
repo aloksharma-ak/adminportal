@@ -38,12 +38,11 @@ export async function reqMeta(userId?: number) {
     requestGuid: crypto.randomUUID(),
     requestTime: new Date().toISOString(),
     userId: finalUserId,
-    UserId: finalUserId,
   };
 }
 
-/** 
- * Standardized POST request wrapper with error handling. 
+/**
+ * Standardized POST request wrapper with error handling.
  * Can be used in both Server Components and Server Actions.
  */
 export async function apiPost<T = unknown>(

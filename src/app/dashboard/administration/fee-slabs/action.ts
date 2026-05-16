@@ -23,6 +23,34 @@ export type ApiResponse<T> = {
   data: T;
 };
 
+/**
+ * Robustly extracts a list from the API response data.
+ * Tries the specific key first, then falls back to any array found in the data object.
+ */
+function extractList<T>(data: any, key: string): T[] {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  if (typeof data === "object") {
+    if (Array.isArray(data[key])) return data[key];
+    // Fallback: find the first array property
+    const firstArray = Object.values(data).find((v) => Array.isArray(v));
+    if (firstArray) return firstArray as T[];
+  }
+  return [];
+}
+
+/**
+ * Robustly extracts a detail object from the API response data.
+ * Tries the specific key first, then falls back to the data object itself.
+ */
+function extractDetail<T>(data: any, key: string): T | undefined {
+  if (!data) return undefined;
+  if (typeof data === "object") {
+    if (data[key]) return data[key] as T;
+  }
+  return data as T;
+}
+
 // ─────────────────────────────────────────────────────────
 // Admission Charges
 // ─────────────────────────────────────────────────────────
@@ -39,23 +67,30 @@ export type AdmissionCharge = {
 };
 
 export async function getAdmissionChargesList(orgId: number, userId?: number) {
-  const res = await post<ApiResponse<AdmissionCharge[]>>("/api/Charges/GetChargesList", {
+  const res = await post<ApiResponse<any>>("/api/Charges/GetChargesList", {
     ...(await reqMeta(userId)),
     orgId,
   });
-  return Array.isArray(res?.data) ? res.data : [];
+  return extractList<AdmissionCharge>(res?.data, "charges");
 }
 
-export async function getAdmissionChargeDetail(id: number, orgId: number, userId?: number) {
-  const res = await post<ApiResponse<AdmissionCharge>>("/api/Charges/GetCharge", {
+export async function getAdmissionChargeDetail(
+  id: number,
+  orgId: number,
+  userId?: number,
+) {
+  const res = await post<ApiResponse<any>>("/api/Charges/GetCharge", {
     ...(await reqMeta(userId)),
     orgId,
     chargeId: id,
   });
-  return res?.data;
+  return extractDetail<AdmissionCharge>(res?.data, "charge");
 }
 
-export async function modifyAdmissionCharge(payload: Partial<AdmissionCharge>, userId?: number) {
+export async function modifyAdmissionCharge(
+  payload: Partial<AdmissionCharge>,
+  userId?: number,
+) {
   return post<ApiResponse<unknown>>("/api/Charges/ModifyCharge", {
     ...(await reqMeta(userId)),
     ...payload,
@@ -76,23 +111,30 @@ export type FeeCharge = {
 };
 
 export async function getFeeChargesList(orgId: number, userId?: number) {
-  const res = await post<ApiResponse<FeeCharge[]>>("/api/Charges/GetFeeChargesList", {
+  const res = await post<ApiResponse<any>>("/api/Charges/GetFeeChargesList", {
     ...(await reqMeta(userId)),
     orgId,
   });
-  return Array.isArray(res?.data) ? res.data : [];
+  return extractList<FeeCharge>(res?.data, "feeCharges");
 }
 
-export async function getFeeChargeDetail(id: number, orgId: number, userId?: number) {
-  const res = await post<ApiResponse<FeeCharge>>("/api/Charges/GetFeeCharge", {
+export async function getFeeChargeDetail(
+  id: number,
+  orgId: number,
+  userId?: number,
+) {
+  const res = await post<ApiResponse<any>>("/api/Charges/GetFeeCharge", {
     ...(await reqMeta(userId)),
     orgId,
     feeChargeId: id,
   });
-  return res?.data;
+  return extractDetail<FeeCharge>(res?.data, "feeCharge");
 }
 
-export async function modifyFeeCharge(payload: Partial<FeeCharge>, userId?: number) {
+export async function modifyFeeCharge(
+  payload: Partial<FeeCharge>,
+  userId?: number,
+) {
   return post<ApiResponse<unknown>>("/api/Charges/ModifyFeeCharge", {
     ...(await reqMeta(userId)),
     ...payload,
@@ -114,23 +156,30 @@ export type TransportCharge = {
 };
 
 export async function getTransportChargesList(orgId: number, userId?: number) {
-  const res = await post<ApiResponse<TransportCharge[]>>("/api/Charges/GetTransportList", {
+  const res = await post<ApiResponse<any>>("/api/Charges/GetTransportList", {
     ...(await reqMeta(userId)),
     orgId,
   });
-  return Array.isArray(res?.data) ? res.data : [];
+  return extractList<TransportCharge>(res?.data, "transport");
 }
 
-export async function getTransportChargeDetail(id: number, orgId: number, userId?: number) {
-  const res = await post<ApiResponse<TransportCharge>>("/api/Charges/GetTransport", {
+export async function getTransportChargeDetail(
+  id: number,
+  orgId: number,
+  userId?: number,
+) {
+  const res = await post<ApiResponse<any>>("/api/Charges/GetTransport", {
     ...(await reqMeta(userId)),
     orgId,
     id,
   });
-  return res?.data;
+  return extractDetail<TransportCharge>(res?.data, "transport");
 }
 
-export async function modifyTransportCharge(payload: Partial<TransportCharge>, userId?: number) {
+export async function modifyTransportCharge(
+  payload: Partial<TransportCharge>,
+  userId?: number,
+) {
   return post<ApiResponse<unknown>>("/api/Charges/ModifyTransport", {
     ...(await reqMeta(userId)),
     ...payload,

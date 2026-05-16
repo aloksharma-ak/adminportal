@@ -4,11 +4,13 @@ import { notFound, redirect } from "next/navigation";
 import { getAdmissionChargeDetail } from "../../action";
 import { PageHeader } from "@/components/shared-ui/page-header";
 import { ErrorCard } from "@/components/shared-ui/states";
-import AdmissionChargeForm from "@/components/administration/fee-slabs/admission-charge-form";
+import { AdmissionChargeDetails } from "@/components/administration/fee-slabs/details-view";
+import Link from "next/link";
+import { Pencil } from "lucide-react";
 
 type Props = { params: Promise<{ id: string }> };
 
-export default async function EditAdmissionChargePage({ params }: Props) {
+export default async function ViewAdmissionChargePage({ params }: Props) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/auth/login");
 
@@ -26,21 +28,33 @@ export default async function EditAdmissionChargePage({ params }: Props) {
     fetchError = err instanceof Error ? err.message : "Failed to load admission charge";
   }
 
+  const brandColor = session.user.brandColor ?? undefined;
+
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
-        title="Edit Admission Charge"
-        description="Update details for the admission charge"
+        title={charge ? charge.chargeName : "Charge Details"}
+        description="View details of this admission charge"
         backLabel="Back to List"
         backHref="/dashboard/administration/fee-slabs/admission-charges"
+        actions={
+          charge && (
+            <Link
+              href={`/dashboard/administration/fee-slabs/admission-charges/${chargeId}/edit`}
+              className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:opacity-90"
+              style={{ backgroundColor: brandColor ?? "#3b82f6" }}
+            >
+              <Pencil className="h-4 w-4" />
+              Edit Charge
+            </Link>
+          )
+        }
       />
       {fetchError && <ErrorCard message={fetchError} />}
       {charge && (
-        <AdmissionChargeForm
-          orgId={session.user.orgId}
-          brandColor={session.user.brandColor}
-          chargeId={chargeId}
-          defaultValues={charge}
+        <AdmissionChargeDetails
+          charge={charge}
+          brandColor={brandColor}
         />
       )}
     </div>

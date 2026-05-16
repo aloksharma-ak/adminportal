@@ -16,10 +16,14 @@ export default async function EmployeesPage() {
   let fetchError: string | null = null;
 
   try {
-    const res = await getEmployeeList({ orgId: session.user.orgId, userId: session.user.profileId });
+    const res = await getEmployeeList({
+      orgId: session.user.orgId,
+      userId: session.user.profileId,
+    });
     employees = Array.isArray(res?.data) ? res.data : [];
   } catch (err) {
-    fetchError = err instanceof Error ? err.message : "Failed to load employees";
+    fetchError =
+      err instanceof Error ? err.message : "Failed to load employees";
   }
 
   return (
@@ -42,7 +46,10 @@ export default async function EmployeesPage() {
       {fetchError ? (
         <ErrorCard message={fetchError} />
       ) : (
-        <EmployeeListGrid data={employees} brandColor={session.user.brandColor} />
+        <EmployeeListGrid
+          data={employees}
+          brandColor={session.user.brandColor}
+        />
       )}
     </div>
   );
