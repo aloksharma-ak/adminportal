@@ -352,7 +352,7 @@ export default function RolePermissionsEditor({
       {/* Sticky bottom save */}
       {!loadingAll && assignedCount > 0 && (
         <div className="sticky bottom-6 flex justify-center pointer-events-none sm:justify-end">
-          <div className="pointer-events-auto rounded-3xl border border-slate-200/50 bg-white/80 p-2 shadow-2xl backdrop-blur-xl dark:border-slate-700/50 dark:bg-slate-900/80">
+          <div className="pointer-events-auto rounded-3xl shadow-2xl backdrop-blur-xl dark:border-slate-700/50 dark:bg-slate-900/80">
             <ActionButton
               color={brandColor ?? "blue"}
               loading={saving}
