@@ -37,11 +37,12 @@ export default async function StudentDetailPage({ params }: PageProps) {
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
         title={student ? `${student.firstName ?? ""} ${student.lastName ?? ""}`.trim() || "Student Details" : "Student Details"}
-        backLabel="Back to Administration"
+        backLabel="Back to Admission"
+        backHref="/dashboard/administration/admission"
         actions={
           student && (
             <Link
-              href={`/dashboard/administration/${studentId}/edit`}
+              href={`/dashboard/administration/admission/${studentId}/edit`}
 
               className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:opacity-90"
               style={{ backgroundColor: brandColor ?? "#3b82f6" }}

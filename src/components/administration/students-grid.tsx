@@ -4,7 +4,7 @@ import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { DataGrid } from "../controls/data-grid";
-import type { Student } from "@/app/dashboard/administration/action";
+import type { Student } from "@/app/dashboard/administration/admission/action";
 import Link from "next/link";
 import { Eye, Pencil, UserPlus } from "lucide-react";
 import { Avatar } from "@/components/shared-ui/avatar";
@@ -22,14 +22,14 @@ const getColumns = (brandColor?: string): ColumnDef<Student>[] => [
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <Link
-          href={`/dashboard/administration/${row.original.studentId}`}
+          href={`/dashboard/administration/admission/${row.original.studentId}`}
           className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"
           title="View"
         >
           <Eye className="h-4 w-4" />
         </Link>
         <Link
-          href={`/dashboard/administration/${row.original.studentId}/edit`}
+          href={`/dashboard/administration/admission/${row.original.studentId}/edit`}
           className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"
           title="Edit"
         >
@@ -84,7 +84,7 @@ const getColumns = (brandColor?: string): ColumnDef<Student>[] => [
           />
           <div>
             <Link
-              href={`/dashboard/administration/${s.studentId}`}
+              href={`/dashboard/administration/admission/${s.studentId}`}
               className="font-semibold text-slate-900 hover:underline dark:text-slate-100"
             >
               {s.firstName} {s.lastName}

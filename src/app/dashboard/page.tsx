@@ -4,15 +4,10 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowRight,
-  BarChart3,
-  CalendarDays,
-  Megaphone,
   Users,
-  Wallet,
   LayoutGrid,
   GraduationCap,
   ClipboardList,
-  Shield,
   type LucideIcon,
 } from "lucide-react";
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
@@ -45,40 +40,12 @@ const MODULE_CONFIGS: Record<string, ModuleConfig> = {
     Icon: ClipboardList,
     gradient: "from-emerald-500 to-teal-500",
   },
-  leads: {
-    href: "/dashboard/leads",
-    Icon: Megaphone,
-    gradient: "from-orange-500 to-amber-500",
-  },
-  fees: {
-    href: "/dashboard/fees",
-    Icon: Wallet,
-    gradient: "from-yellow-500 to-lime-500",
-  },
-  reports: {
-    href: "/dashboard/reports",
-    Icon: BarChart3,
-    gradient: "from-rose-500 to-pink-500",
-  },
-  roles: {
-    href: "/dashboard/roles",
-    Icon: Shield,
-    gradient: "from-slate-500 to-zinc-500",
-  },
-  schedule: {
-    href: "/dashboard/schedule",
-    Icon: CalendarDays,
-    gradient: "from-sky-500 to-cyan-500",
-  },
 };
 
 const MODULE_ALIAS_MAP: Record<string, string> = {
   user: "users",
   admissions: "administration",
   admission: "administration",
-  enquiries: "leads",
-  rolepermission: "roles",
-  timetable: "schedule",
 };
 
 function getModuleConfig(
