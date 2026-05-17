@@ -27,6 +27,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { toImageSrc, fileToDataUrl, stripDataUrl } from "@/lib/image-utils";
 import { useSession } from "next-auth/react";
+import { getErrorMessage } from "@/app/dashboard/utils";
 
 import {
   MAX_IMAGE_BYTES,
@@ -189,7 +190,7 @@ export default function EditEmployeeForm({
       }
       router.refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong", {
+      toast.error(getErrorMessage(err), {
         id: tId,
       });
     } finally {

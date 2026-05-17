@@ -16,7 +16,8 @@ const getColumns = (brandColor?: string): ColumnDef<Student>[] => [
     cell: ({ row }) => (
       <span className="text-sm text-slate-400">{row.index + 1}</span>
     ),
-  }, {
+  },
+  {
     id: "actions",
     header: "Actions",
     cell: ({ row }) => (
@@ -37,19 +38,25 @@ const getColumns = (brandColor?: string): ColumnDef<Student>[] => [
         </Link>
       </div>
     ),
-  }, {
+  },
+  {
     accessorKey: "studentId",
     header: "ID",
     cell: ({ getValue }) => (
       <Badge
         variant="outline"
         className="font-mono text-xs"
-        style={brandColor ? { borderColor: brandColor, color: brandColor } : undefined}
+        style={
+          brandColor
+            ? { borderColor: brandColor, color: brandColor }
+            : undefined
+        }
       >
         #{getValue<number>()}
       </Badge>
     ),
-  }, {
+  },
+  {
     accessorKey: "isActive",
     header: "Status",
     cell: ({ getValue }) => {
@@ -89,27 +96,11 @@ const getColumns = (brandColor?: string): ColumnDef<Student>[] => [
             >
               {s.firstName} {s.lastName}
             </Link>
-
           </div>
         </div>
       );
     },
   },
-
-  {
-    accessorKey: "enrolledClass",
-    header: "Class",
-    cell: ({ getValue }) => {
-      const v = getValue<string | null>();
-      return v ? (
-        <Badge variant="outline" className="text-xs">{v}</Badge>
-      ) : (
-        <span className="text-slate-400">—</span>
-      );
-    },
-  },
-
-
 ];
 
 export default function StudentsGrid({
@@ -121,7 +112,10 @@ export default function StudentsGrid({
 }) {
   const [search, setSearch] = React.useState("");
 
-  const columns = React.useMemo(() => getColumns(brandColor ?? undefined), [brandColor]);
+  const columns = React.useMemo(
+    () => getColumns(brandColor ?? undefined),
+    [brandColor],
+  );
 
   const filtered = React.useMemo(() => {
     const q = search.trim().toLowerCase();

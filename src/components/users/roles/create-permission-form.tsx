@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { FileText, LayoutGrid, Shield } from "lucide-react";
+import { getErrorMessage } from "@/app/dashboard/utils";
 
 import { createPermission } from "@/app/dashboard/users/actions";
 import { InputField } from "@/components/controls/InputField";
@@ -80,10 +81,7 @@ export default function CreatePermissionForm({
       reset();
       if (successRedirect) router.push(successRedirect);
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Failed to create permission",
-        { id: tId },
-      );
+      toast.error(getErrorMessage(err), { id: tId });
     } finally {
       setLoading(false);
     }

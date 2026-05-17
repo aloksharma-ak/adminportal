@@ -9,6 +9,7 @@ import { ActionButton } from "@/components/controls/Buttons";
 import type { RolePermissionDetail } from "@/app/dashboard/users/actions";
 import { updateRolePermissions, getAllSystemPermissions } from "@/app/dashboard/users/actions";
 import { useSession } from "next-auth/react";
+import { getErrorMessage } from "@/app/dashboard/utils";
 
 type ModuleItem = {
   moduleId: number;
@@ -148,7 +149,7 @@ export default function RolePermissionsEditor({
         throw new Error(res?.message || "Failed to update permissions");
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to save", {
+      toast.error(getErrorMessage(err), {
         id: tId,
       });
     } finally {

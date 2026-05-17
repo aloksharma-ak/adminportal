@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { toImageSrc, fileToDataUrl, stripDataUrl } from "@/lib/image-utils";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { getErrorMessage } from "@/app/dashboard/utils";
 
 import {
   MAX_IMAGE_BYTES,
@@ -143,10 +144,7 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
       setPreview("");
       router.push("/dashboard/users/employees");
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Something went wrong",
-        { id: tId },
-      );
+      toast.error(getErrorMessage(err), { id: tId });
     } finally {
       setLoading(false);
     }

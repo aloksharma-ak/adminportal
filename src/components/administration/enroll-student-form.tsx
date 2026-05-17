@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { User2, Mail, Phone, ImageIcon, MapPin, GraduationCap, CalendarDays } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { getErrorMessage } from "@/app/dashboard/utils";
 
 import { InputField } from "@/components/controls/InputField";
 import { DropdownFilter, type DropdownOption } from "@/components/controls/DropdownFilter";
@@ -225,7 +226,7 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
       }
       router.refresh();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Something went wrong", { id: tId });
+      toast.error(getErrorMessage(e), { id: tId });
     } finally { setLoading(false); }
   });
 

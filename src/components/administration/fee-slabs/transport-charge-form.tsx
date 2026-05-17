@@ -5,6 +5,7 @@ import { useForm, Controller } from "react-hook-form";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { getErrorMessage } from "@/app/dashboard/utils";
 import { InputField } from "@/components/controls/InputField";
 import { DropdownFilter, type DropdownOption } from "@/components/controls/DropdownFilter";
 import { ToggleControl } from "@/components/controls/ToggleControl";
@@ -77,7 +78,7 @@ export default function TransportChargeForm({ orgId, brandColor, id = 0, default
       }
       router.refresh();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Something went wrong", { id: tId });
+      toast.error(getErrorMessage(e), { id: tId });
     } finally {
       setLoading(false);
     }

@@ -25,6 +25,7 @@ import { toImageSrc } from "@/lib/image-utils";
 import { getOrganisationDetail } from "@/app/dashboard/users/actions";
 import Footer from "@/app/footer";
 import { FullPageLoader } from "@/components/shared-ui/full-page-loader";
+import { getErrorMessage } from "@/app/dashboard/utils";
 
 function prettyAuthError(err?: string | null) {
   if (!err) return null;
@@ -142,12 +143,9 @@ export default function LoginPage() {
         toast.success("Login success. Redirecting...", { id: tId });
         router.push("/dashboard/");
       } catch (err) {
-        toast.error(
-          err instanceof Error ? err.message : "Something went wrong",
-          {
-            id: tId,
-          },
-        );
+        toast.error(getErrorMessage(err), {
+          id: tId,
+        });
       } finally {
         setLoading(false);
       }
