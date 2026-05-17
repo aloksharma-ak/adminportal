@@ -2,9 +2,9 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/Card";
 import { GraduationCap, Wallet, type LucideIcon } from "lucide-react";
-import { PageHeader } from "@/components/shared-ui/page-header";
+import { PageHeader } from "@/components/shared-ui/PageHeader";
 
 const tiles: {
   href: string;

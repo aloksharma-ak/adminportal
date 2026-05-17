@@ -1,5 +1,5 @@
-import { FullPageLoader } from "@/components/shared-ui/full-page-loader";
+import { FullPageLoader } from "@/components/shared-ui/FullPageLoader";
 
 export default function Loading() {
-  return <FullPageLoader label="Loading Portal" />;
+  return <FullPageLoader />;
 }

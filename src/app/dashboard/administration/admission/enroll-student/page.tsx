@@ -1,10 +1,10 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
-import EnrollStudentForm from "@/components/administration/enroll-student-form";
-import { getAdmissionMasterData } from "@/app/utils";
+import EnrollStudentForm from "@/components/administration/EnrollStudentForm";
+import { getAdmissionMasterData } from "@/app/dashboard/administration/actions";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { PageHeader } from "@/components/shared-ui/page-header";
-import { ErrorCard } from "@/components/shared-ui/states";
+import { PageHeader } from "@/components/shared-ui/PageHeader";
+import { ErrorCard } from "@/components/shared-ui/States";
 
 export default async function EnrollStudentPage() {
   const session = await getServerSession(authOptions);

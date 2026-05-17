@@ -8,8 +8,8 @@ import { signIn, useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { ArrowLeft } from "lucide-react";
 
-import { Spotlight } from "@/components/ui/spotlight";
-import { BorderBeam } from "@/components/ui/border-beam";
+import { Spotlight } from "@/components/ui/Spotlight";
+import { BorderBeam } from "@/components/ui/BorderBeam";
 
 import { OrganisationForm, type LoginFormValues } from "./OrganisationForm";
 import { LoginForm } from "./LoginForm";
@@ -22,9 +22,10 @@ import {
   setImagesToSession,
 } from "@/lib/image-session.client";
 import { toImageSrc } from "@/lib/image-utils";
-import { getOrganisationDetail } from "@/app/utils";
+import { getOrganisationDetail } from "@/app/dashboard/users/actions";
 import Footer from "@/app/footer";
-import { FullPageLoader } from "@/components/shared-ui/full-page-loader";
+import { FullPageLoader } from "@/components/shared-ui/FullPageLoader";
+import { getErrorMessage } from "@/app/dashboard/utils";
 
 function prettyAuthError(err?: string | null) {
   if (!err) return null;
@@ -142,12 +143,9 @@ export default function LoginPage() {
         toast.success("Login success. Redirecting...", { id: tId });
         router.push("/dashboard/");
       } catch (err) {
-        toast.error(
-          err instanceof Error ? err.message : "Something went wrong",
-          {
-            id: tId,
-          },
-        );
+        toast.error(getErrorMessage(err), {
+          id: tId,
+        });
       } finally {
         setLoading(false);
       }

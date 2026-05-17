@@ -1,15 +1,15 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import {
   getRolePermissions,
-  getMasterData, // ✅ added
+  getMasterData,
   RolePermissionDetail,
-} from "@/app/utils";
+} from "@/app/dashboard/users/actions";
 import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
 
-import { PageHeader } from "@/components/shared-ui/page-header";
-import { ErrorCard } from "@/components/shared-ui/states";
-import RolePermissionsEditor from "@/components/users/roles/role-permissions-editor";
+import { PageHeader } from "@/components/shared-ui/PageHeader";
+import { ErrorCard } from "@/components/shared-ui/States";
+import RolePermissionsEditor from "@/components/users/roles/RolePermissionsEditor";
 
 type PageProps = { params: Promise<{ id: string }> };
 

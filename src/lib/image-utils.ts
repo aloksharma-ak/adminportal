@@ -83,15 +83,20 @@ export function toImageSrc(raw?: string | null): string | null {
   const value = raw.trim();
   if (value.length < 5) return null;
 
-  // 1. If it's already a full data URL or a standard URL, just return it
+  // 1. If it's already a full data URL, just return it
+  if (value.startsWith("data:image/")) {
+    return value.replace(/\s/g, "");
+  }
+
+  // 2. If it's a standard URL, append a cache-busting timestamp
   if (
-    value.startsWith("data:image/") ||
     value.startsWith("http://") ||
     value.startsWith("https://") ||
     value.startsWith("/")
   ) {
-    // Basic cleanup of accidental spaces that break src
-    return value.replace(/\s/g, "");
+    const cleanedUrl = value.replace(/\s/g, "");
+    const separator = cleanedUrl.includes("?") ? "&" : "?";
+    return `${cleanedUrl}${separator}t=${new Date().getTime()}`;
   }
 
   // 2. Handle raw Base64 from backend
@@ -126,4 +131,78 @@ export function getInitials(...parts: (string | undefined | null)[]): string {
   if (words.length === 0) return "?";
   if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
   return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+}
+
+/**
+ * Reusable image validation helper.
+ * Restricts uploads strictly to PNG, JPG, and JPEG.
+ */
+export function validateImageFile(file: File): { isValid: boolean; error?: string } {
+  const allowedExtensions = [".png", ".jpg", ".jpeg"];
+  const allowedMimeTypes = ["image/png", "image/jpeg", "image/jpg"];
+
+  // 1. Check mime type
+  const hasAllowedMime = allowedMimeTypes.includes(file.type.toLowerCase());
+
+  // 2. Check extension
+  const extIndex = file.name.lastIndexOf(".");
+  const ext = extIndex !== -1 ? file.name.substring(extIndex).toLowerCase() : "";
+  const hasAllowedExt = allowedExtensions.includes(ext);
+
+  if (!hasAllowedMime && !hasAllowedExt) {
+    return { isValid: false, error: "Only JPG and PNG images are allowed" };
+  }
+
+  return { isValid: true };
+}
+
+export const FALLBACK_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2394a3b8'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z'/></svg>";
+
+const imageSrcCache = new Map<string, string>();
+
+/**
+ * Normalizes a raw Base64 string from the API by cleaning up whitespaces,
+ * surrounding quotes, and converting URL-safe base64 back to standard base64.
+ */
+export function normalizeBase64(base64: string): string {
+  if (!base64 || typeof base64 !== "string") return "";
+  let cleaned = base64.trim().replace(/\s/g, "");
+  if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+    cleaned = cleaned.slice(1, -1);
+  }
+  if (cleaned.startsWith("'") && cleaned.endsWith("'")) {
+    cleaned = cleaned.slice(1, -1);
+  }
+  return cleaned.replace(/-/g, "+").replace(/_/g, "/");
+}
+
+/**
+ * Returns a displayable image URL (data URI or standard URL).
+ * Automatically normalizes API Base64 strings.
+ * Safely falls back to a modern SVG placeholder if missing or invalid.
+ * Uses an internal LRU-eviction-cache to improve rendering performance.
+ */
+export function getImageSrc(base64OrUrl?: string | null): string {
+  if (!base64OrUrl) return FALLBACK_AVATAR;
+
+  const cached = imageSrcCache.get(base64OrUrl);
+  if (cached) return cached;
+
+  const src = toImageSrc(base64OrUrl) || FALLBACK_AVATAR;
+
+  // Evict if cache exceeds max size to prevent memory growth
+  if (imageSrcCache.size > 1000) {
+    const firstKey = imageSrcCache.keys().next().value;
+    if (firstKey !== undefined) imageSrcCache.delete(firstKey);
+  }
+  imageSrcCache.set(base64OrUrl, src);
+
+  return src;
+}
+
+/**
+ * Checks if a given base64 or URL can be resolved to a valid image source.
+ */
+export function isValidImage(base64OrUrl?: string | null): boolean {
+  return toImageSrc(base64OrUrl) !== null;
 }

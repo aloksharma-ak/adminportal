@@ -5,11 +5,11 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
-import { Container } from "@/components/shared-ui/container";
-import { HamburgerButton } from "@/components/shared-ui/hamburger-button";
+import { Container } from "@/components/shared-ui/Container";
+import { HamburgerButton } from "@/components/shared-ui/HamburgerButton";
 import Image from "next/image";
 import { getImagesFromSession } from "@/lib/image-session.client";
-import NavProfileCard from "@/components/shared-ui/nav-profile-card";
+import NavProfileCard from "@/components/shared-ui/NavProfileCard";
 
 type NavItem = { label: string; href: string };
 const NAV: NavItem[] = [];

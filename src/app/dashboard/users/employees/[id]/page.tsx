@@ -1,14 +1,14 @@
-import { getEmployee } from "@/app/utils";
+import { getEmployee } from "@/app/dashboard/users/actions";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
 import { Pencil, Mail, Phone, CreditCard, Shield, Home, MapPin } from "lucide-react";
-import { PageHeader } from "@/components/shared-ui/page-header";
-import { Avatar } from "@/components/shared-ui/avatar";
-import { ErrorCard } from "@/components/shared-ui/states";
+import { PageHeader } from "@/components/shared-ui/PageHeader";
+import { Avatar } from "@/components/shared-ui/Avatar";
+import { ErrorCard } from "@/components/shared-ui/States";
 
 type Props = { params: Promise<{ id: string }> };
 

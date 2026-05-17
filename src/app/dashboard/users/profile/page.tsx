@@ -1,13 +1,13 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
-import { getEmployee } from "@/app/utils";
+import { getEmployee } from "@/app/dashboard/users/actions";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar } from "@/components/shared-ui/avatar";
-import { PageHeader } from "@/components/shared-ui/page-header";
-import { ErrorCard } from "@/components/shared-ui/states";
-import { Mail, Phone, CreditCard, Shield, Home, MapPin, Pencil } from "lucide-react";
+import { Badge } from "@/components/ui/Badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Avatar } from "@/components/shared-ui/Avatar";
+import { PageHeader } from "@/components/shared-ui/PageHeader";
+import { ErrorCard } from "@/components/shared-ui/States";
+import { Mail, CreditCard, Shield, Home, MapPin, Pencil } from "lucide-react";
 import Link from "next/link";
 
 function Field({ label, value }: { label: string; value?: React.ReactNode }) {
@@ -27,30 +27,28 @@ export default async function ProfilePage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.orgId) redirect("/auth/login");
 
-  let emp;
+  let profile;
   let fetchError: string | null = null;
-try {
-  const res = await getEmployee({
-    profileId: session.user.profileId,
-    empId: 0,
-    orgId: session.user.orgId,
-    userId: 0
-  });
-  emp = res.data;
-
+  try {
+    const res = await getEmployee({
+      profileId: session.user.profileId,
+      empId: 0,
+      orgId: session.user.orgId,
+      userId: 0,
+    });
     if (!res?.status || !res?.data) {
       fetchError = res?.message ?? "Employee record not found";
     } else {
-      emp = res.data;
+      profile = res.data;
     }
   } catch (err) {
     fetchError = err instanceof Error ? err.message : "Failed to load profile";
   }
 
   const brandColor = session.user.brandColor ?? undefined;
-  const fullName = emp
-    ? [emp.firstName, emp.middleName, emp.lastName].filter(Boolean).join(" ")
-    : session.user.userName ?? "My Profile";
+  const fullName = profile
+    ? [profile.firstName, profile.middleName, profile.lastName].filter(Boolean).join(" ")
+    : (session.user.userName ?? "My Profile");
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
@@ -59,9 +57,9 @@ try {
         description="Your personal account information"
         backLabel="Back to Dashboard"
         actions={
-          emp && (
+          profile && (
             <Link
-              href={`/dashboard/users/employees/${emp.empId}/edit`}
+              href={`/dashboard/users/employees/${profile.empId}/edit`}
               className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:opacity-90"
               style={{ backgroundColor: brandColor ?? "#3b82f6" }}
             >
@@ -74,7 +72,7 @@ try {
 
       {fetchError && <ErrorCard message={fetchError} />}
 
-      {emp && (
+      {profile && (
         <div className="space-y-6">
           {/* Hero banner */}
           <Card className="overflow-hidden">
@@ -90,10 +88,10 @@ try {
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div className="flex items-end gap-4">
                   <Avatar
-                    src={emp.profilePicture}
-                    firstName={emp.firstName}
-                    lastName={emp.lastName}
-                    initials={emp.initials}
+                    src={profile.profilePicture}
+                    firstName={profile.firstName}
+                    lastName={profile.lastName}
+                    initials={profile.initials}
                     size="xl"
                     brandColor={brandColor}
                     className="ring-4 ring-white dark:ring-slate-900"
@@ -103,22 +101,28 @@ try {
                       {fullName}
                     </h2>
                     <div className="mt-1 flex flex-wrap items-center gap-2">
-                      {emp.role?.roleName && (
+                      {profile.role?.roleName && (
                         <Badge
                           variant="outline"
                           className="font-medium"
-                          style={brandColor ? { borderColor: brandColor, color: brandColor } : undefined}
+                          style={
+                            brandColor
+                              ? { borderColor: brandColor, color: brandColor }
+                              : undefined
+                          }
                         >
-                          {emp.role.roleName}
+                          {profile.role.roleName}
                         </Badge>
                       )}
                       <Badge
                         variant="outline"
-                        className={emp.isActive
-                          ? "border-green-500 bg-green-50 text-green-700"
-                          : "border-gray-400 bg-gray-50 text-gray-500"}
+                        className={
+                          profile.isActive
+                            ? "border-green-500 bg-green-50 text-green-700"
+                            : "border-gray-400 bg-gray-50 text-gray-500"
+                        }
                       >
-                        {emp.isActive ? "Active" : "Inactive"}
+                        {profile.isActive ? "Active" : "Inactive"}
                       </Badge>
                     </div>
                   </div>
@@ -127,7 +131,7 @@ try {
                   <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-center dark:border-slate-700 dark:bg-slate-800">
                     <p className="text-xs text-slate-500">Employee ID</p>
                     <p className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                      #{emp.empId}
+                      #{profile.empId}
                     </p>
                   </div>
                 </div>
@@ -140,18 +144,19 @@ try {
             <Card className="lg:col-span-2">
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <Mail className="h-4 w-4 text-slate-400" /> Contact Information
+                  <Mail className="h-4 w-4 text-slate-400" /> Contact
+                  Information
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                <Field label="Email" value={emp.email} />
-                <Field label="Username" value={emp.username} />
-                <Field label="Phone" value={emp.phone} />
-                <Field label="Secondary Phone" value={emp.secondaryPhone} />
-                <Field label="PAN No" value={emp.panNo} />
-                <Field label="Aadhar No" value={emp.aadharNo} />
-                <Field label="Passport No" value={emp.passportNo} />
-                <Field label="Initials" value={emp.initials} />
+                <Field label="Email" value={profile.email} />
+                <Field label="Username" value={profile.username} />
+                <Field label="Phone" value={profile.phone} />
+                <Field label="Secondary Phone" value={profile.secondaryPhone} />
+                <Field label="PAN No" value={profile.panNo} />
+                <Field label="Aadhar No" value={profile.aadharNo} />
+                <Field label="Passport No" value={profile.passportNo} />
+                <Field label="Initials" value={profile.initials} />
               </CardContent>
             </Card>
 
@@ -170,12 +175,12 @@ try {
                       <Badge
                         variant="outline"
                         className={
-                          emp.isCredentialsCreated
+                          profile.isCredentialsCreated
                             ? "border-blue-300 bg-blue-50 text-blue-700"
                             : "text-slate-500"
                         }
                       >
-                        {emp.isCredentialsCreated ? "Active" : "Not Created"}
+                        {profile.isCredentialsCreated ? "Active" : "Not Created"}
                       </Badge>
                     }
                   />
@@ -185,29 +190,34 @@ try {
                       <Badge
                         variant="outline"
                         className={
-                          emp.isActive
+                          profile.isActive
                             ? "border-green-500 bg-green-50 text-green-700"
                             : "border-gray-400 bg-gray-50 text-gray-500"
                         }
                       >
-                        {emp.isActive ? "Active" : "Inactive"}
+                        {profile.isActive ? "Active" : "Inactive"}
                       </Badge>
                     }
                   />
                 </CardContent>
               </Card>
 
-              {emp.permissions?.length > 0 && (
+              {profile.permissions?.length > 0 && (
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-base">
-                      <CreditCard className="h-4 w-4 text-slate-400" /> Permissions
+                      <CreditCard className="h-4 w-4 text-slate-400" />{" "}
+                      Permissions
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-wrap gap-1.5">
-                      {emp.permissions.map((p) => (
-                        <Badge key={p.id} variant="outline" className="font-mono text-xs">
+                      {profile.permissions.map((p) => (
+                        <Badge
+                          key={p.id}
+                          variant="outline"
+                          className="font-mono text-xs"
+                        >
                           {p.code}
                         </Badge>
                       ))}
@@ -227,17 +237,17 @@ try {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {emp.permanantAddress?.addressLine1 ? (
+                {profile.permanantAddress?.addressLine1 ? (
                   <div className="space-y-1 text-sm text-slate-700 dark:text-slate-300">
-                    <p>{emp.permanantAddress.addressLine1}</p>
-                    {emp.permanantAddress.addressLine2 && (
-                      <p>{emp.permanantAddress.addressLine2}</p>
+                    <p>{profile.permanantAddress.addressLine1}</p>
+                    {profile.permanantAddress.addressLine2 && (
+                      <p>{profile.permanantAddress.addressLine2}</p>
                     )}
                     <p className="text-slate-500">
                       {[
-                        emp.permanantAddress.city,
-                        emp.permanantAddress.state,
-                        emp.permanantAddress.pinCode,
+                        profile.permanantAddress.city,
+                        profile.permanantAddress.state,
+                        profile.permanantAddress.pinCode,
                       ]
                         .filter(Boolean)
                         .join(", ")}
@@ -252,21 +262,22 @@ try {
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <MapPin className="h-4 w-4 text-slate-400" /> Communication Address
+                  <MapPin className="h-4 w-4 text-slate-400" /> Communication
+                  Address
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {emp.communicationAddress?.addressLine1 ? (
+                {profile.communicationAddress?.addressLine1 ? (
                   <div className="space-y-1 text-sm text-slate-700 dark:text-slate-300">
-                    <p>{emp.communicationAddress.addressLine1}</p>
-                    {emp.communicationAddress.addressLine2 && (
-                      <p>{emp.communicationAddress.addressLine2}</p>
+                    <p>{profile.communicationAddress.addressLine1}</p>
+                    {profile.communicationAddress.addressLine2 && (
+                      <p>{profile.communicationAddress.addressLine2}</p>
                     )}
                     <p className="text-slate-500">
                       {[
-                        emp.communicationAddress.city,
-                        emp.communicationAddress.state,
-                        emp.communicationAddress.pinCode,
+                        profile.communicationAddress.city,
+                        profile.communicationAddress.state,
+                        profile.communicationAddress.pinCode,
                       ]
                         .filter(Boolean)
                         .join(", ")}

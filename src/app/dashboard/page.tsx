@@ -11,10 +11,10 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
-import { Card, CardContent } from "@/components/ui/card";
-import { getAllowModules, getUser } from "../utils";
-import { Avatar } from "@/components/shared-ui/avatar";
-import { EmptyState } from "@/components/shared-ui/states";
+import { Card, CardContent } from "@/components/ui/Card";
+import { getAllowModules, getEmployee } from "@/app/dashboard/users/actions";
+import { Avatar } from "@/components/shared-ui/Avatar";
+import { EmptyState } from "@/components/shared-ui/States";
 import { toImageSrc } from "@/lib/image-utils";
 
 type AllowedModule = {
@@ -81,7 +81,7 @@ export default async function DashboardPage() {
       orgId: session.user.orgId,
       userId: session.user.profileId,
     }),
-    getUser({ profileId: session.user.profileId, orgId: session.user.orgId }),
+    getEmployee({ profileId: session.user.profileId, empId: 0, orgId: session.user.orgId }),
   ]);
 
   const rawModules =
@@ -101,7 +101,7 @@ export default async function DashboardPage() {
   }
 
   const emp =
-    empResult.status === "fulfilled" ? empResult.value?.data?.details : null;
+    empResult.status === "fulfilled" ? empResult.value?.data : null;
   const firstName = emp?.firstName ?? session.user.userName ?? "";
   const lastName = emp?.lastName ?? "";
 
