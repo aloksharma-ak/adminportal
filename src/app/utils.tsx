@@ -11,6 +11,7 @@ const ADMISSION_API_URL = process.env.ADMISSION_API_URL;
 // ─────────────────────────────────────────────────────────
 
 type ApiResponse<T> = {
+  responseTime?: string;
   status: boolean;
   message: string;
   data: T;
@@ -47,7 +48,14 @@ const CreateEmployeeSchema = z
     panNo: z.string().trim().optional().default(""),
     aadharNo: z.string().trim().optional().default(""),
     passportNo: z.string().trim().optional().default(""),
-    email: z.string().trim().email("Invalid email address").or(z.literal("")).nullable().optional().default(""),
+    email: z
+      .string()
+      .trim()
+      .email("Invalid email address")
+      .or(z.literal(""))
+      .nullable()
+      .optional()
+      .default(""),
     roleId: z.number().int().positive("Role is required"),
     empId: z.number().int().nonnegative().optional().default(0),
     profilePicture: z.string().optional().default(""),
@@ -159,7 +167,10 @@ export async function getEmployee(params: {
   });
 }
 
-export async function getEmployeeList(params: { orgId: number; userId?: number }) {
+export async function getEmployeeList(params: {
+  orgId: number;
+  userId?: number;
+}) {
   const base = requireUrl(API_URL, "API_URL");
   const orgId = Number(params.orgId);
   if (!Number.isFinite(orgId) || orgId <= 0)
@@ -171,7 +182,9 @@ export async function getEmployeeList(params: { orgId: number; userId?: number }
   );
 }
 
-export async function createEmployee(input: CreateEmployeePayload & { userId?: number }) {
+export async function createEmployee(
+  input: CreateEmployeePayload & { userId?: number },
+) {
   const base = requireUrl(API_URL, "API_URL");
 
   const normalized = {
@@ -183,7 +196,7 @@ export async function createEmployee(input: CreateEmployeePayload & { userId?: n
   const data = CreateEmployeeSchema.parse(normalized);
 
   return apiPost(base, "/api/User/CreateEmployee", {
-    ...await reqMeta(input.userId),
+    ...(await reqMeta(input.userId)),
     ...data,
     communicationAddress: data.isCommunicationAddressSameAsPermanant
       ? data.permanantAddress
@@ -195,7 +208,14 @@ export async function createEmployee(input: CreateEmployeePayload & { userId?: n
 // Modules API (API_URL)
 // ─────────────────────────────────────────────────────────
 
-export async function getAllowModules(params: { orgId: number; userId?: number }): Promise<ApiResponse<{ modules: { moduleId: number; moduleName: string; icon: string | null }[] }>> {
+export async function getAllowModules(params: {
+  orgId: number;
+  userId?: number;
+}): Promise<
+  ApiResponse<{
+    modules: { moduleId: number; moduleName: string; icon: string | null }[];
+  }>
+> {
   const base = requireUrl(API_URL, "API_URL");
   const orgId = Number(params.orgId);
   if (!Number.isFinite(orgId) || orgId <= 0)
@@ -207,8 +227,15 @@ export async function getAllowModules(params: { orgId: number; userId?: number }
       orgid: orgId, // Legacy lowercase key compatibility
     });
   } catch (err) {
-    if (err instanceof Error && err.message.toLowerCase().includes("no modules")) {
-      return { status: true, message: "No modules assigned", data: { modules: [] } };
+    if (
+      err instanceof Error &&
+      err.message.toLowerCase().includes("no modules")
+    ) {
+      return {
+        status: true,
+        message: "No modules assigned",
+        data: { modules: [] },
+      };
     }
     throw err;
   }
@@ -218,7 +245,10 @@ export async function getAllowModules(params: { orgId: number; userId?: number }
 // Master Data (API_URL + ADMISSION_API_URL)
 // ─────────────────────────────────────────────────────────
 
-export async function getMasterData(params: { orgId: number; userId?: number }) {
+export async function getMasterData(params: {
+  orgId: number;
+  userId?: number;
+}) {
   const base = requireUrl(API_URL, "API_URL");
   const orgId = Number(params.orgId);
   if (!Number.isFinite(orgId) || orgId <= 0)
@@ -229,7 +259,10 @@ export async function getMasterData(params: { orgId: number; userId?: number }) 
   });
 }
 
-export async function getAdmissionMasterData(params: { orgId: number; userId?: number }) {
+export async function getAdmissionMasterData(params: {
+  orgId: number;
+  userId?: number;
+}) {
   const base = requireUrl(ADMISSION_API_URL, "ADMISSION_API_URL");
   const orgId = Number(params.orgId);
   if (!Number.isFinite(orgId) || orgId <= 0)
@@ -261,7 +294,10 @@ export async function getAllSystemPermissions(params: { userId?: number }) {
   );
 }
 
-export async function getRolePermissions(params: { roleId: number; userId?: number }) {
+export async function getRolePermissions(params: {
+  roleId: number;
+  userId?: number;
+}) {
   const base = requireUrl(API_URL, "API_URL");
   const roleId = Number(params.roleId);
   if (!Number.isFinite(roleId) || roleId <= 0)
@@ -282,11 +318,15 @@ export async function updateRolePermissions(params: {
   const roleId = Number(params.roleId);
   if (!Number.isFinite(roleId) || roleId <= 0)
     throw new Error("Invalid role ID");
-  return apiPost<ApiResponse<any>>(base, "/api/RolePermission/UpdateRolePermission", {
-    ...(await reqMeta(params.userId)),
-    roleId,
-    permissionIds: params.permissionIds,
-  });
+  return apiPost<ApiResponse<any>>(
+    base,
+    "/api/RolePermission/UpdateRolePermission",
+    {
+      ...(await reqMeta(params.userId)),
+      roleId,
+      permissionIds: params.permissionIds,
+    },
+  );
 }
 
 export async function createPermission(params: {
@@ -296,10 +336,14 @@ export async function createPermission(params: {
   userId?: number;
 }) {
   const base = requireUrl(API_URL, "API_URL");
-  return apiPost<ApiResponse<any>>(base, "/api/RolePermission/CreatePermission", {
-    ...(await reqMeta(params.userId)),
-    ...params,
-  });
+  return apiPost<ApiResponse<any>>(
+    base,
+    "/api/RolePermission/CreatePermission",
+    {
+      ...(await reqMeta(params.userId)),
+      ...params,
+    },
+  );
 }
 
 // ─────────────────────────────────────────────────────────
@@ -393,7 +437,7 @@ export type MasterData = {
 
 export type ClassMaster = {
   id: number;
-  class: number;
+  grade: string;
   section: string;
   classText: string;
   noOfStudents: number;
@@ -407,7 +451,36 @@ export type ClassMaster = {
   eventId: string;
 };
 
+export type GradeMaster = {
+  id: number;
+  grade: string;
+};
+
+export type FrequencyMaster = {
+  id: number;
+  name: string;
+  monthsInterval: number;
+  isActive: boolean;
+  createdOn: string;
+};
+
+export type AdmissionStatusMaster = {
+  id: number;
+  status: string;
+  description: string;
+  isActive: boolean;
+  orgId: number;
+  createdOn: string;
+  createdBy: string;
+  updatedOn: string | null;
+  updatedBy: string | null;
+  eventId: string;
+};
+
 export type AdmissionMasterData = {
   classMasters: ClassMaster[];
   cateogryMaster: string[];
+  gradeMasters: GradeMaster[];
+  frequencyMasters: FrequencyMaster[];
+  admissionStatusMasters: AdmissionStatusMaster[];
 };

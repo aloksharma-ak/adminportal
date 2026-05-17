@@ -2,6 +2,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
 import { getTransportChargeDetail } from "../../action";
+import { getAdmissionMasterData } from "@/app/utils";
 import { PageHeader } from "@/components/shared-ui/page-header";
 import { ErrorCard } from "@/components/shared-ui/states";
 import { TransportChargeDetails } from "@/components/administration/fee-slabs/details-view";
@@ -19,11 +20,27 @@ export default async function ViewTransportChargePage({ params }: Props) {
   if (!Number.isInteger(chargeId) || chargeId <= 0) notFound();
 
   let charge;
+  let frequencyOptions: { id: number; value: string }[] = [];
   let fetchError: string | null = null;
 
   try {
-    charge = await getTransportChargeDetail(chargeId, session.user.orgId, session.user.profileId);
-    if (!charge) fetchError = "Charge not found";
+    const [chargeRes, masterRes] = await Promise.all([
+      getTransportChargeDetail(chargeId, session.user.orgId, session.user.profileId),
+      getAdmissionMasterData({
+        orgId: session.user.orgId,
+        userId: session.user.profileId,
+      }),
+    ]);
+
+    charge = chargeRes;
+    if (!charge) {
+      fetchError = "Charge not found";
+    } else {
+      frequencyOptions = (masterRes.data.frequencyMasters ?? []).map((f) => ({
+        id: f.id,
+        value: f.name,
+      }));
+    }
   } catch (err) {
     fetchError = err instanceof Error ? err.message : "Failed to load transport charge";
   }
@@ -55,6 +72,7 @@ export default async function ViewTransportChargePage({ params }: Props) {
         <TransportChargeDetails
           charge={charge}
           brandColor={brandColor}
+          frequencyOptions={frequencyOptions}
         />
       )}
     </div>

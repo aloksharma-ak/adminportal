@@ -7,9 +7,11 @@ import { DataGrid } from "../../controls/data-grid";
 import type { FeeCharge } from "@/app/dashboard/administration/fee-slabs/action";
 import Link from "next/link";
 import { Eye, Pencil } from "lucide-react";
-import { FREQUENCY_MASTER } from "@/app/dashboard/administration/fee-slabs/constants";
 
-const getColumns = (brandColor?: string): ColumnDef<FeeCharge>[] => [
+const getColumns = (
+  frequencyOptions: { id: number; value: string }[],
+  brandColor?: string,
+): ColumnDef<FeeCharge>[] => [
   {
     id: "sino",
     header: "#",
@@ -46,7 +48,11 @@ const getColumns = (brandColor?: string): ColumnDef<FeeCharge>[] => [
       <Badge
         variant="outline"
         className="font-mono text-xs"
-        style={brandColor ? { borderColor: brandColor, color: brandColor } : undefined}
+        style={
+          brandColor
+            ? { borderColor: brandColor, color: brandColor }
+            : undefined
+        }
       >
         #{getValue<number>()}
       </Badge>
@@ -85,8 +91,8 @@ const getColumns = (brandColor?: string): ColumnDef<FeeCharge>[] => [
     header: "Frequency",
     cell: ({ getValue }) => {
       const id = getValue<number | null>();
-      const freq = FREQUENCY_MASTER.find(f => f.id === id);
-      return freq ? freq.name : <span className="text-slate-400">—</span>;
+      const freq = frequencyOptions.find((f) => f.id === id);
+      return freq ? freq.value : <span className="text-slate-400">—</span>;
     },
   },
   {
@@ -103,21 +109,25 @@ const getColumns = (brandColor?: string): ColumnDef<FeeCharge>[] => [
 export default function FeeChargesGrid({
   data,
   brandColor,
+  frequencyOptions,
 }: {
   data: FeeCharge[];
   brandColor?: string | null;
+  frequencyOptions: { id: number; value: string }[];
 }) {
   const [search, setSearch] = React.useState("");
 
-  const columns = React.useMemo(() => getColumns(brandColor ?? undefined), [brandColor]);
+  const columns = React.useMemo(
+    () => getColumns(frequencyOptions, brandColor ?? undefined),
+    [brandColor, frequencyOptions],
+  );
 
   const filtered = React.useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return data;
     return data.filter((s) => {
       return (
-        s.grade.toLowerCase().includes(q) ||
-        String(s.feeChargeId).includes(q)
+        s.grade.toLowerCase().includes(q) || String(s.feeChargeId).includes(q)
       );
     });
   }, [data, search]);
@@ -136,7 +146,7 @@ export default function FeeChargesGrid({
         const csvRows = rows.map((s) => [
           s.feeChargeId,
           s.grade,
-          FREQUENCY_MASTER.find(f => f.id === s.frequencyId)?.name ?? "",
+          frequencyOptions.find((f) => f.id === s.frequencyId)?.value ?? "",
           s.amount,
           s.isActive ? "Active" : "Inactive",
         ]);

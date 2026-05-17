@@ -106,8 +106,13 @@ export type FeeCharge = {
   orgId: number;
   grade: string;
   frequencyId: number | null;
+  frequency?: string;
   amount: number;
   isActive: boolean;
+};
+
+export type FeeChargesResponse = {
+  fee: FeeCharge;
 };
 
 export async function getFeeChargesList(orgId: number, userId?: number) {
@@ -128,7 +133,7 @@ export async function getFeeChargeDetail(
     orgId,
     feeChargeId: id,
   });
-  return extractDetail<FeeCharge>(res?.data, "feeCharge");
+  return extractDetail<FeeChargesResponse>(res?.data, "feeCharge");
 }
 
 export async function modifyFeeCharge(

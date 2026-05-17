@@ -7,6 +7,7 @@ import { ErrorCard } from "@/components/shared-ui/states";
 import { LinkButton } from "@/components/controls/Buttons";
 import { Plus } from "lucide-react";
 import FeeChargesGrid from "@/components/administration/fee-slabs/fee-charges-grid";
+import { getAdmissionMasterData } from "@/app/utils";
 
 export default async function FeeChargesPage() {
   const session = await getServerSession(authOptions);
@@ -16,9 +17,35 @@ export default async function FeeChargesPage() {
   let fetchError: string | null = null;
 
   try {
-    charges = await getFeeChargesList(session.user.orgId, session.user.profileId);
+    charges = await getFeeChargesList(
+      session.user.orgId,
+      session.user.profileId,
+    );
   } catch (err) {
-    fetchError = err instanceof Error ? err.message : "Failed to load fee charges";
+    fetchError =
+      err instanceof Error ? err.message : "Failed to load fee charges";
+  }
+
+  let frequencyOptions: { id: number; value: string }[] = [];
+  let gradeOptions: { id: number; value: string }[] = [];
+
+  try {
+    const master = await getAdmissionMasterData({
+      orgId: session.user.orgId,
+      userId: session.user.profileId,
+    });
+
+    frequencyOptions = (master.data.frequencyMasters ?? []).map((f) => ({
+      id: f.id,
+      value: f.name,
+    }));
+
+    gradeOptions = (master.data.gradeMasters ?? []).map((g) => ({
+      id: g.id,
+      value: g.grade,
+    }));
+  } catch (err) {
+    fetchError = err instanceof Error ? err.message : "Failed to load data";
   }
 
   return (
@@ -42,7 +69,11 @@ export default async function FeeChargesPage() {
       {fetchError ? (
         <ErrorCard message={fetchError} />
       ) : (
-        <FeeChargesGrid data={charges} brandColor={session.user.brandColor} />
+        <FeeChargesGrid
+          data={charges}
+          brandColor={session.user.brandColor}
+          frequencyOptions={frequencyOptions}
+        />
       )}
     </div>
   );

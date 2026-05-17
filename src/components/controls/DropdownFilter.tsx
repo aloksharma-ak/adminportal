@@ -11,7 +11,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
-export type DropdownOption = { label: string; value: string };
+export type DropdownOption = { id?: number; label?: string; value: string };
 
 interface Props {
   value?: string;
@@ -72,7 +72,7 @@ export function DropdownFilter({
 
           {options.map((o) => (
             <SelectItem key={o.value} value={o.value}>
-              {o.label}
+              {o.label ?? o.value}
             </SelectItem>
           ))}
         </SelectContent>

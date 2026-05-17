@@ -6,12 +6,17 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { InputField } from "@/components/controls/InputField";
-import { DropdownFilter, type DropdownOption } from "@/components/controls/DropdownFilter";
+import {
+  DropdownFilter,
+  type DropdownOption,
+} from "@/components/controls/DropdownFilter";
 import { ToggleControl } from "@/components/controls/ToggleControl";
 import { ActionButton } from "@/components/controls/Buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { modifyFeeCharge, type FeeCharge } from "@/app/dashboard/administration/fee-slabs/action";
-import { FREQUENCY_MASTER, GRADE_MASTER } from "@/app/dashboard/administration/fee-slabs/constants";
+import {
+  modifyFeeCharge,
+  type FeeCharge,
+} from "@/app/dashboard/administration/fee-slabs/action";
 
 type FormValues = {
   grade: string;
@@ -25,9 +30,18 @@ type Props = {
   brandColor?: string;
   feeChargeId?: number;
   defaultValues?: FeeCharge;
+  frequencyOptions: { id: number; value: string }[];
+  gradeOptions: { id: number; value: string }[];
 };
 
-export default function FeeChargeForm({ orgId, brandColor, feeChargeId = 0, defaultValues }: Props) {
+export default function FeeChargeForm({
+  orgId,
+  brandColor,
+  feeChargeId = 0,
+  defaultValues,
+  frequencyOptions,
+  gradeOptions,
+}: Props) {
   const router = useRouter();
   const { data: session } = useSession();
   const isEditing = feeChargeId > 0;
@@ -37,7 +51,9 @@ export default function FeeChargeForm({ orgId, brandColor, feeChargeId = 0, defa
     mode: "onSubmit",
     defaultValues: {
       grade: defaultValues?.grade ?? "",
-      frequencyId: defaultValues?.frequencyId ? String(defaultValues.frequencyId) : "",
+      frequencyId: defaultValues?.frequencyId
+        ? String(defaultValues.frequencyId)
+        : "",
       amount: defaultValues?.amount ?? 0,
       isActive: defaultValues?.isActive ?? true,
     },
@@ -45,19 +61,11 @@ export default function FeeChargeForm({ orgId, brandColor, feeChargeId = 0, defa
 
   const { control, handleSubmit } = form;
 
-  const frequencyOptions: DropdownOption[] = FREQUENCY_MASTER.map((f) => ({
-    value: String(f.id),
-    label: f.name,
-  }));
-
-  const gradeOptions: DropdownOption[] = GRADE_MASTER.map((g) => ({
-    value: g.grade,
-    label: g.grade,
-  }));
-
   const onSubmit = handleSubmit(async (v) => {
     setLoading(true);
-    const tId = toast.loading(isEditing ? "Updating fee charge..." : "Adding fee charge...");
+    const tId = toast.loading(
+      isEditing ? "Updating fee charge..." : "Adding fee charge...",
+    );
     try {
       const payload: Partial<FeeCharge> = {
         feeChargeId: isEditing ? feeChargeId : 0,
@@ -70,12 +78,17 @@ export default function FeeChargeForm({ orgId, brandColor, feeChargeId = 0, defa
 
       const res = await modifyFeeCharge(payload, session?.user?.profileId ?? 0);
       if (!res?.status) throw new Error(res?.message || "Failed");
-      
-      toast.success(res?.message || (isEditing ? "Charge updated!" : "Charge added!"), { id: tId });
+
+      toast.success(
+        res?.message || (isEditing ? "Charge updated!" : "Charge added!"),
+        { id: tId },
+      );
       router.push("/dashboard/administration/fee-slabs/fee-charges");
       router.refresh();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Something went wrong", { id: tId });
+      toast.error(e instanceof Error ? e.message : "Something went wrong", {
+        id: tId,
+      });
     } finally {
       setLoading(false);
     }
@@ -84,7 +97,9 @@ export default function FeeChargeForm({ orgId, brandColor, feeChargeId = 0, defa
   return (
     <Card className="rounded-3xl border-slate-200/70 dark:border-slate-700/70">
       <CardHeader>
-        <CardTitle>{isEditing ? "Edit Fee Charge" : "Add Fee Charge"}</CardTitle>
+        <CardTitle>
+          {isEditing ? "Edit Fee Charge" : "Add Fee Charge"}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit} className="space-y-6" noValidate>
@@ -126,9 +141,9 @@ export default function FeeChargeForm({ orgId, brandColor, feeChargeId = 0, defa
               label="Amount"
               type="number"
               placeholder="0"
-              rules={{ 
+              rules={{
                 required: "Amount is required",
-                min: { value: 0, message: "Amount cannot be negative" }
+                min: { value: 0, message: "Amount cannot be negative" },
               }}
             />
             <Controller
@@ -142,7 +157,9 @@ export default function FeeChargeForm({ orgId, brandColor, feeChargeId = 0, defa
                     onChange={field.onChange}
                     color={brandColor}
                   />
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Active</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Active
+                  </span>
                 </div>
               )}
             />

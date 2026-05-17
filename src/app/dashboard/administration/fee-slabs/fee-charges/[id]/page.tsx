@@ -2,6 +2,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
 import { getFeeChargeDetail } from "../../action";
+import { getAdmissionMasterData } from "@/app/utils";
 import { PageHeader } from "@/components/shared-ui/page-header";
 import { ErrorCard } from "@/components/shared-ui/states";
 import { FeeChargeDetails } from "@/components/administration/fee-slabs/details-view";
@@ -19,13 +20,34 @@ export default async function ViewFeeChargePage({ params }: Props) {
   if (!Number.isInteger(chargeId) || chargeId <= 0) notFound();
 
   let charge;
+  let frequencyOptions: { id: number; value: string }[] = [];
   let fetchError: string | null = null;
 
   try {
-    charge = await getFeeChargeDetail(chargeId, session.user.orgId, session.user.profileId);
-    if (!charge) fetchError = "Charge not found";
+    const [chargeRes, masterRes] = await Promise.all([
+      getFeeChargeDetail(
+        chargeId,
+        session.user.orgId,
+        session.user.profileId,
+      ),
+      getAdmissionMasterData({
+        orgId: session.user.orgId,
+        userId: session.user.profileId,
+      }),
+    ]);
+
+    charge = chargeRes;
+    if (!charge) {
+      fetchError = "Charge not found";
+    } else {
+      frequencyOptions = (masterRes.data.frequencyMasters ?? []).map((f) => ({
+        id: f.id,
+        value: f.name,
+      }));
+    }
   } catch (err) {
-    fetchError = err instanceof Error ? err.message : "Failed to load fee charge";
+    fetchError =
+      err instanceof Error ? err.message : "Failed to load fee charge";
   }
 
   const brandColor = session.user.brandColor ?? undefined;
@@ -33,7 +55,7 @@ export default async function ViewFeeChargePage({ params }: Props) {
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
-        title={charge ? `Fee for ${charge.grade}` : "Fee Charge Details"}
+        title={charge ? `Fee for ${charge.fee.grade}` : "Fee Charge Details"}
         description="View configuration for this grade-wise fee"
         backLabel="Back to List"
         backHref="/dashboard/administration/fee-slabs/fee-charges"
@@ -53,8 +75,9 @@ export default async function ViewFeeChargePage({ params }: Props) {
       {fetchError && <ErrorCard message={fetchError} />}
       {charge && (
         <FeeChargeDetails
-          charge={charge}
+          charge={charge.fee}
           brandColor={brandColor}
+          frequencyOptions={frequencyOptions}
         />
       )}
     </div>
