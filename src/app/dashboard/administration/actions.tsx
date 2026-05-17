@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { apiPost, reqMeta, requireUrl } from "@/lib/api-client";
+import { detectMimeType } from "@/lib/image-utils";
 import { extractList, extractDetail } from "@/app/dashboard/utils";
 
 const ADMINISTRATION_API_URL = process.env.ADMINISTRATION_API_URL;
@@ -165,7 +166,11 @@ const EnrollStudentSchema = z.object({
   secondaryPhone: nullableString,
   aadharNo: nullableString,
   email: nullableEmail,
-  profilePicture: nullableString,
+  profilePicture: nullableString.refine((val) => {
+    if (!val) return true;
+    const mime = detectMimeType(val);
+    return ["image/jpeg", "image/png"].includes(mime);
+  }, "Only JPG and PNG images are allowed"),
 
   permanantAddress: AddressSchema,
   isCommunicationAddressSameAsPermanant: z.boolean(),

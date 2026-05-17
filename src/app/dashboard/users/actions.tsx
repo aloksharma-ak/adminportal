@@ -3,6 +3,7 @@
 import { z } from "zod";
 import type { Organisation } from "@/shared-types/organisation.types";
 import { apiPost, reqMeta, requireUrl } from "@/lib/api-client";
+import { detectMimeType } from "@/lib/image-utils";
 
 const USER_API_URL = process.env.USER_API_URL;
 
@@ -58,7 +59,15 @@ const CreateEmployeeSchema = z
       .default(""),
     roleId: z.number().int().positive("Role is required"),
     empId: z.number().int().nonnegative().optional().default(0),
-    profilePicture: z.string().optional().default(""),
+    profilePicture: z
+      .string()
+      .optional()
+      .default("")
+      .refine((val) => {
+        if (!val) return true;
+        const mime = detectMimeType(val);
+        return ["image/jpeg", "image/png"].includes(mime);
+      }, "Only JPG and PNG images are allowed"),
     permanantAddress: AddressSchema,
     isCommunicationAddressSameAsPermanant: z.boolean(),
     communicationAddress: AddressSchema.optional().nullable(),

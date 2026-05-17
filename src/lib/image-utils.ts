@@ -127,3 +127,26 @@ export function getInitials(...parts: (string | undefined | null)[]): string {
   if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
   return (words[0][0] + words[words.length - 1][0]).toUpperCase();
 }
+
+/**
+ * Reusable image validation helper.
+ * Restricts uploads strictly to PNG, JPG, and JPEG.
+ */
+export function validateImageFile(file: File): { isValid: boolean; error?: string } {
+  const allowedExtensions = [".png", ".jpg", ".jpeg"];
+  const allowedMimeTypes = ["image/png", "image/jpeg", "image/jpg"];
+
+  // 1. Check mime type
+  const hasAllowedMime = allowedMimeTypes.includes(file.type.toLowerCase());
+
+  // 2. Check extension
+  const extIndex = file.name.lastIndexOf(".");
+  const ext = extIndex !== -1 ? file.name.substring(extIndex).toLowerCase() : "";
+  const hasAllowedExt = allowedExtensions.includes(ext);
+
+  if (!hasAllowedMime && !hasAllowedExt) {
+    return { isValid: false, error: "Only JPG and PNG images are allowed" };
+  }
+
+  return { isValid: true };
+}

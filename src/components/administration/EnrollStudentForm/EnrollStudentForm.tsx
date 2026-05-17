@@ -17,7 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { toImageSrc, fileToDataUrl, stripDataUrl } from "@/lib/image-utils";
+import { toImageSrc, fileToDataUrl, stripDataUrl, validateImageFile } from "@/lib/image-utils";
 import { enrollStudent } from "@/app/dashboard/administration/actions";
 import type { StudentDetail } from "@/components/administration/StudentDetails";
 
@@ -161,8 +161,9 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
   const onImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.currentTarget.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please select a valid image file");
+    const validation = validateImageFile(file);
+    if (!validation.isValid) {
+      toast.error(validation.error || "Only JPG and PNG images are allowed");
       e.currentTarget.value = "";
       return;
     }
@@ -299,7 +300,7 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
               <div className="flex items-center justify-between rounded-2xl border border-slate-200 dark:border-slate-700 p-4">
                 <div>
                   <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Profile Picture</p>
-                  <p className="text-xs text-slate-500">Optional · max 500 KB</p>
+                  <p className="text-xs text-slate-500">Only .png and .jpg files allowed · max 500 KB</p>
                 </div>
                 <div className="flex items-center gap-3">
                   {preview ? (
@@ -309,7 +310,7 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
                   )}
                   <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 px-3 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
                     <ImageIcon className="h-3.5 w-3.5" />Upload
-                    <input type="file" accept="image/*" className="hidden" onChange={onImageChange} />
+                    <input type="file" accept=".png,.jpg,.jpeg" className="hidden" onChange={onImageChange} />
                   </label>
                 </div>
               </div>
