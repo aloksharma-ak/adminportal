@@ -96,7 +96,7 @@ export default function LoginPage() {
         form.setValue(
           "orgCode",
           organisation.orgCode?.trim().toUpperCase() ??
-          orgCode.trim().toUpperCase(),
+            orgCode.trim().toUpperCase(),
         );
 
         setStep("login");
@@ -123,7 +123,7 @@ export default function LoginPage() {
       const tId = toast.loading("Logging in...");
 
       try {
-        const res = await signIn("credentials", {
+        const payload = {
           username: data.username.trim(),
           password: data.password,
           orgId: data.orgId,
@@ -131,7 +131,10 @@ export default function LoginPage() {
           orgName: org?.orgName,
           brandColor: org?.brandColor,
           redirect: false,
-        });
+        };
+        console.log("🔑 [NextAuth signIn] Sending credentials payload:", payload);
+
+        const res = await signIn("credentials", payload);
 
         if (!res || res.error) {
           toast.error(prettyAuthError(res?.error) || "Login failed", {
@@ -194,7 +197,8 @@ export default function LoginPage() {
     });
   }, [org?.orgCode, org?.logo, org?.fullLogo]);
 
-  if (status === "loading") return <FullPageLoader label="Checking session..." />;
+  if (status === "loading")
+    return <FullPageLoader label="Checking session..." />;
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-white dark:bg-slate-950">
