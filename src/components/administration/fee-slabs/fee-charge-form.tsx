@@ -61,6 +61,11 @@ export default function FeeChargeForm({
 
   const { control, handleSubmit } = form;
 
+  const dropdownFrequencyOptions: DropdownOption[] = frequencyOptions.map((f) => ({
+    value: String(f.id),
+    label: f.value,
+  }));
+
   const onSubmit = handleSubmit(async (v) => {
     setLoading(true);
     const tId = toast.loading(
@@ -127,7 +132,7 @@ export default function FeeChargeForm({
                   value={field.value}
                   onChange={field.onChange}
                   placeholder="Select Frequency"
-                  options={frequencyOptions}
+                  options={dropdownFrequencyOptions}
                   allowClear={true}
                 />
               )}
