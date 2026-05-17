@@ -1,7 +1,7 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-const BASE_API_URL = process.env.API_URL;
+const BASE_API_URL = process.env.USER_API_URL;
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -33,31 +33,50 @@ export const authOptions: NextAuthOptions = {
         if (!Number.isFinite(orgId) || orgId <= 0) return null;
 
         try {
+          const payload = {
+            requestGuid: crypto.randomUUID(),
+            requestTime: new Date().toISOString(),
+            username,
+            password,
+            orgId,
+            userId: 0,
+          };
+          console.log(
+            `🌐 [NextAuth] Request to Validate API: ${BASE_API_URL}/api/Login/Validate`,
+            {
+              ...payload,
+              password: payload.password ? "••••••••" : "",
+            },
+          );
+
           const res = await fetch(`${BASE_API_URL}/api/Login/Validate`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              requestGuid: crypto.randomUUID(),
-              requestTime: new Date().toISOString(),
-              username,
-              password,
-              orgId,
-              userId: 0,
-            }),
+            body: JSON.stringify(payload),
           });
 
-          if (!res.ok) return null;
+          console.log(
+            `📡 [NextAuth] Validate API Response: ${res.status} ${res.statusText}`,
+          );
 
-          // The backend may return:
-          // 1. JSON object: { status: true, data: { profileId, userName } }
-          // 2. Plain string: "Login successful"
-          // Handle both gracefully.
+          if (!res.ok) {
+            console.error(
+              `❌ [NextAuth] Validate API failed with status ${res.status}`,
+            );
+            return null;
+          }
+
+          // Handle response types
           let profileId = 0;
           let userName = username;
 
           const contentType = res.headers.get("content-type") ?? "";
           if (contentType.includes("application/json")) {
-            const body = await res.json().catch(() => null);
+            const body = await res
+              .clone()
+              .json()
+              .catch(() => null);
+            console.log(`📦 [NextAuth] Validate API JSON Response:`, body);
             if (body && typeof body === "object") {
               const data = body?.data ?? body;
               profileId = Number(
@@ -77,8 +96,16 @@ export const authOptions: NextAuthOptions = {
                   username,
               );
             }
+          } else {
+            const text = await res
+              .clone()
+              .text()
+              .catch(() => "");
+            console.log(
+              `📦 [NextAuth] Validate API Plain Text Response:`,
+              text,
+            );
           }
-          // else: plain-text response — profileId stays 0
 
           // If the API doesn't return profileId yet, fall back to orgId so
           // the session token is always valid (non-zero).
