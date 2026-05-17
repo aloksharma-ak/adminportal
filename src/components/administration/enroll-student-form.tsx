@@ -220,11 +220,10 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
       toast.success(res?.message || (isEditing ? "Student updated!" : "Student enrolled!"), { id: tId });
       if (isEditing) {
         router.push(`/dashboard/administration/admission/${studentId}`);
-        router.refresh();
       } else {
-        form.reset({ ...form.getValues(), classId: "", firstName: "", middleName: "", lastName: "", initials: "", phone: "", secondaryPhone: "", aadharNo: "", email: "", profilePicture: "", permanantAddress: { ...EMPTY_ADDR }, isCommunicationAddressSameAsPermanant: true, communicationAddress: { ...EMPTY_ADDR }, previousSchoolName: "", previousSchoolAddress: "", fatherName: "", fatherPhone: "", fatherSecondaryPhone: "", fatherAadharNo: "", fatherEmail: "", motherName: "", motherPhone: "", motherSecondaryPhone: "", motherAadharNo: "", motherEmail: "", dob: "", religion: "", cateogry: "", contactPersonName: "", contactPersonPhone: "" });
-        setPreview("");
+        router.push("/dashboard/administration/admission");
       }
+      router.refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Something went wrong", { id: tId });
     } finally { setLoading(false); }

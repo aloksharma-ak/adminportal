@@ -70,7 +70,11 @@ export default function TransportChargeForm({ orgId, brandColor, id = 0, default
       if (!res?.status) throw new Error(res?.message || "Failed");
       
       toast.success(res?.message || (isEditing ? "Charge updated!" : "Charge added!"), { id: tId });
-      router.push("/dashboard/administration/fee-slabs/transport-charges");
+      if (isEditing) {
+        router.push(`/dashboard/administration/fee-slabs/transport-charges/${id}`);
+      } else {
+        router.push("/dashboard/administration/fee-slabs/transport-charges");
+      }
       router.refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Something went wrong", { id: tId });

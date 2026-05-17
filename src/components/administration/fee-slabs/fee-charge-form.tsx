@@ -88,7 +88,11 @@ export default function FeeChargeForm({
         res?.message || (isEditing ? "Charge updated!" : "Charge added!"),
         { id: tId },
       );
-      router.push("/dashboard/administration/fee-slabs/fee-charges");
+      if (isEditing) {
+        router.push(`/dashboard/administration/fee-slabs/fee-charges/${feeChargeId}`);
+      } else {
+        router.push("/dashboard/administration/fee-slabs/fee-charges");
+      }
       router.refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Something went wrong", {

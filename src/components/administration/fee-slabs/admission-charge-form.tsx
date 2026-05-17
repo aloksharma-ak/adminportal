@@ -73,7 +73,11 @@ export default function AdmissionChargeForm({ orgId, brandColor, chargeId = 0, d
       if (!res?.status) throw new Error(res?.message || "Failed");
       
       toast.success(res?.message || (isEditing ? "Charge updated!" : "Charge added!"), { id: tId });
-      router.push("/dashboard/administration/fee-slabs/admission-charges");
+      if (isEditing) {
+        router.push(`/dashboard/administration/fee-slabs/admission-charges/${chargeId}`);
+      } else {
+        router.push("/dashboard/administration/fee-slabs/admission-charges");
+      }
       router.refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Something went wrong", { id: tId });

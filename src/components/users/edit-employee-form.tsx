@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import {
   User2,
   LockIcon,
@@ -56,6 +57,7 @@ export default function EditEmployeeForm({
   employee,
 }: Props) {
   const { data: session } = useSession();
+  const router = useRouter();
   const [loading, setLoading] = React.useState(false);
   const [preview, setPreview] = React.useState(
     toImageSrc(employee.profilePicture) ?? "",
@@ -177,6 +179,15 @@ export default function EditEmployeeForm({
         userId: session?.user?.profileId ?? 0,
       });
       toast.success("Employee updated successfully", { id: tId });
+      if (
+        session?.user?.profileId &&
+        Number(session.user.profileId) === Number(employee.profileId)
+      ) {
+        router.push("/dashboard/users/profile");
+      } else {
+        router.push(`/dashboard/users/employees/${employee.empId}`);
+      }
+      router.refresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong", {
         id: tId,

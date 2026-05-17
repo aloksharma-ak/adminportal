@@ -141,7 +141,7 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
       toast.success("Employee created successfully", { id: tId });
       form.reset();
       setPreview("");
-      router.push("/dashboard/users/employees/");
+      router.push("/dashboard/users/employees");
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Something went wrong",
