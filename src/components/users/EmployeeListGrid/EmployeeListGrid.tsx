@@ -80,6 +80,7 @@ const getColumns = (brandColor?: string | null): ColumnDef<EmployeeListItem>[] =
       return (
         <div className="flex items-center gap-3">
           <Avatar
+            src={e.profilePicture}
             firstName={firstName}
             lastName={lastName}
             initials={e.initials}

@@ -83,6 +83,7 @@ const getColumns = (brandColor?: string): ColumnDef<Student>[] => [
       return (
         <div className="flex items-center gap-3">
           <Avatar
+            src={s.profilePicture}
             firstName={s.firstName}
             lastName={s.lastName}
             initials={s.initials}

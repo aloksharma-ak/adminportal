@@ -64,6 +64,14 @@ export default function EditEmployeeForm({
     toImageSrc(employee.profilePicture) ?? "",
   );
 
+  React.useEffect(() => {
+    return () => {
+      if (preview && preview.startsWith("blob:")) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
+
   const roleOptions: DropdownOption[] = roles.map((r) => ({
     value: String(r.roleId),
     label: r.roleName,
@@ -154,8 +162,12 @@ export default function EditEmployeeForm({
       return;
     }
     try {
+      // 1. Create a lightweight temporary preview URL instantly
+      const objectUrl = URL.createObjectURL(file);
+      setPreview(objectUrl);
+
+      // 2. Perform Base64 conversion in the background for form state
       const dataUrl = await fileToDataUrl(file);
-      setPreview(dataUrl);
       setValue("profilePicture", stripDataUrl(dataUrl), { shouldDirty: true });
     } catch {
       toast.error("Unable to process image");
@@ -165,7 +177,10 @@ export default function EditEmployeeForm({
   };
 
   const onSubmit = handleSubmit(async (v) => {
-    const roleIdNum = Number(v.roleId);
+    let roleIdNum = Number(v.roleId);
+    if (!roleIdNum || Number.isNaN(roleIdNum)) {
+      roleIdNum = employee.role?.id ? Number(employee.role.id) : 0;
+    }
 
     const commAddress = v.isCommunicationAddressSameAsPermanant
       ? v.permanantAddress

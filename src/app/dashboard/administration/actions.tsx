@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { apiPost, reqMeta, requireUrl } from "@/lib/api-client";
 import { detectMimeType } from "@/lib/image-utils";
+import { revalidatePath } from "next/cache";
 import { extractList, extractDetail } from "@/app/dashboard/utils";
 
 const ADMINISTRATION_API_URL = process.env.ADMINISTRATION_API_URL;
@@ -87,6 +88,7 @@ export type Student = {
   enrolledClass: string | null;
   isActive: boolean;
   initials: string;
+  profilePicture?: string | null;
 };
 
 export type AdmissionCharge = {
@@ -270,13 +272,20 @@ export async function enrollStudent(params: { payload: EnrollStudentPayload; use
     throw new Error("Communication address is required");
   }
 
-  return post<ApiResponse<unknown>>("/api/Student/EnrollStudent", {
+  const res = await post<ApiResponse<unknown>>("/api/Student/EnrollStudent", {
     ...(await reqMeta(params.userId)),
     ...p,
     id: p.id ?? 0,
     orgId: p.orgId,
     communicationAddress,
   });
+
+  revalidatePath("/dashboard/administration/admission");
+  if (p.id) {
+    revalidatePath(`/dashboard/administration/admission/${p.id}`);
+  }
+
+  return res;
 }
 
 // Admission Charges APIs

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Navbar from "../navbar";
 import Footer from "../footer";
 import { authOptions } from "../api/auth/[...nextauth]/auth";
-import { getUser, getOrganisationDetail } from "@/app/dashboard/users/actions";
+import { getEmployee, getOrganisationDetail } from "@/app/dashboard/users/actions";
 
 import { toImageSrc } from "@/lib/image-utils";
 
@@ -13,13 +13,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const [orgResult, empResult] = await Promise.allSettled([
     getOrganisationDetail(session.user.orgCode),
-    getUser({ profileId: session.user.profileId, orgId: session.user.orgId }),
+    getEmployee({ profileId: session.user.profileId, empId: 0, orgId: session.user.orgId }),
   ]);
 
   if (orgResult.status === "rejected") redirect("/auth/login");
 
   const org = orgResult.value.organisation;
-  const emp = empResult.status === "fulfilled" ? empResult.value?.data?.details : null;
+  const emp = empResult.status === "fulfilled" ? empResult.value?.data : null;
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">

@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { Organisation } from "@/shared-types/organisation.types";
 import { apiPost, reqMeta, requireUrl } from "@/lib/api-client";
 import { detectMimeType } from "@/lib/image-utils";
+import { revalidatePath } from "next/cache";
 
 const USER_API_URL = process.env.USER_API_URL;
 
@@ -57,7 +58,14 @@ const CreateEmployeeSchema = z
       .nullable()
       .optional()
       .default(""),
-    roleId: z.number().int().positive("Role is required"),
+    roleId: z
+      .preprocess((val) => {
+        if (val === null || val === undefined) return 0;
+        const num = Number(val);
+        return Number.isNaN(num) ? 0 : num;
+      }, z.number().int().nonnegative())
+      .optional()
+      .default(0),
     empId: z.number().int().nonnegative().optional().default(0),
     profilePicture: z
       .string()
@@ -121,6 +129,7 @@ export type EmployeeListItem = {
   userName: string | null;
   roleName: string;
   isActive: boolean;
+  profilePicture?: string | null;
 };
 
 export type EmployeePermission = {
@@ -289,13 +298,20 @@ export async function createEmployee(
   };
   const data = CreateEmployeeSchema.parse(normalized);
 
-  return apiPost(base, "/api/User/CreateEmployee", {
+  const res = await apiPost(base, "/api/User/CreateEmployee", {
     ...(await reqMeta(input.userId)),
     ...data,
     communicationAddress: data.isCommunicationAddressSameAsPermanant
       ? data.permanantAddress
       : data.communicationAddress,
   });
+
+  revalidatePath("/dashboard", "layout");
+  revalidatePath("/dashboard/users/employees");
+  revalidatePath(`/dashboard/users/employees/${data.empId}`);
+  revalidatePath("/dashboard/users/profile");
+
+  return res;
 }
 
 // ─────────────────────────────────────────────────────────

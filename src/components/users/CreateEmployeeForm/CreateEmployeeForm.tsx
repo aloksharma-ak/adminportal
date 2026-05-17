@@ -45,6 +45,14 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
   const [loading, setLoading] = React.useState(false);
   const [preview, setPreview] = React.useState("");
 
+  React.useEffect(() => {
+    return () => {
+      if (preview && preview.startsWith("blob:")) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
+
   const roleOptions: DropdownOption[] = roles.map((r) => ({
     value: String(r.roleId),
     label: r.roleName,
@@ -110,8 +118,12 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
       return;
     }
     try {
+      // 1. Create a lightweight temporary preview URL instantly
+      const objectUrl = URL.createObjectURL(file);
+      setPreview(objectUrl);
+
+      // 2. Perform Base64 conversion in the background for form state
       const dataUrl = await fileToDataUrl(file);
-      setPreview(dataUrl);
       setValue("profilePicture", stripDataUrl(dataUrl), { shouldDirty: true });
     } catch {
       toast.error("Unable to process image");

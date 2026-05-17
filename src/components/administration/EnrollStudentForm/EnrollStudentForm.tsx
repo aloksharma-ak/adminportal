@@ -74,6 +74,14 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
     toImageSrc(defaultValues?.profilePicture) ?? "",
   );
 
+  React.useEffect(() => {
+    return () => {
+      if (preview && preview.startsWith("blob:")) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
+
   const classDropdownOptions: DropdownOption[] = classOptions.map((c) => ({
     value: String(c.classId),
     label: c.className,
@@ -173,8 +181,12 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
       return;
     }
     try {
+      // 1. Create a lightweight temporary preview URL instantly
+      const objectUrl = URL.createObjectURL(file);
+      setPreview(objectUrl);
+
+      // 2. Perform Base64 conversion in the background for form state
       const dataUrl = await fileToDataUrl(file);
-      setPreview(dataUrl);
       setValue("profilePicture", stripDataUrl(dataUrl), { shouldDirty: true });
     } catch {
       toast.error("Unable to process image");
