@@ -2,11 +2,11 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { getEmployee } from "@/app/dashboard/users/actions";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar } from "@/components/shared-ui/avatar";
-import { PageHeader } from "@/components/shared-ui/page-header";
-import { ErrorCard } from "@/components/shared-ui/states";
+import { Badge } from "@/components/ui/Badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Avatar } from "@/components/shared-ui/Avatar";
+import { PageHeader } from "@/components/shared-ui/PageHeader";
+import { ErrorCard } from "@/components/shared-ui/States";
 import { Mail, Phone, CreditCard, Shield, Home, MapPin, Pencil } from "lucide-react";
 import Link from "next/link";
 

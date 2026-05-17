@@ -2,8 +2,8 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { getAdmissionMasterData } from "@/app/dashboard/administration/actions";
-import { PageHeader } from "@/components/shared-ui/page-header";
-import AdmissionChargeForm from "@/components/administration/fee-slabs/admission-charge-form";
+import { PageHeader } from "@/components/shared-ui/PageHeader";
+import AdmissionChargeForm from "@/components/administration/fee-slabs/AdmissionChargeForm";
 
 export default async function AddAdmissionChargePage() {
   const session = await getServerSession(authOptions);

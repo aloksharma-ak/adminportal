@@ -1,4 +1,4 @@
-import { Container } from "@/components/shared-ui/container";
+import { Container } from "@/components/shared-ui/Container";
 import { ExternalLink, Globe, Mail, Phone } from "lucide-react";
 
 export default function Footer({

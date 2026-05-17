@@ -1,9 +1,9 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
-import { PageHeader } from "@/components/shared-ui/page-header";
-import { ErrorCard } from "@/components/shared-ui/states";
-import TransportChargeForm from "@/components/administration/fee-slabs/transport-charge-form";
+import { PageHeader } from "@/components/shared-ui/PageHeader";
+import { ErrorCard } from "@/components/shared-ui/States";
+import TransportChargeForm from "@/components/administration/fee-slabs/TransportChargeForm";
 import { getTransportChargeDetail, getAdmissionMasterData } from "@/app/dashboard/administration/actions";
 
 type Props = { params: Promise<{ id: string }> };

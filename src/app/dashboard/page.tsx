@@ -11,10 +11,10 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/Card";
 import { getAllowModules, getUser } from "@/app/dashboard/users/actions";
-import { Avatar } from "@/components/shared-ui/avatar";
-import { EmptyState } from "@/components/shared-ui/states";
+import { Avatar } from "@/components/shared-ui/Avatar";
+import { EmptyState } from "@/components/shared-ui/States";
 import { toImageSrc } from "@/lib/image-utils";
 
 type AllowedModule = {

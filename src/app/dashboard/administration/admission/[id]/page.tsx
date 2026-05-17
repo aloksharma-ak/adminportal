@@ -4,9 +4,9 @@ import { notFound, redirect } from "next/navigation";
 import { getStudentDetail } from "@/app/dashboard/administration/actions";
 import Link from "next/link";
 import { Pencil } from "lucide-react";
-import { PageHeader } from "@/components/shared-ui/page-header";
-import { ErrorCard } from "@/components/shared-ui/states";
-import StudentDetails from "@/components/administration/student-details";
+import { PageHeader } from "@/components/shared-ui/PageHeader";
+import { ErrorCard } from "@/components/shared-ui/States";
+import StudentDetails from "@/components/administration/StudentDetails";
 
 type PageProps = { params: Promise<{ id: string }> };
 

@@ -2,9 +2,9 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
 import { getAdmissionChargeDetail, getAdmissionMasterData } from "@/app/dashboard/administration/actions";
-import { PageHeader } from "@/components/shared-ui/page-header";
-import { ErrorCard } from "@/components/shared-ui/states";
-import { AdmissionChargeDetails } from "@/components/administration/fee-slabs/details-view";
+import { PageHeader } from "@/components/shared-ui/PageHeader";
+import { ErrorCard } from "@/components/shared-ui/States";
+import { AdmissionChargeDetails } from "@/components/administration/fee-slabs/DetailsView";
 import Link from "next/link";
 import { Pencil } from "lucide-react";
 

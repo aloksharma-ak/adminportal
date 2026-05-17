@@ -4,11 +4,11 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { getAdmissionChargesList, type AdmissionCharge, getAdmissionMasterData } from "@/app/dashboard/administration/actions";
-import { PageHeader } from "@/components/shared-ui/page-header";
-import { ErrorCard } from "@/components/shared-ui/states";
+import { PageHeader } from "@/components/shared-ui/PageHeader";
+import { ErrorCard } from "@/components/shared-ui/States";
 import { LinkButton } from "@/components/controls/Buttons";
 import { Plus } from "lucide-react";
-import AdmissionChargesGrid from "@/components/administration/fee-slabs/admission-charges-grid";
+import AdmissionChargesGrid from "@/components/administration/fee-slabs/AdmissionChargesGrid";
 
 export default async function AdmissionChargesPage() {
   const session = await getServerSession(authOptions);

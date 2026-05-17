@@ -2,11 +2,11 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { getStudentsByOrgId } from "@/app/dashboard/administration/actions";
-import StudentsGrid from "@/components/administration/students-grid";
+import StudentsGrid from "@/components/administration/StudentsGrid";
 import { LinkButton } from "@/components/controls/Buttons";
 import { UserPlus } from "lucide-react";
-import { PageHeader } from "@/components/shared-ui/page-header";
-import { ErrorCard } from "@/components/shared-ui/states";
+import { PageHeader } from "@/components/shared-ui/PageHeader";
+import { ErrorCard } from "@/components/shared-ui/States";
 
 export default async function AdmissionPage() {
   const session = await getServerSession(authOptions);

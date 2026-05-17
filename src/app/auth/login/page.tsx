@@ -8,8 +8,8 @@ import { signIn, useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { ArrowLeft } from "lucide-react";
 
-import { Spotlight } from "@/components/ui/spotlight";
-import { BorderBeam } from "@/components/ui/border-beam";
+import { Spotlight } from "@/components/ui/Spotlight";
+import { BorderBeam } from "@/components/ui/BorderBeam";
 
 import { OrganisationForm, type LoginFormValues } from "./OrganisationForm";
 import { LoginForm } from "./LoginForm";
@@ -24,7 +24,7 @@ import {
 import { toImageSrc } from "@/lib/image-utils";
 import { getOrganisationDetail } from "@/app/dashboard/users/actions";
 import Footer from "@/app/footer";
-import { FullPageLoader } from "@/components/shared-ui/full-page-loader";
+import { FullPageLoader } from "@/components/shared-ui/FullPageLoader";
 import { getErrorMessage } from "@/app/dashboard/utils";
 
 function prettyAuthError(err?: string | null) {

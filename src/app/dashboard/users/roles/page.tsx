@@ -4,9 +4,9 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { ShieldPlus } from "lucide-react";
 
-import RoleListGrid from "@/components/users/roles/role-list-grid";
-import { PageHeader } from "@/components/shared-ui/page-header";
-import { ErrorCard } from "@/components/shared-ui/states";
+import RoleListGrid from "@/components/users/roles/RoleListGrid";
+import { PageHeader } from "@/components/shared-ui/PageHeader";
+import { ErrorCard } from "@/components/shared-ui/States";
 import { LinkButton } from "@/components/controls/Buttons";
 
 export default async function RolesPage() {

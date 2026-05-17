@@ -2,9 +2,9 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
 import { getStudentDetail, getAdmissionMasterData } from "@/app/dashboard/administration/actions";
-import EnrollStudentForm from "@/components/administration/enroll-student-form";
-import { PageHeader } from "@/components/shared-ui/page-header";
-import { ErrorCard } from "@/components/shared-ui/states";
+import EnrollStudentForm from "@/components/administration/EnrollStudentForm";
+import { PageHeader } from "@/components/shared-ui/PageHeader";
+import { ErrorCard } from "@/components/shared-ui/States";
 
 type Props = { params: Promise<{ id: string }> };
 

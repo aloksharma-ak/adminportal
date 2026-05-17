@@ -3,9 +3,9 @@ import { getMasterData } from "@/app/dashboard/users/actions";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
-import { PageHeader } from "@/components/shared-ui/page-header";
-import { ErrorCard } from "@/components/shared-ui/states";
-import CreatePermissionForm from "@/components/users/roles/create-permission-form";
+import { PageHeader } from "@/components/shared-ui/PageHeader";
+import { ErrorCard } from "@/components/shared-ui/States";
+import CreatePermissionForm from "@/components/users/roles/CreatePermissionForm";
 
 type ModuleItem = {
   moduleId: number;

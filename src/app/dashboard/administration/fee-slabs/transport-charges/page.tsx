@@ -2,11 +2,11 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { getTransportChargesList, type TransportCharge, getAdmissionMasterData } from "@/app/dashboard/administration/actions";
-import { PageHeader } from "@/components/shared-ui/page-header";
-import { ErrorCard } from "@/components/shared-ui/states";
+import { PageHeader } from "@/components/shared-ui/PageHeader";
+import { ErrorCard } from "@/components/shared-ui/States";
 import { LinkButton } from "@/components/controls/Buttons";
 import { Plus } from "lucide-react";
-import TransportChargesGrid from "@/components/administration/fee-slabs/transport-charges-grid";
+import TransportChargesGrid from "@/components/administration/fee-slabs/TransportChargesGrid";
 
 export default async function TransportChargesPage() {
   const session = await getServerSession(authOptions);

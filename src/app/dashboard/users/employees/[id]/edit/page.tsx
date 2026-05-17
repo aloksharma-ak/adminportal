@@ -2,9 +2,9 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { getEmployee, getMasterData, getRoles, type Role } from "@/app/dashboard/users/actions";
 import { getServerSession } from "next-auth";
 import { redirect, notFound } from "next/navigation";
-import EditEmployeeForm from "@/components/users/edit-employee-form";
-import { PageHeader } from "@/components/shared-ui/page-header";
-import { ErrorCard } from "@/components/shared-ui/states";
+import EditEmployeeForm from "@/components/users/EditEmployeeForm";
+import { PageHeader } from "@/components/shared-ui/PageHeader";
+import { ErrorCard } from "@/components/shared-ui/States";
 
 type Props = { params: Promise<{ id: string }> };
 
