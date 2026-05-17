@@ -4,7 +4,7 @@ import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { DataGrid } from "../../controls/data-grid";
-import type { FeeCharge } from "@/app/dashboard/administration/fee-slabs/action";
+import type { FeeCharge } from "@/app/dashboard/administration/actions";
 import Link from "next/link";
 import { Eye, Pencil } from "lucide-react";
 

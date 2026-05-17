@@ -10,8 +10,7 @@ import { DropdownFilter, type DropdownOption } from "@/components/controls/Dropd
 import { ToggleControl } from "@/components/controls/ToggleControl";
 import { ActionButton } from "@/components/controls/Buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { modifyTransportCharge, type TransportCharge } from "@/app/dashboard/administration/fee-slabs/action";
-import { FREQUENCY_MASTER } from "@/app/dashboard/administration/fee-slabs/constants";
+import { modifyTransportCharge, type TransportCharge } from "@/app/dashboard/administration/actions";
 
 type FormValues = {
   fromKM: number;
@@ -26,9 +25,10 @@ type Props = {
   brandColor?: string;
   id?: number;
   defaultValues?: TransportCharge;
+  frequencyOptions: { id: number; value: string }[];
 };
 
-export default function TransportChargeForm({ orgId, brandColor, id = 0, defaultValues }: Props) {
+export default function TransportChargeForm({ orgId, brandColor, id = 0, defaultValues, frequencyOptions }: Props) {
   const router = useRouter();
   const { data: session } = useSession();
   const isEditing = id > 0;
@@ -47,9 +47,9 @@ export default function TransportChargeForm({ orgId, brandColor, id = 0, default
 
   const { control, handleSubmit } = form;
 
-  const frequencyOptions: DropdownOption[] = FREQUENCY_MASTER.map((f) => ({
+  const dropdownFrequencyOptions: DropdownOption[] = frequencyOptions.map((f) => ({
     value: String(f.id),
-    label: f.name,
+    label: f.value,
   }));
 
   const onSubmit = handleSubmit(async (v) => {
@@ -133,7 +133,7 @@ export default function TransportChargeForm({ orgId, brandColor, id = 0, default
                   value={field.value}
                   onChange={field.onChange}
                   placeholder="Select Frequency"
-                  options={frequencyOptions}
+                  options={dropdownFrequencyOptions}
                 />
               )}
             />

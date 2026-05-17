@@ -4,7 +4,7 @@ import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { DataGrid } from "../controls/data-grid";
-import type { Student } from "@/app/dashboard/administration/admission/action";
+import type { Student } from "@/app/dashboard/administration/actions";
 import Link from "next/link";
 import { Eye, Pencil, UserPlus } from "lucide-react";
 import { Avatar } from "@/components/shared-ui/avatar";

@@ -6,8 +6,8 @@ import { Check, Loader2, Search, ShieldOff } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ActionButton } from "@/components/controls/Buttons";
-import type { RolePermissionDetail } from "@/app/utils";
-import { updateRolePermissions, getAllSystemPermissions } from "@/app/utils";
+import type { RolePermissionDetail } from "@/app/dashboard/users/actions";
+import { updateRolePermissions, getAllSystemPermissions } from "@/app/dashboard/users/actions";
 import { useSession } from "next-auth/react";
 
 type ModuleItem = {

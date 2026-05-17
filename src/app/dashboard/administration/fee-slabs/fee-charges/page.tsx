@@ -1,13 +1,12 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { getFeeChargesList, type FeeCharge } from "../action";
+import { getFeeChargesList, type FeeCharge, getAdmissionMasterData } from "@/app/dashboard/administration/actions";
 import { PageHeader } from "@/components/shared-ui/page-header";
 import { ErrorCard } from "@/components/shared-ui/states";
 import { LinkButton } from "@/components/controls/Buttons";
 import { Plus } from "lucide-react";
 import FeeChargesGrid from "@/components/administration/fee-slabs/fee-charges-grid";
-import { getAdmissionMasterData } from "@/app/utils";
 
 export default async function FeeChargesPage() {
   const session = await getServerSession(authOptions);

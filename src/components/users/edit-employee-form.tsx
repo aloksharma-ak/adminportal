@@ -21,7 +21,7 @@ import {
 import { ActionButton } from "@/components/controls/Buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { createEmployee, type EmployeeDetail } from "@/app/utils";
+import { createEmployee, type EmployeeDetail } from "@/app/dashboard/users/actions";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { toImageSrc, fileToDataUrl, stripDataUrl } from "@/lib/image-utils";

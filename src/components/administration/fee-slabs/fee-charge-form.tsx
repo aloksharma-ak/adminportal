@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   modifyFeeCharge,
   type FeeCharge,
-} from "@/app/dashboard/administration/fee-slabs/action";
+} from "@/app/dashboard/administration/actions";
 
 type FormValues = {
   grade: string;

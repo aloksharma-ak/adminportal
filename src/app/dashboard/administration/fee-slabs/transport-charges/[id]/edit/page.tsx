@@ -4,7 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { PageHeader } from "@/components/shared-ui/page-header";
 import { ErrorCard } from "@/components/shared-ui/states";
 import TransportChargeForm from "@/components/administration/fee-slabs/transport-charge-form";
-import { getTransportChargeDetail } from "../../../action";
+import { getTransportChargeDetail, getAdmissionMasterData } from "@/app/dashboard/administration/actions";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -17,18 +17,32 @@ export default async function EditTransportChargePage({ params }: Props) {
   if (!Number.isInteger(chargeId) || chargeId <= 0) notFound();
 
   let charge;
+  let frequencyOptions: { id: number; value: string }[] = [];
   let fetchError: string | null = null;
 
   try {
-    charge = await getTransportChargeDetail(
-      chargeId,
-      session.user.orgId,
-      session.user.profileId,
-    );
+    const [chargeRes, masterRes] = await Promise.all([
+      getTransportChargeDetail(
+        chargeId,
+        session.user.orgId,
+        session.user.profileId,
+      ),
+      getAdmissionMasterData({
+        orgId: session.user.orgId,
+        userId: session.user.profileId,
+      }),
+    ]);
+
+    charge = chargeRes;
     if (!charge) fetchError = "Charge not found";
+
+    frequencyOptions = (masterRes?.data?.frequencyMasters ?? []).map((f) => ({
+      id: f.id,
+      value: f.name,
+    }));
   } catch (err) {
     fetchError =
-      err instanceof Error ? err.message : "Failed to load transport charge";
+      err instanceof Error ? err.message : "Failed to load transport charge data";
   }
 
   return (
@@ -46,6 +60,7 @@ export default async function EditTransportChargePage({ params }: Props) {
           brandColor={session.user.brandColor}
           id={chargeId}
           defaultValues={charge}
+          frequencyOptions={frequencyOptions}
         />
       )}
     </div>

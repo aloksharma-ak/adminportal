@@ -1,4 +1,4 @@
-import { getEmployee } from "@/app/utils";
+import { getEmployee } from "@/app/dashboard/users/actions";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { notFound, redirect } from "next/navigation";

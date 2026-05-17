@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { Card, CardContent } from "@/components/ui/card";
-import { getAllowModules, getUser } from "../utils";
+import { getAllowModules, getUser } from "@/app/dashboard/users/actions";
 import { Avatar } from "@/components/shared-ui/avatar";
 import { EmptyState } from "@/components/shared-ui/states";
 import { toImageSrc } from "@/lib/image-utils";

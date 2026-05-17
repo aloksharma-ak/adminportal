@@ -10,8 +10,7 @@ import { DropdownFilter, type DropdownOption } from "@/components/controls/Dropd
 import { ToggleControl } from "@/components/controls/ToggleControl";
 import { ActionButton } from "@/components/controls/Buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { modifyAdmissionCharge, type AdmissionCharge } from "@/app/dashboard/administration/fee-slabs/action";
-import { FREQUENCY_MASTER } from "@/app/dashboard/administration/fee-slabs/constants";
+import { modifyAdmissionCharge, type AdmissionCharge } from "@/app/dashboard/administration/actions";
 
 type FormValues = {
   chargeName: string;
@@ -27,9 +26,10 @@ type Props = {
   brandColor?: string;
   chargeId?: number;
   defaultValues?: AdmissionCharge;
+  frequencyOptions: { id: number; value: string }[];
 };
 
-export default function AdmissionChargeForm({ orgId, brandColor, chargeId = 0, defaultValues }: Props) {
+export default function AdmissionChargeForm({ orgId, brandColor, chargeId = 0, defaultValues, frequencyOptions }: Props) {
   const router = useRouter();
   const { data: session } = useSession();
   const isEditing = chargeId > 0;
@@ -49,9 +49,9 @@ export default function AdmissionChargeForm({ orgId, brandColor, chargeId = 0, d
 
   const { control, handleSubmit } = form;
 
-  const frequencyOptions: DropdownOption[] = FREQUENCY_MASTER.map((f) => ({
+  const dropdownFrequencyOptions: DropdownOption[] = frequencyOptions.map((f) => ({
     value: String(f.id),
-    label: f.name,
+    label: f.value,
   }));
 
   const onSubmit = handleSubmit(async (v) => {
@@ -127,7 +127,7 @@ export default function AdmissionChargeForm({ orgId, brandColor, chargeId = 0, d
                   value={field.value}
                   onChange={field.onChange}
                   placeholder="Select Frequency"
-                  options={frequencyOptions}
+                  options={dropdownFrequencyOptions}
                   allowClear={true}
                 />
               )}

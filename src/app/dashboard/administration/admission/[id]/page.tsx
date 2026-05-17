@@ -1,7 +1,7 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
-import { getStudentDetail } from "../action";
+import { getStudentDetail } from "@/app/dashboard/administration/actions";
 import Link from "next/link";
 import { Pencil } from "lucide-react";
 import { PageHeader } from "@/components/shared-ui/page-header";

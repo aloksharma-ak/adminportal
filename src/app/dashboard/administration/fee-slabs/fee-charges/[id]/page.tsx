@@ -1,8 +1,7 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
-import { getFeeChargeDetail } from "../../action";
-import { getAdmissionMasterData } from "@/app/utils";
+import { getFeeChargeDetail, getAdmissionMasterData } from "@/app/dashboard/administration/actions";
 import { PageHeader } from "@/components/shared-ui/page-header";
 import { ErrorCard } from "@/components/shared-ui/states";
 import { FeeChargeDetails } from "@/components/administration/fee-slabs/details-view";

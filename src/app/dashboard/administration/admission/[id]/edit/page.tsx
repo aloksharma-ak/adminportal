@@ -1,8 +1,7 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
-import { getStudentDetail } from "../../action";
-import { getAdmissionMasterData } from "@/app/utils";
+import { getStudentDetail, getAdmissionMasterData } from "@/app/dashboard/administration/actions";
 import EnrollStudentForm from "@/components/administration/enroll-student-form";
 import { PageHeader } from "@/components/shared-ui/page-header";
 import { ErrorCard } from "@/components/shared-ui/states";

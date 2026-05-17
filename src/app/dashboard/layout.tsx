@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Navbar from "../navbar";
 import Footer from "../footer";
 import { authOptions } from "../api/auth/[...nextauth]/auth";
-import { getUser, getOrganisationDetail } from "../utils";
+import { getUser, getOrganisationDetail } from "@/app/dashboard/users/actions";
 
 import { toImageSrc } from "@/lib/image-utils";
 

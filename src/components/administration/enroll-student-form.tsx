@@ -17,7 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { toImageSrc, fileToDataUrl, stripDataUrl } from "@/lib/image-utils";
-import { enrollStudent } from "@/app/dashboard/administration/admission/action";
+import { enrollStudent } from "@/app/dashboard/administration/actions";
 import type { StudentDetail } from "@/components/administration/student-details";
 
 const MAX_IMAGE_BYTES = 500 * 1024;

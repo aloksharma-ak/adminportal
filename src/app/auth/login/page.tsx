@@ -22,7 +22,7 @@ import {
   setImagesToSession,
 } from "@/lib/image-session.client";
 import { toImageSrc } from "@/lib/image-utils";
-import { getOrganisationDetail } from "@/app/utils";
+import { getOrganisationDetail } from "@/app/dashboard/users/actions";
 import Footer from "@/app/footer";
 import { FullPageLoader } from "@/components/shared-ui/full-page-loader";
 

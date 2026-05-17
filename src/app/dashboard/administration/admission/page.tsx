@@ -1,7 +1,7 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { getStudentsByOrgId } from "./action";
+import { getStudentsByOrgId } from "@/app/dashboard/administration/actions";
 import StudentsGrid from "@/components/administration/students-grid";
 import { LinkButton } from "@/components/controls/Buttons";
 import { UserPlus } from "lucide-react";

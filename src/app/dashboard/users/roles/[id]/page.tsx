@@ -1,9 +1,9 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import {
   getRolePermissions,
-  getMasterData, // ✅ added
+  getMasterData,
   RolePermissionDetail,
-} from "@/app/utils";
+} from "@/app/dashboard/users/actions";
 import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
 

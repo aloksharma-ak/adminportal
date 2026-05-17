@@ -1,5 +1,5 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
-import { getMasterData, getRoles, type Role } from "@/app/utils";
+import { getMasterData, getRoles, type Role } from "@/app/dashboard/users/actions";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import CreateEmployeeForm from "@/components/users/create-employee-form";

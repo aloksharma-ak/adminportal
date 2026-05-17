@@ -6,7 +6,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { DataGrid } from "@/components/controls/data-grid";
 import Link from "next/link";
-import { EmployeeListItem } from "@/app/utils";
+import { EmployeeListItem } from "@/app/dashboard/users/actions";
 import { Eye, Pencil } from "lucide-react";
 import { Avatar } from "@/components/shared-ui/avatar";
 

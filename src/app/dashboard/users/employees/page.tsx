@@ -1,5 +1,5 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
-import { getEmployeeList } from "@/app/utils";
+import { getEmployeeList } from "@/app/dashboard/users/actions";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import EmployeeListGrid from "@/components/users/employee-list-grid";

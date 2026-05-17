@@ -1,29 +1,29 @@
 "use server";
+
 import { z } from "zod";
 import type { Organisation } from "@/shared-types/organisation.types";
 import { apiPost, reqMeta, requireUrl } from "@/lib/api-client";
 
-const API_URL = process.env.API_URL;
-const ADMISSION_API_URL = process.env.ADMISSION_API_URL;
+const USER_API_URL = process.env.USER_API_URL;
 
 // ─────────────────────────────────────────────────────────
-// Types
+// Types & Schemas
 // ─────────────────────────────────────────────────────────
 
-type ApiResponse<T> = {
+export type ApiResponse<T> = {
   responseTime?: string;
   status: boolean;
   message: string;
   data: T;
 };
 
-type OrgApiResponse = {
+export type OrgApiResponse = {
   status?: boolean;
   message?: string;
   data?: Partial<Organisation> & { OrgId?: number; OrgCode?: string };
 };
 
-type GetOrganisationDetailResult = {
+export type GetOrganisationDetailResult = {
   success: true;
   message?: string;
   organisation: Organisation;
@@ -86,269 +86,6 @@ const CreateEmployeeSchema = z
   });
 
 export type CreateEmployeePayload = z.infer<typeof CreateEmployeeSchema>;
-
-// ─────────────────────────────────────────────────────────
-// Organisation APIs (API_URL)
-// ─────────────────────────────────────────────────────────
-
-export async function getOrganisationDetail(
-  orgCode: string,
-): Promise<GetOrganisationDetailResult> {
-  const base = requireUrl(API_URL, "API_URL");
-  const code = orgCode.trim().toUpperCase();
-  if (!code) throw new Error("Organisation code is required");
-
-  const body = await apiPost<OrgApiResponse>(
-    base,
-    "/api/Organisation/GetDetail",
-    { orgCode: code, OrgCode: code },
-  );
-  const raw = body?.data;
-  const orgId = Number(raw?.orgId ?? raw?.OrgId ?? 0);
-
-  if (!body?.status || !orgId)
-    throw new Error(body?.message || "Organisation not found");
-
-  return {
-    success: true,
-    message: body.message,
-    organisation: {
-      orgId,
-      orgName: raw?.orgName ?? "",
-      orgCode: String(raw?.orgCode ?? raw?.OrgCode ?? code)
-        .trim()
-        .toUpperCase(),
-      phone: raw?.phone ?? null,
-      email: raw?.email ?? null,
-      gstin: raw?.gstin ?? null,
-      panNo: raw?.panNo ?? null,
-      brandColor: raw?.brandColor ?? null,
-      logo: raw?.logo ?? null,
-      fullLogo: raw?.fullLogo ?? null,
-      stateCode: raw?.stateCode ?? null,
-      website: raw?.website ?? null,
-      addressLine1: raw?.addressLine1 ?? null,
-      addressLine2: raw?.addressLine2 ?? null,
-      pinCode: raw?.pinCode ?? null,
-      city: raw?.city ?? null,
-      state: raw?.state ?? null,
-    },
-  };
-}
-
-// ─────────────────────────────────────────────────────────
-// User / Employee APIs (API_URL)
-// ─────────────────────────────────────────────────────────
-
-export async function getUser(params: {
-  profileId: number;
-  orgId: number;
-}): Promise<ApiResponse<{ details: EmployeeDetail }>> {
-  const base = requireUrl(API_URL, "API_URL");
-  return apiPost(base, "/api/User/GetUser", {
-    ...(await reqMeta(params.profileId)),
-    profileId: params.profileId,
-    orgId: params.orgId,
-  });
-}
-
-export async function getEmployee(params: {
-  profileId: number;
-  empId: number;
-  orgId: number;
-  userId?: number;
-}): Promise<ApiResponse<EmployeeDetail>> {
-  const base = requireUrl(API_URL, "API_URL");
-  return apiPost(base, "/api/User/GetEmployee", {
-    ...(await reqMeta(params.userId)),
-    profileId: params.profileId,
-    empId: params.empId,
-    orgId: params.orgId,
-  });
-}
-
-export async function getEmployeeList(params: {
-  orgId: number;
-  userId?: number;
-}) {
-  const base = requireUrl(API_URL, "API_URL");
-  const orgId = Number(params.orgId);
-  if (!Number.isFinite(orgId) || orgId <= 0)
-    throw new Error("Invalid organisation ID");
-  return apiPost<ApiResponse<EmployeeListItem[]>>(
-    base,
-    "/api/User/GetEmployeeList",
-    { ...(await reqMeta(params.userId)), orgId },
-  );
-}
-
-export async function createEmployee(
-  input: CreateEmployeePayload & { userId?: number },
-) {
-  const base = requireUrl(API_URL, "API_URL");
-
-  const normalized = {
-    ...input,
-    communicationAddress: input.isCommunicationAddressSameAsPermanant
-      ? input.permanantAddress
-      : input.communicationAddress,
-  };
-  const data = CreateEmployeeSchema.parse(normalized);
-
-  return apiPost(base, "/api/User/CreateEmployee", {
-    ...(await reqMeta(input.userId)),
-    ...data,
-    communicationAddress: data.isCommunicationAddressSameAsPermanant
-      ? data.permanantAddress
-      : data.communicationAddress,
-  });
-}
-
-// ─────────────────────────────────────────────────────────
-// Modules API (API_URL)
-// ─────────────────────────────────────────────────────────
-
-export async function getAllowModules(params: {
-  orgId: number;
-  userId?: number;
-}): Promise<
-  ApiResponse<{
-    modules: { moduleId: number; moduleName: string; icon: string | null }[];
-  }>
-> {
-  const base = requireUrl(API_URL, "API_URL");
-  const orgId = Number(params.orgId);
-  if (!Number.isFinite(orgId) || orgId <= 0)
-    throw new Error("Invalid organisation ID");
-
-  try {
-    return await apiPost(base, "/api/Modules/GetAllowModules", {
-      ...(await reqMeta(params.userId)),
-      orgid: orgId, // Legacy lowercase key compatibility
-    });
-  } catch (err) {
-    if (
-      err instanceof Error &&
-      err.message.toLowerCase().includes("no modules")
-    ) {
-      return {
-        status: true,
-        message: "No modules assigned",
-        data: { modules: [] },
-      };
-    }
-    throw err;
-  }
-}
-
-// ─────────────────────────────────────────────────────────
-// Master Data (API_URL + ADMISSION_API_URL)
-// ─────────────────────────────────────────────────────────
-
-export async function getMasterData(params: {
-  orgId: number;
-  userId?: number;
-}) {
-  const base = requireUrl(API_URL, "API_URL");
-  const orgId = Number(params.orgId);
-  if (!Number.isFinite(orgId) || orgId <= 0)
-    throw new Error("Invalid organisation ID");
-  return apiPost<ApiResponse<MasterData>>(base, "/api/MasterData/Get", {
-    ...(await reqMeta(params.userId)),
-    orgId,
-  });
-}
-
-export async function getAdmissionMasterData(params: {
-  orgId: number;
-  userId?: number;
-}) {
-  const base = requireUrl(ADMISSION_API_URL, "ADMISSION_API_URL");
-  const orgId = Number(params.orgId);
-  if (!Number.isFinite(orgId) || orgId <= 0)
-    throw new Error("Invalid organisation ID");
-  return apiPost<ApiResponse<AdmissionMasterData>>(
-    base,
-    "/api/MasterData/Get",
-    { ...(await reqMeta(params.userId)), orgId },
-  );
-}
-
-// ─── Role Permission API calls ────────────────────────────────────────────────
-
-export async function getRoles(params: { userId?: number }) {
-  const base = requireUrl(API_URL, "API_URL");
-  return apiPost<ApiResponse<RolesResponse>>(
-    base,
-    "/api/RolePermission/GetRoles",
-    await reqMeta(params.userId),
-  );
-}
-
-export async function getAllSystemPermissions(params: { userId?: number }) {
-  const base = requireUrl(API_URL, "API_URL");
-  return apiPost<ApiResponse<RolePermissionDetail[]>>(
-    base,
-    "/api/RolePermission/GetPermissions",
-    await reqMeta(params.userId),
-  );
-}
-
-export async function getRolePermissions(params: {
-  roleId: number;
-  userId?: number;
-}) {
-  const base = requireUrl(API_URL, "API_URL");
-  const roleId = Number(params.roleId);
-  if (!Number.isFinite(roleId) || roleId <= 0)
-    throw new Error("Invalid role ID");
-  return apiPost<ApiResponse<RolePermissionDetail[]>>(
-    base,
-    "/api/RolePermission/GetRolesPermissions",
-    { ...(await reqMeta(params.userId)), roleId },
-  );
-}
-
-export async function updateRolePermissions(params: {
-  roleId: number;
-  permissionIds: number[];
-  userId?: number;
-}) {
-  const base = requireUrl(API_URL, "API_URL");
-  const roleId = Number(params.roleId);
-  if (!Number.isFinite(roleId) || roleId <= 0)
-    throw new Error("Invalid role ID");
-  return apiPost<ApiResponse<any>>(
-    base,
-    "/api/RolePermission/UpdateRolePermission",
-    {
-      ...(await reqMeta(params.userId)),
-      roleId,
-      permissionIds: params.permissionIds,
-    },
-  );
-}
-
-export async function createPermission(params: {
-  name: string;
-  description: string;
-  moduleId: number;
-  userId?: number;
-}) {
-  const base = requireUrl(API_URL, "API_URL");
-  return apiPost<ApiResponse<any>>(
-    base,
-    "/api/RolePermission/CreatePermission",
-    {
-      ...(await reqMeta(params.userId)),
-      ...params,
-    },
-  );
-}
-
-// ─────────────────────────────────────────────────────────
-// Shared Types
-// ─────────────────────────────────────────────────────────
 
 export type RolePermission = {
   id: number;
@@ -435,52 +172,246 @@ export type MasterData = {
   modules?: { moduleId: number; moduleName: string; icon?: string | null }[];
 };
 
-export type ClassMaster = {
-  id: number;
-  grade: string;
-  section: string;
-  classText: string;
-  noOfStudents: number;
-  classTeacherId: number;
+// ─────────────────────────────────────────────────────────
+// Organisation APIs (USER_API_URL)
+// ─────────────────────────────────────────────────────────
+
+export async function getOrganisationDetail(
+  orgCode: string,
+): Promise<GetOrganisationDetailResult> {
+  const base = requireUrl(USER_API_URL, "USER_API_URL");
+  const code = orgCode.trim().toUpperCase();
+  if (!code) throw new Error("Organisation code is required");
+
+  const body = await apiPost<OrgApiResponse>(
+    base,
+    "/api/Organisation/GetDetail",
+    { orgCode: code, OrgCode: code },
+  );
+  const raw = body?.data;
+  const orgId = Number(raw?.orgId ?? raw?.OrgId ?? 0);
+
+  if (!body?.status || !orgId)
+    throw new Error(body?.message || "Organisation not found");
+
+  return {
+    success: true,
+    message: body.message,
+    organisation: {
+      orgId,
+      orgName: raw?.orgName ?? "",
+      orgCode: String(raw?.orgCode ?? raw?.OrgCode ?? code)
+        .trim()
+        .toUpperCase(),
+      phone: raw?.phone ?? null,
+      email: raw?.email ?? null,
+      gstin: raw?.gstin ?? null,
+      panNo: raw?.panNo ?? null,
+      brandColor: raw?.brandColor ?? null,
+      logo: raw?.logo ?? null,
+      fullLogo: raw?.fullLogo ?? null,
+      stateCode: raw?.stateCode ?? null,
+      website: raw?.website ?? null,
+      addressLine1: raw?.addressLine1 ?? null,
+      addressLine2: raw?.addressLine2 ?? null,
+      pinCode: raw?.pinCode ?? null,
+      city: raw?.city ?? null,
+      state: raw?.state ?? null,
+    },
+  };
+}
+
+// ─────────────────────────────────────────────────────────
+// User / Employee APIs (USER_API_URL)
+// ─────────────────────────────────────────────────────────
+
+export async function getUser(params: {
+  profileId: number;
   orgId: number;
-  isActive: boolean;
-  createdOn: string;
-  updatedOn: string;
-  createdBy: number;
-  updatedBy: number;
-  eventId: string;
-};
+}): Promise<ApiResponse<{ details: EmployeeDetail }>> {
+  const base = requireUrl(USER_API_URL, "USER_API_URL");
+  return apiPost(base, "/api/User/GetUser", {
+    ...(await reqMeta(params.profileId)),
+    profileId: params.profileId,
+    orgId: params.orgId,
+  });
+}
 
-export type GradeMaster = {
-  id: number;
-  grade: string;
-};
+export async function getEmployee(params: {
+  profileId: number;
+  empId: number;
+  orgId: number;
+  userId?: number;
+}): Promise<ApiResponse<EmployeeDetail>> {
+  const base = requireUrl(USER_API_URL, "USER_API_URL");
+  return apiPost(base, "/api/User/GetEmployee", {
+    ...(await reqMeta(params.userId)),
+    profileId: params.profileId,
+    empId: params.empId,
+    orgId: params.orgId,
+  });
+}
 
-export type FrequencyMaster = {
-  id: number;
+export async function getEmployeeList(params: {
+  orgId: number;
+  userId?: number;
+}) {
+  const base = requireUrl(USER_API_URL, "USER_API_URL");
+  const orgId = Number(params.orgId);
+  if (!Number.isFinite(orgId) || orgId <= 0)
+    throw new Error("Invalid organisation ID");
+  return apiPost<ApiResponse<EmployeeListItem[]>>(
+    base,
+    "/api/User/GetEmployeeList",
+    { ...(await reqMeta(params.userId)), orgId },
+  );
+}
+
+export async function createEmployee(
+  input: CreateEmployeePayload & { userId?: number },
+) {
+  const base = requireUrl(USER_API_URL, "USER_API_URL");
+
+  const normalized = {
+    ...input,
+    communicationAddress: input.isCommunicationAddressSameAsPermanant
+      ? input.permanantAddress
+      : input.communicationAddress,
+  };
+  const data = CreateEmployeeSchema.parse(normalized);
+
+  return apiPost(base, "/api/User/CreateEmployee", {
+    ...(await reqMeta(input.userId)),
+    ...data,
+    communicationAddress: data.isCommunicationAddressSameAsPermanant
+      ? data.permanantAddress
+      : data.communicationAddress,
+  });
+}
+
+// ─────────────────────────────────────────────────────────
+// Modules API (USER_API_URL)
+// ─────────────────────────────────────────────────────────
+
+export async function getAllowModules(params: {
+  orgId: number;
+  userId?: number;
+}): Promise<
+  ApiResponse<{
+    modules: { moduleId: number; moduleName: string; icon: string | null }[];
+  }>
+> {
+  const base = requireUrl(USER_API_URL, "USER_API_URL");
+  const orgId = Number(params.orgId);
+  if (!Number.isFinite(orgId) || orgId <= 0)
+    throw new Error("Invalid organisation ID");
+
+  try {
+    return await apiPost(base, "/api/Modules/GetAllowModules", {
+      ...(await reqMeta(params.userId)),
+      orgid: orgId, // Legacy lowercase key compatibility
+    });
+  } catch (err) {
+    if (
+      err instanceof Error &&
+      err.message.toLowerCase().includes("no modules")
+    ) {
+      return {
+        status: true,
+        message: "No modules assigned",
+        data: { modules: [] },
+      };
+    }
+    throw err;
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+// Master Data (USER_API_URL)
+// ─────────────────────────────────────────────────────────
+
+export async function getMasterData(params: {
+  orgId: number;
+  userId?: number;
+}) {
+  const base = requireUrl(USER_API_URL, "USER_API_URL");
+  const orgId = Number(params.orgId);
+  if (!Number.isFinite(orgId) || orgId <= 0)
+    throw new Error("Invalid organisation ID");
+  return apiPost<ApiResponse<MasterData>>(base, "/api/MasterData/Get", {
+    ...(await reqMeta(params.userId)),
+    orgId,
+  });
+}
+
+// ─── Role Permission API calls ────────────────────────────────────────────────
+
+export async function getRoles(params: { userId?: number }) {
+  const base = requireUrl(USER_API_URL, "USER_API_URL");
+  return apiPost<ApiResponse<RolesResponse>>(
+    base,
+    "/api/RolePermission/GetRoles",
+    await reqMeta(params.userId),
+  );
+}
+
+export async function getAllSystemPermissions(params: { userId?: number }) {
+  const base = requireUrl(USER_API_URL, "USER_API_URL");
+  return apiPost<ApiResponse<RolePermissionDetail[]>>(
+    base,
+    "/api/RolePermission/GetPermissions",
+    await reqMeta(params.userId),
+  );
+}
+
+export async function getRolePermissions(params: {
+  roleId: number;
+  userId?: number;
+}) {
+  const base = requireUrl(USER_API_URL, "USER_API_URL");
+  const roleId = Number(params.roleId);
+  if (!Number.isFinite(roleId) || roleId <= 0)
+    throw new Error("Invalid role ID");
+  return apiPost<ApiResponse<RolePermissionDetail[]>>(
+    base,
+    "/api/RolePermission/GetRolesPermissions",
+    { ...(await reqMeta(params.userId)), roleId },
+  );
+}
+
+export async function updateRolePermissions(params: {
+  roleId: number;
+  permissionIds: number[];
+  userId?: number;
+}) {
+  const base = requireUrl(USER_API_URL, "USER_API_URL");
+  const roleId = Number(params.roleId);
+  if (!Number.isFinite(roleId) || roleId <= 0)
+    throw new Error("Invalid role ID");
+  return apiPost<ApiResponse<any>>(
+    base,
+    "/api/RolePermission/UpdateRolePermission",
+    {
+      ...(await reqMeta(params.userId)),
+      roleId,
+      permissionIds: params.permissionIds,
+    },
+  );
+}
+
+export async function createPermission(params: {
   name: string;
-  monthsInterval: number;
-  isActive: boolean;
-  createdOn: string;
-};
-
-export type AdmissionStatusMaster = {
-  id: number;
-  status: string;
   description: string;
-  isActive: boolean;
-  orgId: number;
-  createdOn: string;
-  createdBy: string;
-  updatedOn: string | null;
-  updatedBy: string | null;
-  eventId: string;
-};
-
-export type AdmissionMasterData = {
-  classMasters: ClassMaster[];
-  cateogryMaster: string[];
-  gradeMasters: GradeMaster[];
-  frequencyMasters: FrequencyMaster[];
-  admissionStatusMasters: AdmissionStatusMaster[];
-};
+  moduleId: number;
+  userId?: number;
+}) {
+  const base = requireUrl(USER_API_URL, "USER_API_URL");
+  return apiPost<ApiResponse<any>>(
+    base,
+    "/api/RolePermission/CreatePermission",
+    {
+      ...(await reqMeta(params.userId)),
+      ...params,
+    },
+  );
+}

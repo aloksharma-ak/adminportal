@@ -7,7 +7,7 @@ import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { FileText, LayoutGrid, Shield } from "lucide-react";
 
-import { createPermission } from "@/app/utils";
+import { createPermission } from "@/app/dashboard/users/actions";
 import { InputField } from "@/components/controls/InputField";
 import {
   DropdownFilter,

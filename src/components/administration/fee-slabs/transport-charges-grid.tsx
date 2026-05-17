@@ -4,12 +4,11 @@ import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { DataGrid } from "../../controls/data-grid";
-import type { TransportCharge } from "@/app/dashboard/administration/fee-slabs/action";
+import type { TransportCharge } from "@/app/dashboard/administration/actions";
 import Link from "next/link";
 import { Eye, Pencil } from "lucide-react";
-import { FREQUENCY_MASTER } from "@/app/dashboard/administration/fee-slabs/constants";
 
-const getColumns = (brandColor?: string): ColumnDef<TransportCharge>[] => [
+const getColumns = (frequencyOptions: { id: number; value: string }[], brandColor?: string): ColumnDef<TransportCharge>[] => [
   {
     id: "sino",
     header: "#",
@@ -62,8 +61,8 @@ const getColumns = (brandColor?: string): ColumnDef<TransportCharge>[] => [
           variant="outline"
           className={
             active
-              ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30"
-              : "border-gray-300 bg-gray-50 text-gray-500"
+               ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30"
+               : "border-gray-300 bg-gray-50 text-gray-500"
           }
         >
           {active ? "Active" : "Inactive"}
@@ -86,8 +85,8 @@ const getColumns = (brandColor?: string): ColumnDef<TransportCharge>[] => [
     header: "Frequency",
     cell: ({ getValue }) => {
       const id = getValue<number>();
-      const freq = FREQUENCY_MASTER.find(f => f.id === id);
-      return freq ? freq.name : <span className="text-slate-400">—</span>;
+      const freq = frequencyOptions.find(f => f.id === id);
+      return freq ? freq.value : <span className="text-slate-400">—</span>;
     },
   },
   {
@@ -104,13 +103,15 @@ const getColumns = (brandColor?: string): ColumnDef<TransportCharge>[] => [
 export default function TransportChargesGrid({
   data,
   brandColor,
+  frequencyOptions,
 }: {
   data: TransportCharge[];
   brandColor?: string | null;
+  frequencyOptions: { id: number; value: string }[];
 }) {
   const [search, setSearch] = React.useState("");
 
-  const columns = React.useMemo(() => getColumns(brandColor ?? undefined), [brandColor]);
+  const columns = React.useMemo(() => getColumns(frequencyOptions, brandColor ?? undefined), [frequencyOptions, brandColor]);
 
   const filtered = React.useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -139,7 +140,7 @@ export default function TransportChargesGrid({
           s.id,
           s.fromKM,
           s.toKM,
-          FREQUENCY_MASTER.find(f => f.id === s.frequencyId)?.name ?? "",
+          frequencyOptions.find(f => f.id === s.frequencyId)?.value ?? "",
           s.amount,
           s.isActive ? "Active" : "Inactive",
         ]);

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { DataGrid } from "@/components/controls/data-grid";
 import Link from "next/link";
 import { Eye, Pencil } from "lucide-react";
-import type { RolePermission } from "@/app/utils";
+import type { RolePermission } from "@/app/dashboard/users/actions";
 
 const getColumns = (brandColor?: string | null): ColumnDef<RolePermission>[] => [
   {

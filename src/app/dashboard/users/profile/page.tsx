@@ -1,5 +1,5 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
-import { getEmployee } from "@/app/utils";
+import { getEmployee } from "@/app/dashboard/users/actions";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
