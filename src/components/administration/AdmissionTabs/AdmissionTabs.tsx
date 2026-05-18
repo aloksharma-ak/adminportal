@@ -12,8 +12,17 @@ interface AdmissionTabsProps {
 }
 
 export default function AdmissionTabs({ brandColor }: AdmissionTabsProps) {
-  const pathname = usePathname();
-  const currentTab = pathname?.endsWith("/fees") ? "fees" : "details";
+  const pathname = usePathname() || "";
+  
+  // Only show the tabs exactly on the root paths
+  const isRootDetails = pathname === "/dashboard/administration/admission/details" || pathname === "/dashboard/administration/admission";
+  const isRootFees = pathname === "/dashboard/administration/admission/fees";
+
+  if (!isRootDetails && !isRootFees) {
+    return null;
+  }
+
+  const currentTab = isRootFees ? "fees" : "details";
   const primaryColor = brandColor || "#3b82f6";
 
   return (
