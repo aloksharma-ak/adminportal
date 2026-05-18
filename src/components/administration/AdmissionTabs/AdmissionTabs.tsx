@@ -31,7 +31,7 @@ export default function AdmissionTabs({ brandColor }: AdmissionTabsProps) {
           currentTab === "details" && (
             <LinkButton
               color={primaryColor}
-              href="/dashboard/administration/admission/enroll-student"
+              href="/dashboard/administration/admission/details/enroll-student"
               leftIcon={<UserPlus className="h-4 w-4" />}
             >
               Enroll Student
