@@ -47,7 +47,9 @@ export default async function ProfilePage() {
 
   const brandColor = session.user.brandColor ?? undefined;
   const fullName = profile
-    ? [profile.firstName, profile.middleName, profile.lastName].filter(Boolean).join(" ")
+    ? [profile.firstName, profile.middleName, profile.lastName]
+        .filter(Boolean)
+        .join(" ")
     : (session.user.userName ?? "My Profile");
 
   return (
@@ -180,7 +182,9 @@ export default async function ProfilePage() {
                             : "text-slate-500"
                         }
                       >
-                        {profile.isCredentialsCreated ? "Active" : "Not Created"}
+                        {profile.isCredentialsCreated
+                          ? "Active"
+                          : "Not Created"}
                       </Badge>
                     }
                   />

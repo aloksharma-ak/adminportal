@@ -383,3 +383,99 @@ export async function modifyTransportCharge(
     ...payload,
   });
 }
+
+// Student Admissions API
+export type StudentAdmission = {
+  admissionId: number;
+  orgId: number;
+  studentName: string;
+  academicYear: string;
+  admissionDate: string;
+  class: string;
+  status: string;
+  isIncludeTransport: boolean;
+  isActive: boolean;
+};
+
+export type StudentAdmissionsResponse = {
+  admissions: StudentAdmission[];
+};
+
+export async function getStudentAdmissionsList(params: {
+  orgId: number;
+  studentId: number;
+  userId?: number;
+}) {
+  const orgId = Number(params.orgId);
+  const studentId = Number(params.studentId);
+  if (!Number.isFinite(orgId) || orgId <= 0)
+    throw new Error("Invalid organisation ID");
+  if (!Number.isFinite(studentId) || studentId <= 0)
+    throw new Error("Invalid student ID");
+
+  const meta = await reqMeta(params.userId);
+  return post<ApiResponse<StudentAdmissionsResponse>>(
+    "/api/Admissions/GetStudetAdmissionsList",
+    {
+      requestGuid: meta.requestGuid,
+      requestTime: meta.requestTime,
+      userId: meta.userId,
+      studentid: studentId,
+      orgId: orgId,
+    },
+  );
+}
+
+export type StudentAdmissionDetailResponse = {
+  admission: StudentAdmission;
+};
+
+export async function getStudentAdmissionDetail(params: {
+  orgId: number;
+  admissionId: number;
+  userId?: number;
+}) {
+  const orgId = Number(params.orgId);
+  const admissionId = Number(params.admissionId);
+  if (!Number.isFinite(orgId) || orgId <= 0)
+    throw new Error("Invalid organisation ID");
+  if (!Number.isFinite(admissionId) || admissionId <= 0)
+    throw new Error("Invalid admission ID");
+
+  const meta = await reqMeta(params.userId);
+  return post<ApiResponse<StudentAdmissionDetailResponse>>(
+    "/api/Admissions/GetAdmission",
+    {
+      requestGuid: meta.requestGuid,
+      requestTime: meta.requestTime,
+      userId: meta.userId,
+      admisisonId: admissionId,
+      orgId: orgId,
+    },
+  );
+}
+
+export type ModifyAdmissionPayload = {
+  admissionId: number;
+  orgId: number;
+  studentId: number;
+  academicYear: string;
+  classId: number;
+  statusId: number;
+  isIncludeTransport: boolean;
+  distanceFromSchool: number;
+  isActive: boolean;
+};
+
+export async function modifyAdmission(params: {
+  payload: ModifyAdmissionPayload;
+  userId?: number;
+}) {
+  const meta = await reqMeta(params.userId);
+  return post<ApiResponse<unknown>>("/api/Admissions/ModifyAdmission", {
+    requestGuid: meta.requestGuid,
+    requestTime: meta.requestTime,
+    userId: meta.userId,
+    ...params.payload,
+  });
+}
