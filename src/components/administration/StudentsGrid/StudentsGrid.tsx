@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { DataGrid } from "@/components/controls/DataGrid";
 import type { Student } from "@/app/dashboard/administration/actions";
 import Link from "next/link";
-import { Eye, Pencil, UserPlus } from "lucide-react";
+import { Eye, GraduationCap, Pencil } from "lucide-react";
 import { Avatar } from "@/components/shared-ui/Avatar";
 
 const getColumns = (brandColor?: string): ColumnDef<Student>[] => [
@@ -35,6 +35,13 @@ const getColumns = (brandColor?: string): ColumnDef<Student>[] => [
           title="Edit"
         >
           <Pencil className="h-4 w-4" />
+        </Link>
+        <Link
+          href=""
+          className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"
+          title="Open"
+        >
+          <GraduationCap className="h-4 w-4" />
         </Link>
       </div>
     ),
