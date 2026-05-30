@@ -78,7 +78,7 @@ export default async function ProfilePage() {
       {profile && (
         <div className="space-y-6">
           {/* Hero banner */}
-          <Card className="overflow-hidden">
+          <Card className="overflow-hidden pt-0">
             <div
               className="h-24 w-full"
               style={{

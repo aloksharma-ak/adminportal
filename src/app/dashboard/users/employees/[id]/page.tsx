@@ -5,7 +5,15 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { Pencil, Mail, Phone, CreditCard, Shield, Home, MapPin } from "lucide-react";
+import {
+  Pencil,
+  Mail,
+  Phone,
+  CreditCard,
+  Shield,
+  Home,
+  MapPin,
+} from "lucide-react";
 import { PageHeader } from "@/components/shared-ui/PageHeader";
 import { Avatar } from "@/components/shared-ui/Avatar";
 import { ErrorCard } from "@/components/shared-ui/States";
@@ -38,7 +46,12 @@ export default async function EmployeeDetailPage({ params }: Props) {
   let fetchError: string | null = null;
 
   try {
-    const res = await getEmployee({ profileId: 0, empId, orgId: session.user.orgId, userId: session.user.profileId });
+    const res = await getEmployee({
+      profileId: 0,
+      empId,
+      orgId: session.user.orgId,
+      userId: session.user.profileId,
+    });
     if (!res?.status || !res?.data) {
       fetchError = res?.message || "Employee not found";
     } else {
@@ -51,7 +64,9 @@ export default async function EmployeeDetailPage({ params }: Props) {
   if (!fetchError && !emp) notFound();
 
   const brandColor = session.user.brandColor ?? undefined;
-  const fullName = emp ? [emp.firstName, emp.middleName, emp.lastName].filter(Boolean).join(" ") : "";
+  const fullName = emp
+    ? [emp.firstName, emp.middleName, emp.lastName].filter(Boolean).join(" ")
+    : "";
 
   return (
     <Container className="py-8">
@@ -107,15 +122,21 @@ export default async function EmployeeDetailPage({ params }: Props) {
                       <Badge
                         variant="outline"
                         className="font-medium"
-                        style={brandColor ? { borderColor: brandColor, color: brandColor } : undefined}
+                        style={
+                          brandColor
+                            ? { borderColor: brandColor, color: brandColor }
+                            : undefined
+                        }
                       >
                         {emp.role?.roleName ?? "No Role"}
                       </Badge>
                       <Badge
                         variant="outline"
-                        className={emp.isActive
-                          ? "border-green-500 bg-green-50 text-green-700"
-                          : "border-gray-400 bg-gray-50 text-gray-500"}
+                        className={
+                          emp.isActive
+                            ? "border-green-500 bg-green-50 text-green-700"
+                            : "border-gray-400 bg-gray-50 text-gray-500"
+                        }
                       >
                         {emp.isActive ? "Active" : "Inactive"}
                       </Badge>
@@ -125,7 +146,9 @@ export default async function EmployeeDetailPage({ params }: Props) {
                 <div className="flex items-center gap-3 pb-1">
                   <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-center dark:border-slate-700 dark:bg-slate-800">
                     <p className="text-xs text-slate-500">Emp ID</p>
-                    <p className="text-lg font-bold text-slate-900 dark:text-slate-100">#{emp.empId}</p>
+                    <p className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                      #{emp.empId}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -137,7 +160,8 @@ export default async function EmployeeDetailPage({ params }: Props) {
             <Card className="lg:col-span-2">
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <Mail className="h-4 w-4 text-slate-400" /> Contact Information
+                  <Mail className="h-4 w-4 text-slate-400" /> Contact
+                  Information
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -161,16 +185,36 @@ export default async function EmployeeDetailPage({ params }: Props) {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <InfoRow label="Login Credentials" value={
-                    <Badge variant="outline" className={emp.isCredentialsCreated ? "border-blue-300 bg-blue-50 text-blue-700" : ""}>
-                      {emp.isCredentialsCreated ? "Created" : "Not Created"}
-                    </Badge>
-                  } />
-                  <InfoRow label="Status" value={
-                    <Badge variant="outline" className={emp.isActive ? "border-green-500 bg-green-50 text-green-700" : "border-gray-400 bg-gray-50 text-gray-500"}>
-                      {emp.isActive ? "Active" : "Inactive"}
-                    </Badge>
-                  } />
+                  <InfoRow
+                    label="Login Credentials"
+                    value={
+                      <Badge
+                        variant="outline"
+                        className={
+                          emp.isCredentialsCreated
+                            ? "border-blue-300 bg-blue-50 text-blue-700"
+                            : ""
+                        }
+                      >
+                        {emp.isCredentialsCreated ? "Created" : "Not Created"}
+                      </Badge>
+                    }
+                  />
+                  <InfoRow
+                    label="Status"
+                    value={
+                      <Badge
+                        variant="outline"
+                        className={
+                          emp.isActive
+                            ? "border-green-500 bg-green-50 text-green-700"
+                            : "border-gray-400 bg-gray-50 text-gray-500"
+                        }
+                      >
+                        {emp.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                    }
+                  />
                 </CardContent>
               </Card>
 
@@ -179,13 +223,18 @@ export default async function EmployeeDetailPage({ params }: Props) {
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-base">
-                      <CreditCard className="h-4 w-4 text-slate-400" /> Permissions
+                      <CreditCard className="h-4 w-4 text-slate-400" />{" "}
+                      Permissions
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-wrap gap-1.5">
                       {emp.permissions.map((p) => (
-                        <Badge key={p.id} variant="outline" className="font-mono text-xs">
+                        <Badge
+                          key={p.id}
+                          variant="outline"
+                          className="font-mono text-xs"
+                        >
                           {p.code}
                         </Badge>
                       ))}
@@ -208,9 +257,17 @@ export default async function EmployeeDetailPage({ params }: Props) {
                 {emp.permanantAddress?.addressLine1 ? (
                   <div className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
                     <p>{emp.permanantAddress.addressLine1}</p>
-                    {emp.permanantAddress.addressLine2 && <p>{emp.permanantAddress.addressLine2}</p>}
+                    {emp.permanantAddress.addressLine2 && (
+                      <p>{emp.permanantAddress.addressLine2}</p>
+                    )}
                     <p className="mt-1 text-slate-500">
-                      {[emp.permanantAddress.city, emp.permanantAddress.state, emp.permanantAddress.pinCode].filter(Boolean).join(", ")}
+                      {[
+                        emp.permanantAddress.city,
+                        emp.permanantAddress.state,
+                        emp.permanantAddress.pinCode,
+                      ]
+                        .filter(Boolean)
+                        .join(", ")}
                     </p>
                   </div>
                 ) : (
@@ -222,16 +279,25 @@ export default async function EmployeeDetailPage({ params }: Props) {
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <MapPin className="h-4 w-4 text-slate-400" /> Communication Address
+                  <MapPin className="h-4 w-4 text-slate-400" /> Communication
+                  Address
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {emp.communicationAddress?.addressLine1 ? (
                   <div className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
                     <p>{emp.communicationAddress.addressLine1}</p>
-                    {emp.communicationAddress.addressLine2 && <p>{emp.communicationAddress.addressLine2}</p>}
+                    {emp.communicationAddress.addressLine2 && (
+                      <p>{emp.communicationAddress.addressLine2}</p>
+                    )}
                     <p className="mt-1 text-slate-500">
-                      {[emp.communicationAddress.city, emp.communicationAddress.state, emp.communicationAddress.pinCode].filter(Boolean).join(", ")}
+                      {[
+                        emp.communicationAddress.city,
+                        emp.communicationAddress.state,
+                        emp.communicationAddress.pinCode,
+                      ]
+                        .filter(Boolean)
+                        .join(", ")}
                     </p>
                   </div>
                 ) : (

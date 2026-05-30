@@ -77,7 +77,7 @@ export default async function StudentAdmissionsPage({ params }: Props) {
     `${student.firstName ?? ""} ${student.lastName ?? ""}`.trim() || "Student";
 
   return (
-    <Container>
+    <Container className="py-8">
       <PageHeader
         title={`${studentName} - Admission Records`}
         description="View past and current academic enrollment records"
