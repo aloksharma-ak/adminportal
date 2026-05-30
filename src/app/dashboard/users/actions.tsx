@@ -3,7 +3,7 @@
 import { z } from "zod";
 import type { Organisation } from "@/shared-types/organisation.types";
 import { apiPost, reqMeta, requireUrl } from "@/lib/api-client";
-import { detectMimeType } from "@/lib/image-utils";
+import { detectMimeType } from "@/lib/image-loader";
 import { revalidatePath } from "next/cache";
 
 const USER_API_URL = process.env.USER_API_URL;

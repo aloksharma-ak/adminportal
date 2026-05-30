@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import { signOut } from "next-auth/react";
-import { clearImageFromSession } from "@/lib/image-session.client";
 import { Loader2 } from "lucide-react";
 
 export default function LogoutPage() {
@@ -12,7 +11,6 @@ export default function LogoutPage() {
     if (didRun.current) return;
     didRun.current = true;
 
-    clearImageFromSession();
     void signOut({ callbackUrl: "/auth/login", redirect: true });
   }, []);
 

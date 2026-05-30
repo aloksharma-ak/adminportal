@@ -5,8 +5,6 @@ import Footer from "../footer";
 import { authOptions } from "../api/auth/[...nextauth]/auth";
 import { getEmployee, getOrganisationDetail } from "@/app/dashboard/users/actions";
 
-import { toImageSrc } from "@/lib/image-utils";
-
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.orgCode) redirect("/auth/login");
@@ -27,9 +25,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
         orgCode={session.user.orgCode}
         brandColor={session.user.brandColor ?? ""}
         initials={emp?.initials ?? ""}
-        profilePicture={toImageSrc(emp?.profilePicture) ?? ""}
+        profilePicture={emp?.profilePicture ?? ""}
         firstName={emp?.firstName ?? ""}
         lastName={emp?.lastName ?? ""}
+        logo={org.logo}
+        fullLogo={org.fullLogo}
       />
       <main className="flex-1 overflow-y-auto pt-16 pb-10 custom-scroll">
         {children}

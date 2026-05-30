@@ -93,7 +93,7 @@ export default async function EmployeeDetailPage({ params }: Props) {
       {emp && (
         <div className="space-y-6">
           {/* Hero card */}
-          <Card className="overflow-hidden">
+          <Card className="overflow-hidden pt-0">
             <div
               className="h-24 w-full"
               style={{

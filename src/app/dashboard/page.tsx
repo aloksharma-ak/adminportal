@@ -15,7 +15,6 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { getAllowModules, getEmployee } from "@/app/dashboard/users/actions";
 import { Avatar } from "@/components/shared-ui/Avatar";
 import { EmptyState } from "@/components/shared-ui/States";
-import { toImageSrc } from "@/lib/image-utils";
 
 import { Container } from "@/components";
 
@@ -119,7 +118,7 @@ export default async function DashboardPage() {
       <div className="mb-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
           <Avatar
-            src={toImageSrc(emp?.profilePicture)}
+            src={emp?.profilePicture}
             firstName={firstName}
             lastName={lastName}
             size="lg"

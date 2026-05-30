@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { apiPost, reqMeta, requireUrl } from "@/lib/api-client";
-import { detectMimeType } from "@/lib/image-utils";
+import { detectMimeType } from "@/lib/image-loader";
 import { revalidatePath } from "next/cache";
 import { extractList, extractDetail } from "@/app/dashboard/utils";
 
