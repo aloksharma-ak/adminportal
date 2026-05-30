@@ -81,7 +81,6 @@ export default async function EditAdmissionPage({ params }: PageProps) {
         <PageHeader
           title="Modify Admission"
           backLabel="Back to Admission Detail"
-          backHref={`/dashboard/administration/admission/details/${studentId}/admissions/${admId}`}
         />
         <div className="mt-6">
           <ErrorCard message={errorMsg} />
@@ -102,7 +101,6 @@ export default async function EditAdmissionPage({ params }: PageProps) {
         title="Modify Admission"
         description={`Editing admission reference #${admId} for ${studentName}`}
         backLabel="Back to Admission Detail"
-        backHref={`/dashboard/administration/admission/details/${studentId}/admissions/${admId}`}
       />
 
       <div className="mt-8">

@@ -33,7 +33,6 @@ export default async function EnrollStudentPage() {
         title="Enroll Student"
         description="Register a new student into the organisation"
         backLabel="Back to Admission"
-        backHref="/dashboard/administration/admission/details"
       />
       {fetchError && <ErrorCard message={fetchError} />}
       <EnrollStudentForm

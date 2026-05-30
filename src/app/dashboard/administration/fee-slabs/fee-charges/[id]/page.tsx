@@ -57,7 +57,6 @@ export default async function ViewFeeChargePage({ params }: Props) {
         title={charge ? `Fee for ${charge.fee.grade}` : "Fee Charge Details"}
         description="View configuration for this grade-wise fee"
         backLabel="Back to List"
-        backHref="/dashboard/administration/fee-slabs/fee-charges"
         actions={
           charge && (
             <Link

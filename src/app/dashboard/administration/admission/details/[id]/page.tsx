@@ -38,7 +38,6 @@ export default async function StudentDetailPage({ params }: PageProps) {
       <PageHeader
         title={student ? `${student.firstName ?? ""} ${student.lastName ?? ""}`.trim() || "Student Details" : "Student Details"}
         backLabel="Back to Admission"
-        backHref="/dashboard/administration/admission/details"
         actions={
           student && (
             <div className="flex items-center gap-3">

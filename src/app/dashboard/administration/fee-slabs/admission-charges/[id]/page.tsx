@@ -52,7 +52,6 @@ export default async function ViewAdmissionChargePage({ params }: Props) {
         title={charge ? charge.chargeName : "Charge Details"}
         description="View details of this admission charge"
         backLabel="Back to List"
-        backHref="/dashboard/administration/fee-slabs/admission-charges"
         actions={
           charge && (
             <Link

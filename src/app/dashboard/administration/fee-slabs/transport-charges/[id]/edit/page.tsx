@@ -51,7 +51,6 @@ export default async function EditTransportChargePage({ params }: Props) {
         title="Edit Transport Charge"
         description="Update details for the transport charge"
         backLabel="Back to View"
-        backHref={`/dashboard/administration/fee-slabs/transport-charges/${chargeId}`}
       />
       {fetchError && <ErrorCard message={fetchError} />}
       {charge && (

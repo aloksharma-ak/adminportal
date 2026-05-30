@@ -53,7 +53,6 @@ export default async function FeeChargesPage() {
         title="Fee Charges"
         description="View and manage grade-wise fee charges"
         backLabel="Back to Fee Slabs"
-        backHref="/dashboard/administration/fee-slabs"
         actions={
           <LinkButton
             color={session.user.brandColor}

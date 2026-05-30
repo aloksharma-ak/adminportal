@@ -51,7 +51,6 @@ export default async function EditAdmissionChargePage({ params }: Props) {
         title="Edit Admission Charge"
         description="Update details for the admission charge"
         backLabel="Back to View"
-        backHref={`/dashboard/administration/fee-slabs/admission-charges/${chargeId}`}
       />
       {fetchError && <ErrorCard message={fetchError} />}
       {charge && (

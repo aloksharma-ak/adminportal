@@ -37,7 +37,6 @@ export default async function AddFeeChargePage() {
         title="Add Fee Charge"
         description="Define a new grade-wise fee charge"
         backLabel="Back to List"
-        backHref="/dashboard/administration/fee-slabs/fee-charges"
       />
       <FeeChargeForm
         orgId={session.user.orgId}

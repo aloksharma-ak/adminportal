@@ -46,7 +46,6 @@ export default async function AdmissionChargesPage() {
         title="Admission Charges"
         description="View and manage admission related charges"
         backLabel="Back to Fee Slabs"
-        backHref="/dashboard/administration/fee-slabs"
         actions={
           <LinkButton
             color={session.user.brandColor}

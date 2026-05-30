@@ -59,7 +59,6 @@ export default async function EditFeeChargePage({ params }: Props) {
         title="Edit Fee Charge"
         description="Update details for the fee charge"
         backLabel="Back to View"
-        backHref={`/dashboard/administration/fee-slabs/fee-charges/${chargeId}`}
       />
       {fetchError && <ErrorCard message={fetchError} />}
       {charge && (

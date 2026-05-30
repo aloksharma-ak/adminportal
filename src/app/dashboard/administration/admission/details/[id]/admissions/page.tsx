@@ -63,7 +63,6 @@ export default async function StudentAdmissionsPage({ params }: Props) {
         <PageHeader
           title="Student Admissions"
           backLabel="Back to Admission"
-          backHref="/dashboard/administration/admission/details"
         />
         <div className="mt-6">
           <ErrorCard message={errorMsg} />
@@ -83,7 +82,6 @@ export default async function StudentAdmissionsPage({ params }: Props) {
         title={`${studentName} - Admission Records`}
         description="View past and current academic enrollment records"
         backLabel="Back to Student Details"
-        backHref={`/dashboard/administration/admission/details/${studentId}`}
       />
 
       <div className="mt-8">

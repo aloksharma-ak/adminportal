@@ -40,7 +40,6 @@ export default async function TransportChargesPage() {
         title="Transport Charges"
         description="View and manage distance-based transport charges"
         backLabel="Back to Fee Slabs"
-        backHref="/dashboard/administration/fee-slabs"
         actions={
           <LinkButton
             color={session.user.brandColor}

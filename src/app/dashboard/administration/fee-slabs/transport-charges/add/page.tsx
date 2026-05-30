@@ -31,7 +31,6 @@ export default async function AddTransportChargePage() {
         title="Add Transport Charge"
         description="Define a new distance-based transport charge"
         backLabel="Back to List"
-        backHref="/dashboard/administration/fee-slabs/transport-charges"
       />
       <TransportChargeForm
         orgId={session.user.orgId}

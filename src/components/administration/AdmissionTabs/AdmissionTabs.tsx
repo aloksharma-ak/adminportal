@@ -35,7 +35,6 @@ export default function AdmissionTabs({ brandColor }: AdmissionTabsProps) {
             : "Manage student enrolments and records"
         }
         backLabel="Back to Administration"
-        backHref="/dashboard/administration"
         actions={
           currentTab === "details" && (
             <LinkButton

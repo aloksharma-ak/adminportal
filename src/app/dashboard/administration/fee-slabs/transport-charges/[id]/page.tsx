@@ -52,7 +52,6 @@ export default async function ViewTransportChargePage({ params }: Props) {
         title={charge ? `${charge.fromKM}km - ${charge.toKM}km` : "Transport Details"}
         description="View details for this transport distance slab"
         backLabel="Back to List"
-        backHref="/dashboard/administration/fee-slabs/transport-charges"
         actions={
           charge && (
             <Link

@@ -31,7 +31,6 @@ export default async function AddAdmissionChargePage() {
         title="Add Admission Charge"
         description="Define a new admission related charge"
         backLabel="Back to List"
-        backHref="/dashboard/administration/fee-slabs/admission-charges"
       />
       <AdmissionChargeForm
         orgId={session.user.orgId}

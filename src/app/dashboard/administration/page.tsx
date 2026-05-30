@@ -39,7 +39,6 @@ export default async function AdministrationPage() {
         title="Administration"
         description="Manage school operations and financial configurations"
         backLabel="Back to Dashboard"
-        backHref="/dashboard"
       />
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">

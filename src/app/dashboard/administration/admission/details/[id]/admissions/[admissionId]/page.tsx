@@ -79,7 +79,6 @@ export default async function AdmissionDetailPage({ params }: PageProps) {
         <PageHeader
           title="Admission Detail"
           backLabel="Back to Admissions"
-          backHref={`/dashboard/administration/admission/details/${studentId}/admissions`}
         />
         <div className="mt-6">
           <ErrorCard message={errorMsg} />
@@ -101,7 +100,6 @@ export default async function AdmissionDetailPage({ params }: PageProps) {
         title={`Admission Record Details`}
         description={`Reference ID: #${admId}`}
         backLabel="Back to Admissions List"
-        backHref={`/dashboard/administration/admission/details/${studentId}/admissions`}
         actions={
           <Link
             href={`/dashboard/administration/admission/details/${studentId}/admissions/${admId}/edit`}
