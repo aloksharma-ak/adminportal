@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
 
@@ -16,12 +15,7 @@ import { LoginForm } from "./LoginForm";
 import { ActionButton } from "@/components/controls/Buttons";
 import { Organisation } from "@/shared-types/organisation.types";
 import { toast } from "sonner";
-import {
-  clearImageFromSession,
-  getImagesFromSession,
-  setImagesToSession,
-} from "@/lib/image-session.client";
-import { toImageSrc } from "@/lib/image-utils";
+import { getCachedBlobUrl } from "@/lib/image-loader";
 import { getOrganisationDetail } from "@/app/dashboard/users/actions";
 import Footer from "@/app/footer";
 import { FullPageLoader } from "@/components/shared-ui/FullPageLoader";
@@ -161,7 +155,6 @@ export default function LoginPage() {
     setStep("org");
     setOrg(null);
     setLogoSrc(null);
-    clearImageFromSession();
 
     form.setValue("orgId", "");
     form.setValue("username", "");
@@ -175,27 +168,9 @@ export default function LoginPage() {
       return;
     }
 
-    // 1) Try session cache first
-    const { logoSrc } = getImagesFromSession(orgCode);
-
-    if (logoSrc) {
-      setLogoSrc(logoSrc);
-      return;
-    }
-
-    // 2) Build from API fields
-    const logo = toImageSrc(org?.logo);
-    const fullLogo = toImageSrc(org?.fullLogo);
-
+    const logo = getCachedBlobUrl(org?.logo);
     setLogoSrc(logo);
-
-    // 3) Save both in session
-    setImagesToSession({
-      orgCode,
-      logoSrc: logo,
-      fullLogoSrc: fullLogo,
-    });
-  }, [org?.orgCode, org?.logo, org?.fullLogo]);
+  }, [org?.orgCode, org?.logo]);
 
   if (status === "loading")
     return <FullPageLoader label="Checking session..." />;
@@ -217,14 +192,10 @@ export default function LoginPage() {
           <div className="flex flex-col items-center justify-center gap-4 text-center">
             {logoSrc && !logoError && (
               <div className="relative aspect-square w-16 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 dark:border-white/10 sm:w-20 md:w-24">
-                <Image
+                <img
                   src={logoSrc}
                   alt={org?.orgName ?? "Organisation Logo"}
-                  fill
-                  sizes="(max-width: 640px) 64px, (max-width: 768px) 80px, 96px"
-                  priority
-                  unoptimized={logoSrc.startsWith("data:image/")}
-                  className="object-contain"
+                  className="h-full w-full object-contain"
                   onError={() => setLogoError(true)}
                 />
               </div>

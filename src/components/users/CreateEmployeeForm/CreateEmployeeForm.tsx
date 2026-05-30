@@ -13,9 +13,8 @@ import { ActionButton } from "@/components/controls/Buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
 import { createEmployee } from "@/app/dashboard/users/actions";
-import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { toImageSrc, fileToDataUrl, stripDataUrl, validateImageFile } from "@/lib/image-utils";
+import { fileToDataUrl, stripDataUrl, validateImageFile } from "@/lib/image-loader";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { getErrorMessage } from "@/app/dashboard/utils";
@@ -44,14 +43,36 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
   const { data: session } = useSession();
   const [loading, setLoading] = React.useState(false);
   const [preview, setPreview] = React.useState("");
+  const prevPreviewRef = React.useRef(preview);
+
+  React.useEffect(() => {
+    prevPreviewRef.current = preview;
+  }, [preview]);
 
   React.useEffect(() => {
     return () => {
-      if (preview && preview.startsWith("blob:")) {
-        URL.revokeObjectURL(preview);
+      if (prevPreviewRef.current && prevPreviewRef.current.startsWith("blob:")) {
+        console.log(`[CreateEmployeeForm] Revoking URL on unmount: ${prevPreviewRef.current}`);
+        URL.revokeObjectURL(prevPreviewRef.current);
       }
     };
-  }, [preview]);
+  }, []);
+
+  const changePreview = (newUrl: string) => {
+    const oldUrl = prevPreviewRef.current;
+    setPreview(newUrl);
+    if (oldUrl && oldUrl.startsWith("blob:") && oldUrl !== newUrl) {
+      console.log(`[CreateEmployeeForm] Scheduling revocation of old preview URL: ${oldUrl}`);
+      setTimeout(() => {
+        try {
+          URL.revokeObjectURL(oldUrl);
+          console.log(`[CreateEmployeeForm] Successfully revoked old preview URL: ${oldUrl}`);
+        } catch (e) {
+          console.error("[CreateEmployeeForm] Failed to revoke old preview URL:", e);
+        }
+      }, 100);
+    }
+  };
 
   const roleOptions: DropdownOption[] = roles.map((r) => ({
     value: String(r.roleId),
@@ -120,7 +141,7 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
     try {
       // 1. Create a lightweight temporary preview URL instantly
       const objectUrl = URL.createObjectURL(file);
-      setPreview(objectUrl);
+      changePreview(objectUrl);
 
       // 2. Perform Base64 conversion in the background for form state
       const dataUrl = await fileToDataUrl(file);
@@ -154,7 +175,7 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
       });
       toast.success("Employee created successfully", { id: tId });
       form.reset();
-      setPreview("");
+      changePreview("");
       router.push("/dashboard/users/employees");
     } catch (err) {
       toast.error(getErrorMessage(err), { id: tId });
@@ -313,10 +334,10 @@ export default function CreateEmployeeForm({ orgId, orgName, brandColor, roles }
               </div>
               <div className="flex items-center gap-3">
                 {preview ? (
-                  <Image
-                    src={preview} alt="Preview" width={48} height={48}
+                  <img
+                    src={preview} alt="Preview"
                     className="h-12 w-12 rounded-xl border object-cover dark:border-slate-700"
-                    unoptimized
+                    onError={() => changePreview("")}
                   />
                 ) : (
                   <div className="grid h-12 w-12 place-items-center rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-xs text-slate-400">

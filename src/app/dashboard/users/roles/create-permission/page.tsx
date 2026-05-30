@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/shared-ui/PageHeader";
 import { ErrorCard } from "@/components/shared-ui/States";
 import CreatePermissionForm from "@/components/users/roles/CreatePermissionForm";
+import { Container } from "@/components";
 
 type ModuleItem = {
   moduleId: number;
@@ -40,7 +41,7 @@ export default async function CreatePermissionPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <Container className="py-8">
       <PageHeader
         title="Create Permission"
         description="Select a permission, assign it to a module, and save"
@@ -61,6 +62,6 @@ export default async function CreatePermissionPage() {
         brandColor={session.user.brandColor ?? ""}
         successRedirect="/dashboard/users/roles"
       />
-    </div>
+    </Container>
   );
 }

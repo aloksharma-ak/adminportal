@@ -7,6 +7,7 @@ import { ErrorCard } from "@/components/shared-ui/States";
 import { FeeChargeDetails } from "@/components/administration/fee-slabs/DetailsView";
 import Link from "next/link";
 import { Pencil } from "lucide-react";
+import { Container } from "@/components";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -52,12 +53,11 @@ export default async function ViewFeeChargePage({ params }: Props) {
   const brandColor = session.user.brandColor ?? undefined;
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <Container className="py-8">
       <PageHeader
         title={charge ? `Fee for ${charge.fee.grade}` : "Fee Charge Details"}
         description="View configuration for this grade-wise fee"
         backLabel="Back to List"
-        backHref="/dashboard/administration/fee-slabs/fee-charges"
         actions={
           charge && (
             <Link
@@ -79,6 +79,6 @@ export default async function ViewFeeChargePage({ params }: Props) {
           frequencyOptions={frequencyOptions}
         />
       )}
-    </div>
+    </Container>
   );
 }

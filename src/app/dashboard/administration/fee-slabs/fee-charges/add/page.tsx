@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getAdmissionMasterData } from "@/app/dashboard/administration/actions";
 import { PageHeader } from "@/components/shared-ui/PageHeader";
 import FeeChargeForm from "@/components/administration/fee-slabs/FeeChargeForm";
+import { Container } from "@/components";
 
 export default async function AddFeeChargePage() {
   const session = await getServerSession(authOptions);
@@ -32,12 +33,11 @@ export default async function AddFeeChargePage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <Container className="py-8">
       <PageHeader
         title="Add Fee Charge"
         description="Define a new grade-wise fee charge"
         backLabel="Back to List"
-        backHref="/dashboard/administration/fee-slabs/fee-charges"
       />
       <FeeChargeForm
         orgId={session.user.orgId}
@@ -45,6 +45,6 @@ export default async function AddFeeChargePage() {
         frequencyOptions={frequencyOptions}
         gradeOptions={gradeOptions}
       />
-    </div>
+    </Container>
   );
 }

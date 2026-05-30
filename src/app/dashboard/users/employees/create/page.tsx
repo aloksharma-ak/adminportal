@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import CreateEmployeeForm from "@/components/users/CreateEmployeeForm";
 import { PageHeader } from "@/components/shared-ui/PageHeader";
 import { ErrorCard } from "@/components/shared-ui/States";
+import { Container } from "@/components";
 
 export default async function CreateEmployeePage() {
   const session = await getServerSession(authOptions);
@@ -42,7 +43,7 @@ export default async function CreateEmployeePage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <Container className="py-8">
       <PageHeader
         title="Add Employee"
         description="Create a new staff member account"
@@ -61,6 +62,6 @@ export default async function CreateEmployeePage() {
         brandColor={session.user.brandColor ?? ""}
         roles={roles}
       />
-    </div>
+    </Container>
   );
 }

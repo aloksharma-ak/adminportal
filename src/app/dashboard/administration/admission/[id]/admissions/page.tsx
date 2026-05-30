@@ -9,6 +9,7 @@ import {
 import { PageHeader } from "@/components/shared-ui/PageHeader";
 import { ErrorCard, EmptyState } from "@/components/shared-ui/States";
 import AdmissionsGrid from "@/components/administration/AdmissionsGrid/AdmissionsGrid";
+import { Container } from "@/components";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -23,7 +24,8 @@ export default async function StudentAdmissionsPage({ params }: Props) {
   let student;
   let admissions: StudentAdmission[] = [];
   let errorMsg: string | null = null;
-  let emptyStateMessage = "This student does not have any recorded admissions yet.";
+  let emptyStateMessage =
+    "This student does not have any recorded admissions yet.";
 
   try {
     const studentRes = await getStudentDetail({
@@ -59,31 +61,27 @@ export default async function StudentAdmissionsPage({ params }: Props) {
 
   if (errorMsg) {
     return (
-      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <PageHeader
-          title="Student Admissions"
-          backLabel="Back to Admission"
-          backHref="/dashboard/administration/admission/details"
-        />
+      <Container className="py-8">
+        <PageHeader title="Student Admissions" backLabel="Back to Admission" />
         <div className="mt-6">
           <ErrorCard message={errorMsg} />
         </div>
-      </div>
+      </Container>
     );
   }
 
   if (!student) notFound();
 
   const brandColor = session.user.brandColor ?? undefined;
-  const studentName = `${student.firstName ?? ""} ${student.lastName ?? ""}`.trim() || "Student";
+  const studentName =
+    `${student.firstName ?? ""} ${student.lastName ?? ""}`.trim() || "Student";
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <Container className="py-8">
       <PageHeader
         title={`${studentName} - Admission Records`}
         description="View past and current academic enrollment records"
         backLabel="Back to Student Details"
-        backHref={`/dashboard/administration/admission/details/${studentId}`}
       />
 
       <div className="mt-8">
@@ -93,9 +91,13 @@ export default async function StudentAdmissionsPage({ params }: Props) {
             description={emptyStateMessage}
           />
         ) : (
-          <AdmissionsGrid admissions={admissions} studentId={studentId} brandColor={brandColor} />
+          <AdmissionsGrid
+            admissions={admissions}
+            studentId={studentId}
+            brandColor={brandColor}
+          />
         )}
       </div>
-    </div>
+    </Container>
   );
 }

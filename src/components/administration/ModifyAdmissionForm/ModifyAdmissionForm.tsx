@@ -138,7 +138,7 @@ export default function ModifyAdmissionForm({
       }
 
       toast.success(res?.message || "Admission records updated successfully!", { id: tId });
-      router.push(`/dashboard/administration/admission/details/${studentId}/admissions`);
+      router.push(`/dashboard/administration/admission/${studentId}/admissions`);
       router.refresh();
     } catch (e) {
       toast.error(getErrorMessage(e), { id: tId });

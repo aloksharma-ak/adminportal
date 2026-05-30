@@ -8,6 +8,8 @@ import { PageHeader } from "@/components/shared-ui/PageHeader";
 import { ErrorCard } from "@/components/shared-ui/States";
 import StudentDetails from "@/components/administration/StudentDetails";
 
+import { Container } from "@/components";
+
 type PageProps = { params: Promise<{ id: string }> };
 
 export default async function StudentDetailPage({ params }: PageProps) {
@@ -34,23 +36,22 @@ export default async function StudentDetailPage({ params }: PageProps) {
   const brandColor = session.user.brandColor ?? undefined;
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <Container className="py-8">
       <PageHeader
         title={student ? `${student.firstName ?? ""} ${student.lastName ?? ""}`.trim() || "Student Details" : "Student Details"}
         backLabel="Back to Admission"
-        backHref="/dashboard/administration/admission/details"
         actions={
           student && (
             <div className="flex items-center gap-3">
               <Link
-                href={`/dashboard/administration/admission/details/${studentId}/admissions`}
+                href={`/dashboard/administration/admission/${studentId}/admissions`}
                 className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white"
               >
                 <GraduationCap className="h-4 w-4" />
                 Admission Records
               </Link>
               <Link
-                href={`/dashboard/administration/admission/details/${studentId}/edit`}
+                href={`/dashboard/administration/admission/${studentId}/edit`}
                 className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:opacity-90"
                 style={{ backgroundColor: brandColor ?? "#3b82f6" }}
               >
@@ -64,6 +65,6 @@ export default async function StudentDetailPage({ params }: PageProps) {
 
       {fetchError && <ErrorCard message={fetchError} />}
       {student && <StudentDetails student={student} brandColor={brandColor} />}
-    </div>
+    </Container>
   );
 }

@@ -15,9 +15,8 @@ import { ToggleControl } from "@/components/controls/ToggleControl";
 import { ActionButton } from "@/components/controls/Buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
-import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { toImageSrc, fileToDataUrl, stripDataUrl, validateImageFile } from "@/lib/image-utils";
+import { getCachedBlobUrl, fileToDataUrl, stripDataUrl, validateImageFile } from "@/lib/image-loader";
 import { enrollStudent } from "@/app/dashboard/administration/actions";
 import type { StudentDetail } from "@/components/administration/StudentDetails";
 
@@ -70,17 +69,54 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
   const { data: session } = useSession();
   const isEditing = studentId > 0;
   const [loading, setLoading] = React.useState(false);
-  const [preview, setPreview] = React.useState<string>(
-    toImageSrc(defaultValues?.profilePicture) ?? "",
-  );
+  const [preview, setPreview] = React.useState<string>("");
+  const prevPreviewRef = React.useRef(preview);
+  const localUrlsRef = React.useRef<Set<string>>(new Set());
 
   React.useEffect(() => {
-    return () => {
-      if (preview && preview.startsWith("blob:")) {
-        URL.revokeObjectURL(preview);
-      }
-    };
+    prevPreviewRef.current = preview;
   }, [preview]);
+
+  React.useEffect(() => {
+    setPreview(getCachedBlobUrl(defaultValues?.profilePicture) ?? "");
+  }, [defaultValues?.profilePicture]);
+
+  React.useEffect(() => {
+    const localUrls = localUrlsRef.current;
+    return () => {
+      console.log(`[EnrollStudentForm] Unmounting. Revoking ${localUrls.size} local URLs`);
+      localUrls.forEach((url) => {
+        try {
+          URL.revokeObjectURL(url);
+          console.log(`[EnrollStudentForm] Revoked local URL on unmount: ${url}`);
+        } catch (e) {
+          console.error("[EnrollStudentForm] Failed to revoke local URL on unmount:", e);
+        }
+      });
+    };
+  }, []);
+
+  const changePreview = (newUrl: string, isLocal = false) => {
+    const oldUrl = prevPreviewRef.current;
+    if (isLocal) {
+      localUrlsRef.current.add(newUrl);
+    }
+    setPreview(newUrl);
+    if (oldUrl && oldUrl.startsWith("blob:") && oldUrl !== newUrl) {
+      if (localUrlsRef.current.has(oldUrl)) {
+        console.log(`[EnrollStudentForm] Scheduling revocation of local preview URL: ${oldUrl}`);
+        setTimeout(() => {
+          try {
+            URL.revokeObjectURL(oldUrl);
+            localUrlsRef.current.delete(oldUrl);
+            console.log(`[EnrollStudentForm] Successfully revoked local preview URL: ${oldUrl}`);
+          } catch (e) {
+            console.error("[EnrollStudentForm] Failed to revoke old preview URL:", e);
+          }
+        }, 100);
+      }
+    }
+  };
 
   const classDropdownOptions: DropdownOption[] = classOptions.map((c) => ({
     value: String(c.classId),
@@ -183,7 +219,7 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
     try {
       // 1. Create a lightweight temporary preview URL instantly
       const objectUrl = URL.createObjectURL(file);
-      setPreview(objectUrl);
+      changePreview(objectUrl, true);
 
       // 2. Perform Base64 conversion in the background for form state
       const dataUrl = await fileToDataUrl(file);
@@ -233,9 +269,9 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
       if (!res?.status) throw new Error(res?.message || "Failed");
       toast.success(res?.message || (isEditing ? "Student updated!" : "Student enrolled!"), { id: tId });
       if (isEditing) {
-        router.push(`/dashboard/administration/admission/details/${studentId}`);
+        router.push(`/dashboard/administration/admission/${studentId}`);
       } else {
-        router.push("/dashboard/administration/admission/details");
+        router.push("/dashboard/administration/admission");
       }
       router.refresh();
     } catch (e) {
@@ -316,7 +352,12 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
                 </div>
                 <div className="flex items-center gap-3">
                   {preview ? (
-                    <Image src={preview} alt="Preview" width={48} height={48} className="h-12 w-12 rounded-xl border object-cover dark:border-slate-700" unoptimized />
+                    <img
+                      src={preview}
+                      alt="Preview"
+                      className="h-12 w-12 rounded-xl border object-cover dark:border-slate-700"
+                      onError={() => changePreview("")}
+                    />
                   ) : (
                     <div className="grid h-12 w-12 place-items-center rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-xs text-slate-400">N/A</div>
                   )}

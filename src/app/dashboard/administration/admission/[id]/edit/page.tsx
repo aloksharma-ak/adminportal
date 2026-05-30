@@ -6,6 +6,8 @@ import EnrollStudentForm from "@/components/administration/EnrollStudentForm";
 import { PageHeader } from "@/components/shared-ui/PageHeader";
 import { ErrorCard } from "@/components/shared-ui/States";
 
+import { Container } from "@/components";
+
 type Props = { params: Promise<{ id: string }> };
 
 export default async function EditStudentPage({ params }: Props) {
@@ -46,7 +48,7 @@ export default async function EditStudentPage({ params }: Props) {
 
       classOptions = master.data.classMasters.map((c) => ({
         classId: c.id,
-        className: c.classText, // use classText like "1-A"
+        className: c.classText,
       }));
 
       categoryOptions = master.data.cateogryMaster ?? [];
@@ -58,11 +60,10 @@ export default async function EditStudentPage({ params }: Props) {
   if (!fetchError && !student) notFound();
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <Container className="py-8">
       <PageHeader
         title="Edit Student"
         backLabel="Back to Student"
-        backHref={`/dashboard/administration/admission/details/${studentId}`}
       />
       {fetchError && <ErrorCard message={fetchError} />}
       {student && (
@@ -76,6 +77,6 @@ export default async function EditStudentPage({ params }: Props) {
           defaultValues={student}
         />
       )}
-    </div>
+    </Container>
   );
 }

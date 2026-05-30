@@ -7,6 +7,7 @@ import { ErrorCard } from "@/components/shared-ui/States";
 import { LinkButton } from "@/components/controls/Buttons";
 import { Plus } from "lucide-react";
 import FeeChargesGrid from "@/components/administration/fee-slabs/FeeChargesGrid";
+import { Container } from "@/components";
 
 export default async function FeeChargesPage() {
   const session = await getServerSession(authOptions);
@@ -48,12 +49,11 @@ export default async function FeeChargesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+    <Container className="py-6">
       <PageHeader
         title="Fee Charges"
         description="View and manage grade-wise fee charges"
         backLabel="Back to Fee Slabs"
-        backHref="/dashboard/administration/fee-slabs"
         actions={
           <LinkButton
             color={session.user.brandColor}
@@ -74,6 +74,6 @@ export default async function FeeChargesPage() {
           frequencyOptions={frequencyOptions}
         />
       )}
-    </div>
+    </Container>
   );
 }

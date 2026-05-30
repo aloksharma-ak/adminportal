@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
-import { toImageSrc, getInitials } from "@/lib/image-utils";
+import { getCachedBlobUrl, getInitials } from "@/lib/image-loader";
 import { cn } from "@/lib/utils";
 
 interface AvatarProps {
@@ -35,10 +34,11 @@ export function Avatar({
   brandColor,
 }: AvatarProps) {
   const [error, setError] = React.useState(false);
-  const imgSrc = toImageSrc(src);
+  const [imgSrc, setImgSrc] = React.useState("");
 
   React.useEffect(() => {
     setError(false);
+    setImgSrc(getCachedBlobUrl(src));
   }, [src]);
 
   const initials =

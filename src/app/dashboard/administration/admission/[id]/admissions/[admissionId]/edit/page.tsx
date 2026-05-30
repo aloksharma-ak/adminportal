@@ -12,6 +12,8 @@ import { PageHeader } from "@/components/shared-ui/PageHeader";
 import { ErrorCard } from "@/components/shared-ui/States";
 import ModifyAdmissionForm from "@/components/administration/ModifyAdmissionForm/ModifyAdmissionForm";
 
+import { Container } from "@/components";
+
 type PageProps = {
   params: Promise<{ id: string; admissionId: string }>;
 };
@@ -77,16 +79,15 @@ export default async function EditAdmissionPage({ params }: PageProps) {
 
   if (errorMsg) {
     return (
-      <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+      <Container className="max-w-4xl py-8">
         <PageHeader
           title="Modify Admission"
           backLabel="Back to Admission Detail"
-          backHref={`/dashboard/administration/admission/details/${studentId}/admissions/${admId}`}
         />
         <div className="mt-6">
           <ErrorCard message={errorMsg} />
         </div>
-      </div>
+      </Container>
     );
   }
 
@@ -97,12 +98,11 @@ export default async function EditAdmissionPage({ params }: PageProps) {
     `${student.firstName ?? ""} ${student.lastName ?? ""}`.trim() || "Student";
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+    <Container className="max-w-4xl py-8">
       <PageHeader
         title="Modify Admission"
         description={`Editing admission reference #${admId} for ${studentName}`}
         backLabel="Back to Admission Detail"
-        backHref={`/dashboard/administration/admission/details/${studentId}/admissions/${admId}`}
       />
 
       <div className="mt-8">
@@ -115,6 +115,6 @@ export default async function EditAdmissionPage({ params }: PageProps) {
           brandColor={brandColor}
         />
       </div>
-    </div>
+    </Container>
   );
 }

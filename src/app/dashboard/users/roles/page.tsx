@@ -8,6 +8,7 @@ import RoleListGrid from "@/components/users/roles/RoleListGrid";
 import { PageHeader } from "@/components/shared-ui/PageHeader";
 import { ErrorCard } from "@/components/shared-ui/States";
 import { LinkButton } from "@/components/controls/Buttons";
+import { Container } from "@/components";
 
 export default async function RolesPage() {
   const session = await getServerSession(authOptions);
@@ -28,7 +29,7 @@ export default async function RolesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+    <Container className="py-6">
       <PageHeader
         title="Roles & Permissions"
         description="View and manage organisation roles"
@@ -52,6 +53,6 @@ export default async function RolesPage() {
           brandColor={session.user.brandColor}
         />
       )}
-    </div>
+    </Container>
   );
 }

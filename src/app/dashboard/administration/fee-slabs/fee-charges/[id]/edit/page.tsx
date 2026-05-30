@@ -5,6 +5,7 @@ import { getFeeChargeDetail, getAdmissionMasterData } from "@/app/dashboard/admi
 import { PageHeader } from "@/components/shared-ui/PageHeader";
 import { ErrorCard } from "@/components/shared-ui/States";
 import FeeChargeForm from "@/components/administration/fee-slabs/FeeChargeForm";
+import { Container } from "@/components";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -54,12 +55,11 @@ export default async function EditFeeChargePage({ params }: Props) {
   }
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <Container className="py-8">
       <PageHeader
         title="Edit Fee Charge"
         description="Update details for the fee charge"
         backLabel="Back to View"
-        backHref={`/dashboard/administration/fee-slabs/fee-charges/${chargeId}`}
       />
       {fetchError && <ErrorCard message={fetchError} />}
       {charge && (
@@ -72,6 +72,6 @@ export default async function EditFeeChargePage({ params }: Props) {
           gradeOptions={gradeOptions}
         />
       )}
-    </div>
+    </Container>
   );
 }

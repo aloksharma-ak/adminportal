@@ -23,21 +23,21 @@ const getColumns = (brandColor?: string): ColumnDef<Student>[] => [
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <Link
-          href={`/dashboard/administration/admission/details/${row.original.studentId}`}
+          href={`/dashboard/administration/admission/${row.original.studentId}`}
           className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"
           title="View"
         >
           <Eye className="h-4 w-4" />
         </Link>
         <Link
-          href={`/dashboard/administration/admission/details/${row.original.studentId}/edit`}
+          href={`/dashboard/administration/admission/${row.original.studentId}/edit`}
           className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"
           title="Edit"
         >
           <Pencil className="h-4 w-4" />
         </Link>
         <Link
-          href={`/dashboard/administration/admission/details/${row.original.studentId}/admissions`}
+          href={`/dashboard/administration/admission/${row.original.studentId}/admissions`}
           className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"
           title="Open"
         >
@@ -99,7 +99,7 @@ const getColumns = (brandColor?: string): ColumnDef<Student>[] => [
           />
           <div>
             <Link
-              href={`/dashboard/administration/admission/details/${s.studentId}`}
+              href={`/dashboard/administration/admission/${s.studentId}`}
               className="font-semibold text-slate-900 hover:underline dark:text-slate-100"
             >
               {s.firstName} {s.lastName}
@@ -108,6 +108,16 @@ const getColumns = (brandColor?: string): ColumnDef<Student>[] => [
         </div>
       );
     },
+  },
+  {
+    accessorKey: "fatherName",
+    header: "Father's Name",
+    cell: ({ getValue }) => getValue<string>() || "",
+  },
+  {
+    accessorKey: "motherName",
+    header: "Mother's Name",
+    cell: ({ getValue }) => getValue<string>() || "",
   },
 ];
 

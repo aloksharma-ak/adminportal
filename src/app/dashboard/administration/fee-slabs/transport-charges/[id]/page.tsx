@@ -7,6 +7,7 @@ import { ErrorCard } from "@/components/shared-ui/States";
 import { TransportChargeDetails } from "@/components/administration/fee-slabs/DetailsView";
 import Link from "next/link";
 import { Pencil } from "lucide-react";
+import { Container } from "@/components";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -47,12 +48,11 @@ export default async function ViewTransportChargePage({ params }: Props) {
   const brandColor = session.user.brandColor ?? undefined;
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <Container className="py-8">
       <PageHeader
         title={charge ? `${charge.fromKM}km - ${charge.toKM}km` : "Transport Details"}
         description="View details for this transport distance slab"
         backLabel="Back to List"
-        backHref="/dashboard/administration/fee-slabs/transport-charges"
         actions={
           charge && (
             <Link
@@ -74,6 +74,6 @@ export default async function ViewTransportChargePage({ params }: Props) {
           frequencyOptions={frequencyOptions}
         />
       )}
-    </div>
+    </Container>
   );
 }

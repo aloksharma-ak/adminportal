@@ -7,8 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { Container } from "@/components/shared-ui/Container";
 import { HamburgerButton } from "@/components/shared-ui/HamburgerButton";
-import Image from "next/image";
-import { getImagesFromSession } from "@/lib/image-session.client";
+import { getCachedBlobUrl } from "@/lib/image-loader";
 import NavProfileCard from "@/components/shared-ui/NavProfileCard";
 
 type NavItem = { label: string; href: string };
@@ -26,6 +25,8 @@ export default function Navbar(props: {
   profilePicture?: string;
   firstName?: string;
   lastName?: string;
+  logo?: string | null;
+  fullLogo?: string | null;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -64,15 +65,13 @@ export default function Navbar(props: {
     };
   }, [open, closeMenu]);
 
-  const normalizedOrgCode = useMemo(
-    () => (props.orgCode ?? "").trim().toUpperCase(),
-    [props.orgCode],
+  const logoSrc = useMemo(() => getCachedBlobUrl(props.logo), [props.logo]);
+  const fullLogoSrc = useMemo(
+    () => getCachedBlobUrl(props.fullLogo),
+    [props.fullLogo],
   );
-
-  const { logoSrc, fullLogoSrc } = useMemo(
-    () => getImagesFromSession(normalizedOrgCode),
-    [normalizedOrgCode],
-  );
+  const [failedLogoSrc, setFailedLogoSrc] = useState("");
+  const [failedFullLogoSrc, setFailedFullLogoSrc] = useState("");
 
   const userName = (session?.user as { userName?: string })?.userName ?? "";
 
@@ -89,13 +88,23 @@ export default function Navbar(props: {
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
             <Link href="/dashboard/" aria-label={props.orgCode || "Dashboard"} className="relative inline-flex h-full items-center">
-              {fullLogoSrc ? (
+              {fullLogoSrc && failedFullLogoSrc !== fullLogoSrc ? (
                 <div className="relative h-16 w-52 md:w-72">
-                  <Image src={fullLogoSrc} alt={props.orgCode ?? "Logo"} fill priority sizes="176px" unoptimized={fullLogoSrc.startsWith("data:image/")} className="object-contain" />
+                  <img
+                    src={fullLogoSrc}
+                    alt={props.orgCode ?? "Logo"}
+                    className="h-full w-full object-contain"
+                    onError={() => setFailedFullLogoSrc(fullLogoSrc)}
+                  />
                 </div>
-              ) : logoSrc ? (
+              ) : logoSrc && failedLogoSrc !== logoSrc ? (
                 <div className="relative h-10 w-10">
-                  <Image src={logoSrc} alt={props.orgCode ?? "Logo"} fill priority sizes="40px" unoptimized={logoSrc.startsWith("data:image/")} className="object-contain" />
+                  <img
+                    src={logoSrc}
+                    alt={props.orgCode ?? "Logo"}
+                    className="h-full w-full object-contain"
+                    onError={() => setFailedLogoSrc(logoSrc)}
+                  />
                 </div>
               ) : (
                 <span className="text-base font-bold uppercase tracking-wide" style={{ color: props.brandColor || undefined }}>

@@ -22,6 +22,8 @@ import {
   Pencil,
 } from "lucide-react";
 
+import { Container } from "@/components";
+
 type PageProps = {
   params: Promise<{ id: string; admissionId: string }>;
 };
@@ -75,16 +77,12 @@ export default async function AdmissionDetailPage({ params }: PageProps) {
 
   if (errorMsg) {
     return (
-      <div className="">
-        <PageHeader
-          title="Admission Detail"
-          backLabel="Back to Admissions"
-          backHref={`/dashboard/administration/admission/details/${studentId}/admissions`}
-        />
+      <Container className="py-8">
+        <PageHeader title="Admission Detail" backLabel="Back to Admissions" />
         <div className="mt-6">
           <ErrorCard message={errorMsg} />
         </div>
-      </div>
+      </Container>
     );
   }
 
@@ -96,15 +94,13 @@ export default async function AdmissionDetailPage({ params }: PageProps) {
   const isEnrolled = admission.status?.toLowerCase() === "enrolled";
 
   return (
-    <div className="">
+    <Container className="py-8">
       <PageHeader
         title={`Admission Record Details`}
-        description={`Reference ID: #${admId}`}
         backLabel="Back to Admissions List"
-        backHref={`/dashboard/administration/admission/details/${studentId}/admissions`}
         actions={
           <Link
-            href={`/dashboard/administration/admission/details/${studentId}/admissions/${admId}/edit`}
+            href={`/dashboard/administration/admission/${studentId}/admissions/${admId}/edit`}
           >
             <Button
               className="h-10 rounded-2xl px-4 font-semibold text-sm flex items-center gap-1.5 shadow-sm text-white hover:opacity-90 transition"
@@ -265,21 +261,21 @@ export default async function AdmissionDetailPage({ params }: PageProps) {
 
               <div className="space-y-1">
                 <span className="block text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                  Active Status
+                  Status
                 </span>
                 <div className="flex items-center gap-2 mt-0.5">
                   {admission.isActive ? (
                     <>
                       <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 ring-4 ring-emerald-500/25" />
                       <span className="font-semibold text-emerald-700 dark:text-emerald-400">
-                        Active Reference
+                        Active
                       </span>
                     </>
                   ) : (
                     <>
                       <span className="inline-flex h-2 w-2 rounded-full bg-slate-300 dark:bg-slate-700" />
                       <span className="font-semibold text-slate-500">
-                        Inactive Reference
+                        Inactive
                       </span>
                     </>
                   )}
@@ -289,6 +285,6 @@ export default async function AdmissionDetailPage({ params }: PageProps) {
           </Card>
         </div>
       </div>
-    </div>
+    </Container>
   );
 }

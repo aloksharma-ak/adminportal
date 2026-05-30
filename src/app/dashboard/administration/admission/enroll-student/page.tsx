@@ -6,6 +6,8 @@ import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/shared-ui/PageHeader";
 import { ErrorCard } from "@/components/shared-ui/States";
 
+import { Container } from "@/components";
+
 export default async function EnrollStudentPage() {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/auth/login");
@@ -14,12 +16,11 @@ export default async function EnrollStudentPage() {
   let classOptions: { classId: number; className: string }[] = [];
   let categoryOptions: string[] = [];
   try {
-
     const master = await getAdmissionMasterData({ orgId: session.user.orgId, userId: session.user.profileId });
 
     classOptions = master.data.classMasters.map((c) => ({
       classId: c.id,
-      className: c.classText, // use classText like "1-A"
+      className: c.classText,
     }));
 
     categoryOptions = master.data.cateogryMaster ?? [];
@@ -28,12 +29,11 @@ export default async function EnrollStudentPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <Container className="py-8">
       <PageHeader
         title="Enroll Student"
         description="Register a new student into the organisation"
         backLabel="Back to Admission"
-        backHref="/dashboard/administration/admission/details"
       />
       {fetchError && <ErrorCard message={fetchError} />}
       <EnrollStudentForm
@@ -43,6 +43,6 @@ export default async function EnrollStudentPage() {
         classOptions={classOptions}
         categoryOptions={categoryOptions}
       />
-    </div>
+    </Container>
   );
 }
