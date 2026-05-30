@@ -14,12 +14,11 @@ export default async function EnrollStudentPage() {
   let classOptions: { classId: number; className: string }[] = [];
   let categoryOptions: string[] = [];
   try {
-
     const master = await getAdmissionMasterData({ orgId: session.user.orgId, userId: session.user.profileId });
 
     classOptions = master.data.classMasters.map((c) => ({
       classId: c.id,
-      className: c.classText, // use classText like "1-A"
+      className: c.classText,
     }));
 
     categoryOptions = master.data.cateogryMaster ?? [];

@@ -102,7 +102,7 @@ export default async function AdmissionDetailPage({ params }: PageProps) {
         backLabel="Back to Admissions List"
         actions={
           <Link
-            href={`/dashboard/administration/admission/details/${studentId}/admissions/${admId}/edit`}
+            href={`/dashboard/administration/admission/${studentId}/admissions/${admId}/edit`}
           >
             <Button
               className="h-10 rounded-2xl px-4 font-semibold text-sm flex items-center gap-1.5 shadow-sm text-white hover:opacity-90 transition"

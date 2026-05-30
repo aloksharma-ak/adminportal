@@ -34,7 +34,7 @@ export default function AdmissionsGrid({
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             <Link
-              href={`/dashboard/administration/admission/details/${studentId}/admissions/${row.original.admissionId}`}
+              href={`/dashboard/administration/admission/${studentId}/admissions/${row.original.admissionId}`}
               className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"
               title="View Admission Details"
             >

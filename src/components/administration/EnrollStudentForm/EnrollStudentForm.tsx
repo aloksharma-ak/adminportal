@@ -233,9 +233,9 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
       if (!res?.status) throw new Error(res?.message || "Failed");
       toast.success(res?.message || (isEditing ? "Student updated!" : "Student enrolled!"), { id: tId });
       if (isEditing) {
-        router.push(`/dashboard/administration/admission/details/${studentId}`);
+        router.push(`/dashboard/administration/admission/${studentId}`);
       } else {
-        router.push("/dashboard/administration/admission/details");
+        router.push("/dashboard/administration/admission");
       }
       router.refresh();
     } catch (e) {

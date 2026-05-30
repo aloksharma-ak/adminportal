@@ -46,7 +46,7 @@ export default async function EditStudentPage({ params }: Props) {
 
       classOptions = master.data.classMasters.map((c) => ({
         classId: c.id,
-        className: c.classText, // use classText like "1-A"
+        className: c.classText,
       }));
 
       categoryOptions = master.data.cateogryMaster ?? [];
