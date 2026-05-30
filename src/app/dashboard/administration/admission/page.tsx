@@ -8,6 +8,8 @@ import { PageHeader } from "@/components/shared-ui/PageHeader";
 import { LinkButton } from "@/components/controls/Buttons";
 import { UserPlus } from "lucide-react";
 
+import { Container } from "@/components";
+
 export default async function AdmissionPage() {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/auth/login");
@@ -16,7 +18,10 @@ export default async function AdmissionPage() {
   let fetchError: string | null = null;
 
   try {
-    students = await getStudentsByOrgId(session.user.orgId, session.user.profileId);
+    students = await getStudentsByOrgId(
+      session.user.orgId,
+      session.user.profileId,
+    );
   } catch (err) {
     fetchError = err instanceof Error ? err.message : "Failed to load students";
   }
@@ -24,7 +29,7 @@ export default async function AdmissionPage() {
   const brandColor = session.user.brandColor ?? "#3b82f6";
 
   return (
-    <div className="w-full space-y-6">
+    <Container className="py-6">
       <PageHeader
         title="Admission"
         description="Manage student enrolments and records"
@@ -44,6 +49,6 @@ export default async function AdmissionPage() {
       ) : (
         <StudentsGrid data={students} brandColor={brandColor} />
       )}
-    </div>
+    </Container>
   );
 }

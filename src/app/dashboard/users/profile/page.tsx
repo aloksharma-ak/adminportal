@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/shared-ui/PageHeader";
 import { ErrorCard } from "@/components/shared-ui/States";
 import { Mail, CreditCard, Shield, Home, MapPin, Pencil } from "lucide-react";
 import Link from "next/link";
+import { Container } from "@/components";
 
 function Field({ label, value }: { label: string; value?: React.ReactNode }) {
   return (
@@ -53,7 +54,7 @@ export default async function ProfilePage() {
     : (session.user.userName ?? "My Profile");
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
+    <Container className="max-w-5xl py-6">
       <PageHeader
         title="My Profile"
         description="Your personal account information"
@@ -295,6 +296,6 @@ export default async function ProfilePage() {
           </div>
         </div>
       )}
-    </div>
+    </Container>
   );
 }

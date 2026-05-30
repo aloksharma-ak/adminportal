@@ -22,6 +22,8 @@ import {
   Pencil,
 } from "lucide-react";
 
+import { Container } from "@/components";
+
 type PageProps = {
   params: Promise<{ id: string; admissionId: string }>;
 };
@@ -75,7 +77,7 @@ export default async function AdmissionDetailPage({ params }: PageProps) {
 
   if (errorMsg) {
     return (
-      <div className="">
+      <Container className="py-8">
         <PageHeader
           title="Admission Detail"
           backLabel="Back to Admissions"
@@ -83,7 +85,7 @@ export default async function AdmissionDetailPage({ params }: PageProps) {
         <div className="mt-6">
           <ErrorCard message={errorMsg} />
         </div>
-      </div>
+      </Container>
     );
   }
 
@@ -95,7 +97,7 @@ export default async function AdmissionDetailPage({ params }: PageProps) {
   const isEnrolled = admission.status?.toLowerCase() === "enrolled";
 
   return (
-    <div className="">
+    <Container className="py-8">
       <PageHeader
         title={`Admission Record Details`}
         description={`Reference ID: #${admId}`}
@@ -287,6 +289,6 @@ export default async function AdmissionDetailPage({ params }: PageProps) {
           </Card>
         </div>
       </div>
-    </div>
+    </Container>
   );
 }

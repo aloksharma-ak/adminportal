@@ -9,6 +9,7 @@ import { Pencil, Mail, Phone, CreditCard, Shield, Home, MapPin } from "lucide-re
 import { PageHeader } from "@/components/shared-ui/PageHeader";
 import { Avatar } from "@/components/shared-ui/Avatar";
 import { ErrorCard } from "@/components/shared-ui/States";
+import { Container } from "@/components";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -53,7 +54,7 @@ export default async function EmployeeDetailPage({ params }: Props) {
   const fullName = emp ? [emp.firstName, emp.middleName, emp.lastName].filter(Boolean).join(" ") : "";
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <Container className="py-8">
       <PageHeader
         title={fullName || "Employee Details"}
         description={emp?.role?.roleName}
@@ -241,6 +242,6 @@ export default async function EmployeeDetailPage({ params }: Props) {
           </div>
         </div>
       )}
-    </div>
+    </Container>
   );
 }

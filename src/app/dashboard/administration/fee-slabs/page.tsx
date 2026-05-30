@@ -5,6 +5,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { Card, CardContent } from "@/components/ui/Card";
 import { ReceiptText, Coins, Truck, type LucideIcon } from "lucide-react";
 import { PageHeader } from "@/components/shared-ui/PageHeader";
+import { Container } from "@/components";
 
 const tiles: {
   href: string;
@@ -41,7 +42,7 @@ export default async function FeeSlabsPage() {
   if (!session) redirect("/auth/login");
 
   return (
-    <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+    <Container className="py-8">
       <PageHeader
         title="Fee Slabs"
         description="Configure various charges and fee structures"
@@ -71,6 +72,6 @@ export default async function FeeSlabsPage() {
           </Link>
         ))}
       </div>
-    </section>
+    </Container>
   );
 }

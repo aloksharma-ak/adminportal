@@ -109,6 +109,16 @@ const getColumns = (brandColor?: string): ColumnDef<Student>[] => [
       );
     },
   },
+  {
+    accessorKey: "fatherName",
+    header: "Father's Name",
+    cell: ({ getValue }) => getValue<string>() || "",
+  },
+  {
+    accessorKey: "motherName",
+    header: "Mother's Name",
+    cell: ({ getValue }) => getValue<string>() || "",
+  },
 ];
 
 export default function StudentsGrid({

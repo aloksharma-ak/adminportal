@@ -217,18 +217,24 @@ export async function getAdmissionMasterData(params: {
   const orgId = Number(params.orgId);
   if (!Number.isFinite(orgId) || orgId <= 0)
     throw new Error("Invalid organisation ID");
-  return post<ApiResponse<AdmissionMasterData>>(
-    "/api/MasterData/Get",
-    { ...(await reqMeta(params.userId)), orgId },
-  );
+  return post<ApiResponse<AdmissionMasterData>>("/api/MasterData/Get", {
+    ...(await reqMeta(params.userId)),
+    orgId,
+  });
 }
 
 // Student APIs
-export async function getStudentsByOrgId(orgId: number, userId?: number) {
+export async function getStudentsByOrgId(
+  orgId: number,
+  userId?: number,
+  isActive?: boolean,
+  searchText?: string,
+) {
   const data = await post<ApiResponse<Student[]>>("/api/Student/GetStudents", {
     ...(await reqMeta(userId)),
     orgId,
-    isActive: true,
+    isActive: isActive ?? true,
+    searchText: searchText ?? "",
   });
   return Array.isArray(data?.data) ? data.data : [];
 }
@@ -256,7 +262,10 @@ export async function getStudentDetail(params: {
   });
 }
 
-export async function enrollStudent(params: { payload: EnrollStudentPayload; userId?: number }) {
+export async function enrollStudent(params: {
+  payload: EnrollStudentPayload;
+  userId?: number;
+}) {
   const parsed = EnrollStudentSchema.safeParse(params.payload);
   if (!parsed.success) {
     throw new Error(parsed.error.issues[0]?.message ?? "Invalid student data");

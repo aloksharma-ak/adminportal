@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getAdmissionMasterData } from "@/app/dashboard/administration/actions";
 import { PageHeader } from "@/components/shared-ui/PageHeader";
 import TransportChargeForm from "@/components/administration/fee-slabs/TransportChargeForm";
+import { Container } from "@/components";
 
 export default async function AddTransportChargePage() {
   const session = await getServerSession(authOptions);
@@ -26,7 +27,7 @@ export default async function AddTransportChargePage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <Container className="py-8">
       <PageHeader
         title="Add Transport Charge"
         description="Define a new distance-based transport charge"
@@ -37,6 +38,6 @@ export default async function AddTransportChargePage() {
         brandColor={session.user.brandColor}
         frequencyOptions={frequencyOptions}
       />
-    </div>
+    </Container>
   );
 }

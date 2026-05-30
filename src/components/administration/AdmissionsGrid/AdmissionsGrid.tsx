@@ -71,21 +71,6 @@ export default function AdmissionsGrid({
         ),
       },
       {
-        accessorKey: "class",
-        header: "Class Enrolled",
-        cell: ({ getValue }) => (
-          <div className="flex items-center gap-2">
-            <GraduationCap className="h-4 w-4 text-slate-400 shrink-0" />
-            <Badge
-              variant="outline"
-              className="border-slate-200 bg-slate-50 font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
-            >
-              Class {getValue<string>() || "—"}
-            </Badge>
-          </div>
-        ),
-      },
-      {
         accessorKey: "admissionDate",
         header: "Admission Date",
         cell: ({ getValue }) => {
@@ -104,27 +89,19 @@ export default function AdmissionsGrid({
         },
       },
       {
-        accessorKey: "isIncludeTransport",
-        header: "Transport Included",
-        cell: ({ getValue }) => {
-          const val = Boolean(getValue());
-          return val ? (
+        accessorKey: "class",
+        header: "Class Enrolled",
+        cell: ({ getValue }) => (
+          <div className="flex items-center gap-2">
+            <GraduationCap className="h-4 w-4 text-slate-400 shrink-0" />
             <Badge
-              className="inline-flex items-center gap-1 border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/30 dark:bg-emerald-950/20 dark:text-emerald-400"
               variant="outline"
+              className="border-slate-200 bg-slate-50 font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
             >
-              <Truck className="h-3.5 w-3.5" />
-              Yes
+              Class {getValue<string>() || "—"}
             </Badge>
-          ) : (
-            <Badge
-              className="inline-flex items-center gap-1 border-slate-200 bg-slate-50 text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
-              variant="outline"
-            >
-              No
-            </Badge>
-          );
-        },
+          </div>
+        ),
       },
       {
         accessorKey: "status",
@@ -143,6 +120,54 @@ export default function AdmissionsGrid({
             >
               {val || "—"}
             </Badge>
+          );
+        },
+      },
+      {
+        accessorKey: "totalEstimateFee",
+        header: "Total Estimate Fee",
+        cell: ({ getValue }) => {
+          const val = getValue<number>();
+          return (
+            <span className="text-slate-600 dark:text-slate-400 font-medium">
+              {typeof val === "number" ? `₹${val}` : "—"}
+            </span>
+          );
+        },
+      },
+      {
+        accessorKey: "totalFeeAmount",
+        header: "Total Fee Amount",
+        cell: ({ getValue }) => {
+          const val = getValue<number>();
+          return (
+            <span className="text-slate-600 dark:text-slate-400 font-medium">
+              {typeof val === "number" ? `₹${val}` : "—"}
+            </span>
+          );
+        },
+      },
+      {
+        accessorKey: "totalPaidFeeAmount",
+        header: "Total Paid Fee Amount",
+        cell: ({ getValue }) => {
+          const val = getValue<number>();
+          return (
+            <span className="text-slate-600 dark:text-slate-400 font-medium">
+              {typeof val === "number" ? `₹${val}` : "—"}
+            </span>
+          );
+        },
+      },
+      {
+        accessorKey: "totalPendingFeeAmount",
+        header: "Total Pending Fee Amount",
+        cell: ({ getValue }) => {
+          const val = getValue<number>();
+          return (
+            <span className="text-slate-600 dark:text-slate-400 font-medium">
+              {typeof val === "number" ? `₹${val}` : "—"}
+            </span>
           );
         },
       },

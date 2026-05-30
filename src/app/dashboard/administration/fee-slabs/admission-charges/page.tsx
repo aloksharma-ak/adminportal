@@ -9,6 +9,7 @@ import { ErrorCard } from "@/components/shared-ui/States";
 import { LinkButton } from "@/components/controls/Buttons";
 import { Plus } from "lucide-react";
 import AdmissionChargesGrid from "@/components/administration/fee-slabs/AdmissionChargesGrid";
+import { Container } from "@/components";
 
 export default async function AdmissionChargesPage() {
   const session = await getServerSession(authOptions);
@@ -41,7 +42,7 @@ export default async function AdmissionChargesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+    <Container className="py-6">
       <PageHeader
         title="Admission Charges"
         description="View and manage admission related charges"
@@ -66,6 +67,6 @@ export default async function AdmissionChargesPage() {
           frequencyOptions={frequencyOptions}
         />
       )}
-    </div>
+    </Container>
   );
 }

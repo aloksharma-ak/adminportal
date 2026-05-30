@@ -7,6 +7,7 @@ import { ErrorCard } from "@/components/shared-ui/States";
 import { LinkButton } from "@/components/controls/Buttons";
 import { Plus } from "lucide-react";
 import TransportChargesGrid from "@/components/administration/fee-slabs/TransportChargesGrid";
+import { Container } from "@/components";
 
 export default async function TransportChargesPage() {
   const session = await getServerSession(authOptions);
@@ -35,7 +36,7 @@ export default async function TransportChargesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+    <Container className="py-6">
       <PageHeader
         title="Transport Charges"
         description="View and manage distance-based transport charges"
@@ -60,6 +61,6 @@ export default async function TransportChargesPage() {
           frequencyOptions={frequencyOptions}
         />
       )}
-    </div>
+    </Container>
   );
 }

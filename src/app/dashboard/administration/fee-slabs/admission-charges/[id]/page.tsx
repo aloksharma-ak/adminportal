@@ -7,6 +7,7 @@ import { ErrorCard } from "@/components/shared-ui/States";
 import { AdmissionChargeDetails } from "@/components/administration/fee-slabs/DetailsView";
 import Link from "next/link";
 import { Pencil } from "lucide-react";
+import { Container } from "@/components";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -47,7 +48,7 @@ export default async function ViewAdmissionChargePage({ params }: Props) {
   const brandColor = session.user.brandColor ?? undefined;
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <Container className="py-8">
       <PageHeader
         title={charge ? charge.chargeName : "Charge Details"}
         description="View details of this admission charge"
@@ -73,6 +74,6 @@ export default async function ViewAdmissionChargePage({ params }: Props) {
           frequencyOptions={frequencyOptions}
         />
       )}
-    </div>
+    </Container>
   );
 }

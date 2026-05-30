@@ -7,6 +7,7 @@ import { LinkButton } from "@/components/controls/Buttons";
 import { UserPlus } from "lucide-react";
 import { PageHeader } from "@/components/shared-ui/PageHeader";
 import { ErrorCard } from "@/components/shared-ui/States";
+import { Container } from "@/components";
 
 export default async function EmployeesPage() {
   const session = await getServerSession(authOptions);
@@ -27,7 +28,7 @@ export default async function EmployeesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+    <Container className="py-6">
       <PageHeader
         title="Employees"
         description="View, edit and manage all staff members"
@@ -51,6 +52,6 @@ export default async function EmployeesPage() {
           brandColor={session.user.brandColor}
         />
       )}
-    </div>
+    </Container>
   );
 }

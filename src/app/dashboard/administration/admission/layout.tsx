@@ -10,10 +10,8 @@ export default async function AdmissionLayout({
   if (!session) redirect("/auth/login");
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-6">
-      <div className="w-full">
-        {children}
-      </div>
+    <div className="w-full space-y-6">
+      {children}
     </div>
   );
 }

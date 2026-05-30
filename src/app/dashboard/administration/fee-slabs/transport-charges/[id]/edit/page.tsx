@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/shared-ui/PageHeader";
 import { ErrorCard } from "@/components/shared-ui/States";
 import TransportChargeForm from "@/components/administration/fee-slabs/TransportChargeForm";
 import { getTransportChargeDetail, getAdmissionMasterData } from "@/app/dashboard/administration/actions";
+import { Container } from "@/components";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -46,7 +47,7 @@ export default async function EditTransportChargePage({ params }: Props) {
   }
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <Container className="py-8">
       <PageHeader
         title="Edit Transport Charge"
         description="Update details for the transport charge"
@@ -62,6 +63,6 @@ export default async function EditTransportChargePage({ params }: Props) {
           frequencyOptions={frequencyOptions}
         />
       )}
-    </div>
+    </Container>
   );
 }

@@ -5,6 +5,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { Card, CardContent } from "@/components/ui/Card";
 import { ShieldCheck, UserPlus, Users, type LucideIcon } from "lucide-react";
 import { PageHeader } from "@/components/shared-ui/PageHeader";
+import { Container } from "@/components";
 
 const tiles: {
   href: string;
@@ -41,7 +42,7 @@ export default async function UsersPage() {
   if (!session) redirect("/auth/login");
 
   return (
-    <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+    <Container className="py-8">
       <PageHeader
         title="Users"
         description="Manage employees and account settings"
@@ -60,7 +61,7 @@ export default async function UsersPage() {
                 </div>
                 <div>
                   <p className="font-semibold text-slate-900 dark:text-slate-100">
-                    {title}
+                     {title}
                   </p>
                   <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                     {description}
@@ -71,6 +72,6 @@ export default async function UsersPage() {
           </Link>
         ))}
       </div>
-    </section>
+    </Container>
   );
 }

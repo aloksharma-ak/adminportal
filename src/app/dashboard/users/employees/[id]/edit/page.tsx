@@ -5,6 +5,7 @@ import { redirect, notFound } from "next/navigation";
 import EditEmployeeForm from "@/components/users/EditEmployeeForm";
 import { PageHeader } from "@/components/shared-ui/PageHeader";
 import { ErrorCard } from "@/components/shared-ui/States";
+import { Container } from "@/components";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -57,7 +58,7 @@ export default async function EditEmployeePage({ params }: Props) {
     : "Employee";
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <Container className="py-8">
       <PageHeader
         title={`Edit: ${fullName}`}
         description="Update employee information"
@@ -75,6 +76,6 @@ export default async function EditEmployeePage({ params }: Props) {
           employee={employee}
         />
       )}
-    </div>
+    </Container>
   );
 }

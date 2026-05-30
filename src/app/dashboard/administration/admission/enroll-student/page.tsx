@@ -6,6 +6,8 @@ import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/shared-ui/PageHeader";
 import { ErrorCard } from "@/components/shared-ui/States";
 
+import { Container } from "@/components";
+
 export default async function EnrollStudentPage() {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/auth/login");
@@ -27,7 +29,7 @@ export default async function EnrollStudentPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <Container className="py-8">
       <PageHeader
         title="Enroll Student"
         description="Register a new student into the organisation"
@@ -41,6 +43,6 @@ export default async function EnrollStudentPage() {
         classOptions={classOptions}
         categoryOptions={categoryOptions}
       />
-    </div>
+    </Container>
   );
 }

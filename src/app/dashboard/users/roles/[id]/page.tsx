@@ -10,6 +10,7 @@ import { notFound, redirect } from "next/navigation";
 import { PageHeader } from "@/components/shared-ui/PageHeader";
 import { ErrorCard } from "@/components/shared-ui/States";
 import RolePermissionsEditor from "@/components/users/roles/RolePermissionsEditor";
+import { Container } from "@/components";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -74,7 +75,7 @@ export default async function RoleDetailPage({ params }: PageProps) {
   // because we want to see the editor even if a role has no permissions yet.
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+    <Container className="py-6">
       <PageHeader
         title="Role Permissions"
         description="Manage which permissions are enabled for this role"
@@ -91,6 +92,6 @@ export default async function RoleDetailPage({ params }: PageProps) {
           brandColor={session.user.brandColor}
         />
       )}
-    </div>
+    </Container>
   );
 }

@@ -8,6 +8,8 @@ import { PageHeader } from "@/components/shared-ui/PageHeader";
 import { ErrorCard } from "@/components/shared-ui/States";
 import StudentDetails from "@/components/administration/StudentDetails";
 
+import { Container } from "@/components";
+
 type PageProps = { params: Promise<{ id: string }> };
 
 export default async function StudentDetailPage({ params }: PageProps) {
@@ -34,7 +36,7 @@ export default async function StudentDetailPage({ params }: PageProps) {
   const brandColor = session.user.brandColor ?? undefined;
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <Container className="py-8">
       <PageHeader
         title={student ? `${student.firstName ?? ""} ${student.lastName ?? ""}`.trim() || "Student Details" : "Student Details"}
         backLabel="Back to Admission"
@@ -63,6 +65,6 @@ export default async function StudentDetailPage({ params }: PageProps) {
 
       {fetchError && <ErrorCard message={fetchError} />}
       {student && <StudentDetails student={student} brandColor={brandColor} />}
-    </div>
+    </Container>
   );
 }

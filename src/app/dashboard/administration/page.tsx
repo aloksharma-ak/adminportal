@@ -5,6 +5,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/auth";
 import { Card, CardContent } from "@/components/ui/Card";
 import { GraduationCap, Wallet, type LucideIcon } from "lucide-react";
 import { PageHeader } from "@/components/shared-ui/PageHeader";
+import { Container } from "@/components";
 
 const tiles: {
   href: string;
@@ -34,7 +35,7 @@ export default async function AdministrationPage() {
   if (!session) redirect("/auth/login");
 
   return (
-    <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+    <Container className="py-8">
       <PageHeader
         title="Administration"
         description="Manage school operations and financial configurations"
@@ -64,6 +65,6 @@ export default async function AdministrationPage() {
           </Link>
         ))}
       </div>
-    </section>
+    </Container>
   );
 }
