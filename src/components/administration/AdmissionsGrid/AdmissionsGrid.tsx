@@ -5,7 +5,14 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/Badge";
 import { DataGrid } from "@/components/controls/DataGrid";
 import type { StudentAdmission } from "@/app/dashboard/administration/actions";
-import { Calendar, GraduationCap, Truck, Eye } from "lucide-react";
+import {
+  Calendar,
+  GraduationCap,
+  Truck,
+  Eye,
+  Pencil,
+  IndianRupee,
+} from "lucide-react";
 import Link from "next/link";
 
 type AdmissionsGridProps = {
@@ -39,6 +46,20 @@ export default function AdmissionsGrid({
               title="View Admission Details"
             >
               <Eye className="h-4 w-4" />
+            </Link>
+            <Link
+              href={`/dashboard/administration/admission/${studentId}/admissions/${row.original.admissionId}/edit`}
+              className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"
+              title="Edit Admission Details"
+            >
+              <Pencil className="h-4 w-4" />
+            </Link>
+            <Link
+              href={`/dashboard/administration/admission/${studentId}/admissions/${row.original.admissionId}/fees`}
+              className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"
+              title="Fee Details"
+            >
+              <IndianRupee className="h-4 w-4" />
             </Link>
           </div>
         ),
@@ -187,8 +208,6 @@ export default function AdmissionsGrid({
 
   return (
     <DataGrid
-      title="Admission Records"
-      subtitle="Manage and view academic registrations"
       data={admissions}
       columns={columns}
       brandColor={brandColor}

@@ -9,7 +9,8 @@ import {
 import { PageHeader } from "@/components/shared-ui/PageHeader";
 import { ErrorCard, EmptyState } from "@/components/shared-ui/States";
 import AdmissionsGrid from "@/components/administration/AdmissionsGrid/AdmissionsGrid";
-import { Container } from "@/components";
+import { Container, LinkButton } from "@/components";
+import { ClipboardPlus } from "lucide-react";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -82,6 +83,15 @@ export default async function StudentAdmissionsPage({ params }: Props) {
         title={`${studentName} - Admission Records`}
         description="View past and current academic enrollment records"
         backLabel="Back to Student Details"
+        actions={
+          <LinkButton
+            color={brandColor}
+            href={`/dashboard/administration/admission/${studentId}/admissions/add-admission`}
+            leftIcon={<ClipboardPlus className="h-4 w-4" />}
+          >
+            Add Admission
+          </LinkButton>
+        }
       />
 
       <div className="mt-8">
