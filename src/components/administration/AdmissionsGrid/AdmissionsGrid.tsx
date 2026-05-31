@@ -55,7 +55,7 @@ export default function AdmissionsGrid({
               <Pencil className="h-4 w-4" />
             </Link>
             <Link
-              href={`/dashboard/administration/admission/${studentId}/admissions/${row.original.admissionId}/fees`}
+              href={`/dashboard/administration/admission/${studentId}/admissions/${row.original.admissionId}/fee-structure`}
               className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"
               title="Fee Details"
             >
