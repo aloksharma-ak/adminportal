@@ -20,6 +20,9 @@ import {
   Landmark,
   User,
   Pencil,
+  Percent,
+  IndianRupee,
+  Repeat,
 } from "lucide-react";
 
 import { Container } from "@/components";
@@ -92,6 +95,14 @@ export default async function AdmissionDetailPage({ params }: PageProps) {
   const studentName =
     `${student.firstName ?? ""} ${student.lastName ?? ""}`.trim() || "Student";
   const isEnrolled = admission.status?.toLowerCase() === "enrolled";
+  const estimateFee =
+    typeof admission.estimateFeeAmount === "number"
+      ? new Intl.NumberFormat("en-IN", {
+          style: "currency",
+          currency: "INR",
+          maximumFractionDigits: 0,
+        }).format(admission.estimateFeeAmount)
+      : "â€”";
 
   return (
     <Container className="py-8">
@@ -217,6 +228,38 @@ export default async function AdmissionDetailPage({ params }: PageProps) {
                     {admission.status || "—"}
                   </Badge>
                 </div>
+              </div>
+
+              <div className="space-y-1">
+                <span className="block text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                  Default Frequency
+                </span>
+                <span className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                  <Repeat className="h-4 w-4 text-slate-400 shrink-0" />
+                  {admission.defaultFrequency || "â€”"}
+                </span>
+              </div>
+
+              <div className="space-y-1">
+                <span className="block text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                  Default Discount
+                </span>
+                <span className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                  <Percent className="h-4 w-4 text-slate-400 shrink-0" />
+                  {typeof admission.defaultDiscountPrecentage === "number"
+                    ? `${admission.defaultDiscountPrecentage}%`
+                    : "â€”"}
+                </span>
+              </div>
+
+              <div className="space-y-1">
+                <span className="block text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                  Estimate Fee Amount
+                </span>
+                <span className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                  <IndianRupee className="h-4 w-4 text-slate-400 shrink-0" />
+                  {estimateFee}
+                </span>
               </div>
             </div>
           </CardContent>

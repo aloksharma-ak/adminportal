@@ -85,9 +85,14 @@ export type Student = {
   studentId: number;
   firstName: string;
   lastName: string;
-  enrolledClass: string | null;
   isActive: boolean;
   initials: string;
+  fatherName: string | null;
+  motherName: string | null;
+  currentAdmissionStatus: string;
+  enrolledClass: string | null;
+  enrolledClassId: number | null;
+  currentAdmissionId: number;
   profilePicture?: string | null;
 };
 
@@ -228,12 +233,14 @@ export async function getStudentsByOrgId(
   orgId: number,
   userId?: number,
   isActive?: boolean,
+  classId?: number,
   searchText?: string,
 ) {
   const data = await post<ApiResponse<Student[]>>("/api/Student/GetStudents", {
     ...(await reqMeta(userId)),
     orgId,
     isActive: isActive ?? true,
+    classId: classId ?? 0,
     searchText: searchText ?? "",
   });
   return Array.isArray(data?.data) ? data.data : [];
@@ -400,8 +407,12 @@ export type StudentAdmission = {
   studentName: string;
   academicYear: string;
   admissionDate: string;
+  defaultFrequency?: string;
   class: string;
   status: string;
+  defaultFrequencyId?: number;
+  defaultDiscountPrecentage?: number;
+  estimateFeeAmount?: number;
   isIncludeTransport: boolean;
   isActive: boolean;
 };
@@ -471,20 +482,61 @@ export type ModifyAdmissionPayload = {
   academicYear: string;
   classId: number;
   statusId: number;
+  defaultFrequencyId: number;
+  defaultDiscountPrecentage: number;
+  estimateFeeAmount: number;
   isIncludeTransport: boolean;
   distanceFromSchool: number;
   isActive: boolean;
 };
+
+export type CalculateEstimateFeePayload = {
+  frequencyId: number;
+  defaultDiscountPercentage: number;
+  orgId: number;
+  classId: number;
+};
+
+export type CalculateEstimateFeeResponse = {
+  totalFee: number;
+};
+
+export async function calculateEstimateFee(params: {
+  payload: CalculateEstimateFeePayload;
+  userId?: number;
+}) {
+  const meta = await reqMeta(params.userId);
+  return post<ApiResponse<CalculateEstimateFeeResponse>>(
+    "/api/Admissions/CalculateEstimateFee",
+    {
+      requestGuid: meta.requestGuid,
+      requestTime: meta.requestTime,
+      userId: meta.userId,
+      ...params.payload,
+    },
+  );
+}
 
 export async function modifyAdmission(params: {
   payload: ModifyAdmissionPayload;
   userId?: number;
 }) {
   const meta = await reqMeta(params.userId);
-  return post<ApiResponse<unknown>>("/api/Admissions/ModifyAdmission", {
+  const res = await post<ApiResponse<unknown>>("/api/Admissions/ModifyAdmission", {
     requestGuid: meta.requestGuid,
     requestTime: meta.requestTime,
     userId: meta.userId,
     ...params.payload,
   });
+
+  revalidatePath(
+    `/dashboard/administration/admission/${params.payload.studentId}/admissions`,
+  );
+  if (params.payload.admissionId > 0) {
+    revalidatePath(
+      `/dashboard/administration/admission/${params.payload.studentId}/admissions/${params.payload.admissionId}`,
+    );
+  }
+
+  return res;
 }

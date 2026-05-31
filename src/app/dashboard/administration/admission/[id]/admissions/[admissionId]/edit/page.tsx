@@ -7,6 +7,7 @@ import {
   getAdmissionMasterData,
   ClassMaster,
   AdmissionStatusMaster,
+  FrequencyMaster,
 } from "@/app/dashboard/administration/actions";
 import { PageHeader } from "@/components/shared-ui/PageHeader";
 import { ErrorCard } from "@/components/shared-ui/States";
@@ -33,6 +34,7 @@ export default async function EditAdmissionPage({ params }: PageProps) {
   let admission;
   let classMasters: ClassMaster[] = [];
   let admissionStatusMasters: AdmissionStatusMaster[] = [];
+  let frequencyMasters: FrequencyMaster[] = [];
   let errorMsg: string | null = null;
 
   try {
@@ -60,6 +62,7 @@ export default async function EditAdmissionPage({ params }: PageProps) {
         admission = detailRes?.data?.admission;
         classMasters = masterRes?.data?.classMasters ?? [];
         admissionStatusMasters = masterRes?.data?.admissionStatusMasters ?? [];
+        frequencyMasters = masterRes?.data?.frequencyMasters ?? [];
 
         if (!admission) {
           errorMsg = `Admission reference #${admId} not found.`;
@@ -112,6 +115,7 @@ export default async function EditAdmissionPage({ params }: PageProps) {
           admission={admission}
           classMasters={classMasters}
           admissionStatusMasters={admissionStatusMasters}
+          frequencyMasters={frequencyMasters}
           brandColor={brandColor}
         />
       </div>

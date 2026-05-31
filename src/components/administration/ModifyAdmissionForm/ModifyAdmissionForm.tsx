@@ -3,24 +3,51 @@
 import * as React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { toast } from "sonner";
-import { Calendar, GraduationCap, Truck, Shield, Activity, HelpCircle } from "lucide-react";
+import {
+  Calculator,
+  Calendar,
+  GraduationCap,
+  IndianRupee,
+  Percent,
+  Truck,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { getErrorMessage } from "@/app/dashboard/utils";
 
 import { InputField } from "@/components/controls/InputField";
-import { DropdownFilter, type DropdownOption } from "@/components/controls/DropdownFilter";
+import {
+  DropdownFilter,
+  type DropdownOption,
+} from "@/components/controls/DropdownFilter";
 import { ToggleControl } from "@/components/controls/ToggleControl";
 import { ActionButton } from "@/components/controls/Buttons";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
-import type { StudentAdmission, ClassMaster, AdmissionStatusMaster } from "@/app/dashboard/administration/actions";
-import { modifyAdmission } from "@/app/dashboard/administration/actions";
+import type {
+  AdmissionStatusMaster,
+  ClassMaster,
+  FrequencyMaster,
+  StudentAdmission,
+} from "@/app/dashboard/administration/actions";
+import {
+  calculateEstimateFee,
+  modifyAdmission,
+} from "@/app/dashboard/administration/actions";
 
 type FormValues = {
   academicYear: string;
   classId: string;
   statusId: string;
+  defaultFrequencyId: string;
+  defaultDiscountPrecentage: number;
+  estimateFeeAmount: number;
   isIncludeTransport: boolean;
   distanceFromSchool: number;
   isActive: boolean;
@@ -29,23 +56,29 @@ type FormValues = {
 type Props = {
   orgId: number;
   studentId: number;
-  admission: StudentAdmission;
+  admission?: Partial<StudentAdmission>;
   classMasters: ClassMaster[];
   admissionStatusMasters: AdmissionStatusMaster[];
+  frequencyMasters: FrequencyMaster[];
   brandColor?: string;
+  mode?: "create" | "edit";
 };
 
 export default function ModifyAdmissionForm({
   orgId,
   studentId,
-  admission,
+  admission = {},
   classMasters = [],
   admissionStatusMasters = [],
+  frequencyMasters = [],
   brandColor,
+  mode = "edit",
 }: Props) {
   const router = useRouter();
   const { data: session } = useSession();
   const [loading, setLoading] = React.useState(false);
+  const [calculatingFee, setCalculatingFee] = React.useState(false);
+  const isCreateMode = mode === "create";
 
   // Map backend classes to Dropdown options
   const classDropdownOptions: DropdownOption[] = React.useMemo(
@@ -67,12 +100,22 @@ export default function ModifyAdmissionForm({
     [admissionStatusMasters],
   );
 
+  const frequencyDropdownOptions: DropdownOption[] = React.useMemo(
+    () =>
+      frequencyMasters.map((f) => ({
+        value: String(f.id),
+        label: f.name,
+      })),
+    [frequencyMasters],
+  );
+
   // Auto-resolve initial classId and statusId from their text representations
   const resolvedClassId = React.useMemo(() => {
     const matched = classMasters.find(
       (c) =>
         c.classText?.toLowerCase() === admission.class?.toLowerCase() ||
-        `${c.grade}-${c.section}`.toLowerCase() === admission.class?.toLowerCase(),
+        `${c.grade}-${c.section}`.toLowerCase() ===
+          admission.class?.toLowerCase(),
     );
     return matched ? String(matched.id) : "";
   }, [classMasters, admission.class]);
@@ -90,18 +133,77 @@ export default function ModifyAdmissionForm({
       academicYear: admission.academicYear ?? "",
       classId: resolvedClassId,
       statusId: resolvedStatusId,
+      defaultFrequencyId: admission.defaultFrequencyId
+        ? String(admission.defaultFrequencyId)
+        : "",
+      defaultDiscountPrecentage: admission.defaultDiscountPrecentage ?? 0,
+      estimateFeeAmount: admission.estimateFeeAmount ?? 0,
       isIncludeTransport: admission.isIncludeTransport ?? false,
       distanceFromSchool: 0, // default distance
       isActive: admission.isActive ?? true,
     },
   });
 
-  const { control, handleSubmit, setValue, watch } = form;
+  const { control, getValues, handleSubmit, setValue, watch } = form;
   const isIncludeTransport = watch("isIncludeTransport");
+
+  const handleCalculateEstimateFee = async () => {
+    const values = getValues();
+    const classIdNum = Number(values.classId);
+    const frequencyIdNum = Number(values.defaultFrequencyId);
+    const discountPercentage = Number(values.defaultDiscountPrecentage) || 0;
+
+    if (!values.classId || !Number.isFinite(classIdNum) || classIdNum <= 0) {
+      toast.error("Class selection is required");
+      return;
+    }
+    if (
+      !values.defaultFrequencyId ||
+      !Number.isFinite(frequencyIdNum) ||
+      frequencyIdNum <= 0
+    ) {
+      toast.error("Default Frequency is required");
+      return;
+    }
+    if (discountPercentage < 0 || discountPercentage > 100) {
+      toast.error("Discount must be between 0 and 100");
+      return;
+    }
+
+    setCalculatingFee(true);
+    const tId = toast.loading("Calculating estimate fee...");
+    try {
+      const res = await calculateEstimateFee({
+        payload: {
+          frequencyId: frequencyIdNum,
+          defaultDiscountPercentage: discountPercentage,
+          orgId,
+          classId: classIdNum,
+        },
+        userId: session?.user?.profileId ?? 0,
+      });
+
+      if (!res?.status) {
+        throw new Error(res?.message || "Failed to calculate estimate fee");
+      }
+
+      const totalFee = Number(res.data?.totalFee) || 0;
+      setValue("estimateFeeAmount", totalFee, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+      toast.success(res?.message || "Estimate fee calculated", { id: tId });
+    } catch (e) {
+      toast.error(getErrorMessage(e), { id: tId });
+    } finally {
+      setCalculatingFee(false);
+    }
+  };
 
   const onSubmit = handleSubmit(async (v) => {
     const classIdNum = Number(v.classId);
     const statusIdNum = Number(v.statusId);
+    const defaultFrequencyIdNum = Number(v.defaultFrequencyId);
 
     if (!v.academicYear.trim()) {
       return toast.error("Academic Year is required");
@@ -112,17 +214,27 @@ export default function ModifyAdmissionForm({
     if (!v.statusId) {
       return toast.error("Admission Status is required");
     }
+    if (!v.defaultFrequencyId) {
+      return toast.error("Default Frequency is required");
+    }
 
     setLoading(true);
-    const tId = toast.loading("Updating admission records...");
+    const tId = toast.loading(
+      isCreateMode
+        ? "Adding admission record..."
+        : "Updating admission records...",
+    );
     try {
       const payload = {
-        admissionId: admission.admissionId,
+        admissionId: admission.admissionId ?? 0,
         orgId,
         studentId,
         academicYear: v.academicYear.trim(),
         classId: classIdNum,
         statusId: statusIdNum,
+        defaultFrequencyId: defaultFrequencyIdNum,
+        defaultDiscountPrecentage: Number(v.defaultDiscountPrecentage) || 0,
+        estimateFeeAmount: Number(v.estimateFeeAmount) || 0,
         isIncludeTransport: v.isIncludeTransport,
         distanceFromSchool: Number(v.distanceFromSchool) || 0,
         isActive: v.isActive,
@@ -134,11 +246,24 @@ export default function ModifyAdmissionForm({
       });
 
       if (!res?.status) {
-        throw new Error(res?.message || "Failed to modify admission details");
+        throw new Error(
+          res?.message ||
+            (isCreateMode
+              ? "Failed to add admission details"
+              : "Failed to modify admission details"),
+        );
       }
 
-      toast.success(res?.message || "Admission records updated successfully!", { id: tId });
-      router.push(`/dashboard/administration/admission/${studentId}/admissions`);
+      toast.success(
+        res?.message ||
+          (isCreateMode
+            ? "Admission record added successfully!"
+            : "Admission records updated successfully!"),
+        { id: tId },
+      );
+      router.push(
+        `/dashboard/administration/admission/${studentId}/admissions`,
+      );
       router.refresh();
     } catch (e) {
       toast.error(getErrorMessage(e), { id: tId });
@@ -152,11 +277,16 @@ export default function ModifyAdmissionForm({
       <Card className="rounded-3xl border-slate-200/70 dark:border-slate-700/70 shadow-sm bg-white dark:bg-slate-900/50">
         <CardHeader>
           <CardTitle className="text-xl font-bold flex items-center gap-2">
-            <GraduationCap className="h-6 w-6" style={{ color: brandColor ?? "#3b82f6" }} />
-            Modify Admission Record
+            <GraduationCap
+              className="h-6 w-6"
+              style={{ color: brandColor ?? "#3b82f6" }}
+            />
+            {isCreateMode ? "Add Admission Record" : "Modify Admission Record"}
           </CardTitle>
           <CardDescription>
-            Update enrollment details for admission reference #{admission.admissionId}
+            {isCreateMode
+              ? "Create a new academic enrollment record for this student"
+              : `Update enrollment details for admission reference #${admission.admissionId}`}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -222,6 +352,78 @@ export default function ModifyAdmissionForm({
                   </div>
                 )}
               />
+
+              <Controller
+                control={control}
+                name="defaultFrequencyId"
+                rules={{ required: "Default Frequency is required" }}
+                render={({ field, fieldState }) => (
+                  <div className="space-y-1.5">
+                    <DropdownFilter
+                      label="Default Frequency"
+                      value={field.value ?? ""}
+                      onChange={(val) => field.onChange(val)}
+                      placeholder="Select Default Frequency"
+                      options={frequencyDropdownOptions}
+                      className="h-11 rounded-2xl"
+                      allowClear={false}
+                    />
+                    {fieldState.error && (
+                      <p className="text-xs text-red-600 font-medium">
+                        {fieldState.error.message}
+                      </p>
+                    )}
+                  </div>
+                )}
+              />
+
+              <InputField
+                control={control}
+                name="defaultDiscountPrecentage"
+                label="Default Discount Percentage"
+                type="number"
+                placeholder="e.g. 10"
+                className="h-11 rounded-2xl"
+                leftIcon={<Percent className="h-4 w-4 text-slate-400" />}
+                rules={{
+                  validate: (v) => {
+                    const value = Number(v);
+                    return (
+                      (value >= 0 && value <= 100) ||
+                      "Discount must be between 0 and 100"
+                    );
+                  },
+                }}
+              />
+
+              <div className="space-y-2 flex items-end gap-4">
+                <InputField
+                  control={control}
+                  name="estimateFeeAmount"
+                  label="Estimate Fee Amount"
+                  type="number"
+                  placeholder="Click calculate"
+                  className="h-11 rounded-2xl"
+                  disabled
+                  leftIcon={<IndianRupee className="h-4 w-4 text-slate-400" />}
+                  rules={{
+                    validate: (v) =>
+                      Number(v) >= 0 || "Estimate fee cannot be negative",
+                  }}
+                />
+                <ActionButton
+                  type="button"
+                  variant="outline"
+                  color={brandColor ?? "blue"}
+                  loading={calculatingFee}
+                  disabled={loading || calculatingFee}
+                  onClick={handleCalculateEstimateFee}
+                  leftIcon={<Calculator className="h-4 w-4" />}
+                  className="h-11 mb-2 rounded-2xl font-semibold"
+                >
+                  Calculate Estimate Fee
+                </ActionButton>
+              </div>
 
               {/* Distance from School */}
               {isIncludeTransport && (
@@ -289,7 +491,13 @@ export default function ModifyAdmissionForm({
                 disabled={loading}
                 className="h-11 flex-1 rounded-2xl font-bold"
               >
-                {loading ? "Saving Changes..." : "Save Changes"}
+                {loading
+                  ? isCreateMode
+                    ? "Adding Admission..."
+                    : "Saving Changes..."
+                  : isCreateMode
+                    ? "Add Admission"
+                    : "Save Changes"}
               </ActionButton>
               <ActionButton
                 type="button"

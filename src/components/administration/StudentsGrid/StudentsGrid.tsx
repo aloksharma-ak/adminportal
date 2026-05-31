@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/Badge";
 import { DataGrid } from "@/components/controls/DataGrid";
@@ -36,13 +37,15 @@ const getColumns = (brandColor?: string): ColumnDef<Student>[] => [
         >
           <Pencil className="h-4 w-4" />
         </Link>
-        <Link
-          href={`/dashboard/administration/admission/${row.original.studentId}/admissions`}
-          className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"
-          title="Open"
-        >
-          <GraduationCap className="h-4 w-4" />
-        </Link>
+        {row.original.currentAdmissionId > 0 && (
+          <Link
+            href={`/dashboard/administration/admission/${row.original.studentId}/admissions`}
+            className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"
+            title="Open"
+          >
+            <GraduationCap className="h-4 w-4" />
+          </Link>
+        )}
       </div>
     ),
   },
@@ -119,45 +122,117 @@ const getColumns = (brandColor?: string): ColumnDef<Student>[] => [
     header: "Mother's Name",
     cell: ({ getValue }) => getValue<string>() || "",
   },
+  {
+    accessorKey: "enrolledClass",
+    header: "Class",
+    cell: ({ getValue }) => getValue<string>() || "",
+  },
+  {
+    accessorKey: "currentAdmissionStatus",
+    header: "Admission Status",
+    cell: ({ getValue }) => (
+      <Badge
+        variant="outline"
+        className={
+          getValue<string>()
+            ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30"
+            : "border-gray-300 bg-gray-50 text-gray-500"
+        }
+      >
+        {getValue<string>() || ""}
+      </Badge>
+    ),
+  },
 ];
 
 export default function StudentsGrid({
   data,
   brandColor,
+  classOptions,
+  initialClassId,
+  initialSearch = "",
 }: {
   data: Student[];
   brandColor?: string | null;
+  classOptions?: { label: string; value: string }[];
+  initialClassId?: string;
+  initialSearch?: string;
 }) {
-  const [search, setSearch] = React.useState("");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [search, setSearch] = React.useState(initialSearch);
+  const [classId, setClassId] = React.useState<string | undefined>(
+    initialClassId,
+  );
 
   const columns = React.useMemo(
     () => getColumns(brandColor ?? undefined),
     [brandColor],
   );
 
-  const filtered = React.useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return data;
-    return data.filter((s) => {
-      const fullName = `${s.firstName} ${s.lastName}`.toLowerCase();
-      return (
-        fullName.includes(q) ||
-        String(s.studentId).includes(q) ||
-        (s.enrolledClass ?? "").toLowerCase().includes(q) ||
-        (s.initials ?? "").toLowerCase().includes(q)
-      );
-    });
-  }, [data, search]);
+  React.useEffect(() => {
+    setSearch(initialSearch);
+  }, [initialSearch]);
+
+  React.useEffect(() => {
+    setClassId(initialClassId);
+  }, [initialClassId]);
+
+  const updateFilters = React.useCallback(
+    (nextSearch: string, nextClassId?: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      const trimmedSearch = nextSearch.trim();
+
+      if (trimmedSearch) {
+        params.set("search", trimmedSearch);
+      } else {
+        params.delete("search");
+      }
+
+      if (nextClassId) {
+        params.set("classId", nextClassId);
+      } else {
+        params.delete("classId");
+      }
+
+      const queryString = params.toString();
+      router.replace(queryString ? `${pathname}?${queryString}` : pathname);
+    },
+    [pathname, router, searchParams],
+  );
+
+  const topFilters = React.useMemo(
+    () => [
+      {
+        key: "classId",
+        label: "Class",
+        options: classOptions ?? [],
+        value: classId,
+        onChange: (value: string | undefined) => {
+          setClassId(value);
+        },
+      },
+    ],
+    [classId, classOptions],
+  );
 
   return (
     <DataGrid
       title=""
-      subtitle={`${filtered.length} of ${data.length} students`}
-      data={filtered}
+      subtitle={`${data.length} students`}
+      data={data}
       columns={columns}
       searchValue={search}
       onSearchChange={setSearch}
-      searchPlaceholder="Search by name, ID, class…"
+      searchPlaceholder="Search by name"
+      topFilters={topFilters}
+      onToolbarSearch={({ searchValue, filters }) => {
+        const nextClassId = filters.classId;
+        setSearch(searchValue);
+        setClassId(nextClassId);
+        updateFilters(searchValue, nextClassId);
+      }}
       onExport={(rows) => {
         const headers = ["ID", "First Name", "Last Name", "Class", "Status"];
         const csvRows = rows.map((s) => [
