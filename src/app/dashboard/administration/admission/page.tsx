@@ -31,7 +31,7 @@ export default async function AdmissionPage() {
   return (
     <Container className="py-6">
       <PageHeader
-        title="Admission"
+        title="Students"
         description="Manage student enrolments and records"
         backLabel="Back to Administration"
         actions={

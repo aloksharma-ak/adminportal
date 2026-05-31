@@ -85,9 +85,14 @@ export type Student = {
   studentId: number;
   firstName: string;
   lastName: string;
-  enrolledClass: string | null;
   isActive: boolean;
   initials: string;
+  fatherName: string | null;
+  motherName: string | null;
+  currentAdmissionStatus: string;
+  enrolledClass: string | null;
+  enrolledClassId: number | null;
+  currentAdmissionId: number;
   profilePicture?: string | null;
 };
 

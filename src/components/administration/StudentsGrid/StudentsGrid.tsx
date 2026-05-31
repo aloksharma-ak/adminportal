@@ -36,13 +36,15 @@ const getColumns = (brandColor?: string): ColumnDef<Student>[] => [
         >
           <Pencil className="h-4 w-4" />
         </Link>
-        <Link
-          href={`/dashboard/administration/admission/${row.original.studentId}/admissions`}
-          className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"
-          title="Open"
-        >
-          <GraduationCap className="h-4 w-4" />
-        </Link>
+        {row.original.currentAdmissionId > 0 && (
+          <Link
+            href={`/dashboard/administration/admission/${row.original.studentId}/admissions`}
+            className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"
+            title="Open"
+          >
+            <GraduationCap className="h-4 w-4" />
+          </Link>
+        )}
       </div>
     ),
   },
@@ -118,6 +120,27 @@ const getColumns = (brandColor?: string): ColumnDef<Student>[] => [
     accessorKey: "motherName",
     header: "Mother's Name",
     cell: ({ getValue }) => getValue<string>() || "",
+  },
+  {
+    accessorKey: "enrolledClass",
+    header: "Class",
+    cell: ({ getValue }) => getValue<string>() || "",
+  },
+  {
+    accessorKey: "currentAdmissionStatus",
+    header: "Admission Status",
+    cell: ({ getValue }) => (
+      <Badge
+        variant="outline"
+        className={
+          getValue<string>()
+            ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30"
+            : "border-gray-300 bg-gray-50 text-gray-500"
+        }
+      >
+        {getValue<string>() || ""}
+      </Badge>
+    ),
   },
 ];
 
