@@ -131,6 +131,55 @@ export type TransportCharge = {
   frequencyId: number;
 };
 
+export type StudentFeeLineItem = {
+  id: number;
+  headerId: number;
+  chargeId: number;
+  chargeName: string;
+  chargeType: string;
+  frequencyId: number;
+  transportSlabId: number;
+  monthsInterval: number;
+  fromMonth: number;
+  toMonth: number;
+  baseAmount: number;
+  transportAmount: number;
+  finalAmount: number;
+  paidAmount: number;
+  pendingAmount: number;
+  isActive: boolean;
+};
+
+export type StudentFee = {
+  id: number;
+  orgId: number;
+  admissionId: number;
+  studentId: number;
+  isTransportInclude: boolean;
+  distanceFromSchool: number;
+  defaultFrequencyId: number;
+  defaultDiscountPercentage: number;
+  receiptNo: string;
+  transactionDate: string;
+  totalAmount: number;
+  discountAmount: number;
+  paidAmount: number;
+  pendingAmount: number;
+  paymentMode: string;
+  remarks: string;
+  isActive: boolean;
+  feeLineItems: StudentFeeLineItem[];
+};
+
+export type ApplicableChargesParams = {
+  orgId: number;
+  grade: string;
+  includeTransport: boolean;
+  distanceFromSchool: number;
+  searchText?: string;
+  count?: number;
+};
+
 // ---------- Zod Schemas ----------
 
 const nullableString = z.preprocess(
@@ -400,6 +449,129 @@ export async function modifyTransportCharge(
   });
 }
 
+// Admission Fee APIs
+export async function getAdmissionFeeList(params: {
+  orgId: number;
+  admissionId: number;
+  userId?: number;
+}) {
+  const orgId = Number(params.orgId);
+  const admissionId = Number(params.admissionId);
+  if (!Number.isFinite(orgId) || orgId <= 0)
+    throw new Error("Invalid organisation ID");
+  if (!Number.isFinite(admissionId) || admissionId <= 0)
+    throw new Error("Invalid admission ID");
+
+  const meta = await reqMeta(params.userId);
+  let res: ApiResponse<unknown>;
+
+  try {
+    res = await post<ApiResponse<unknown>>("/api/Fee/GetAdmissionFeeList", {
+      requestGuid: meta.requestGuid,
+      requestTime: meta.requestTime,
+      userId: meta.userId,
+      admissionid: admissionId,
+      orgId,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (message.toLowerCase().includes("no fees added")) {
+      return [];
+    }
+    throw err;
+  }
+
+  return extractList<StudentFee>(res?.data, "fees");
+}
+
+export async function saveStudentFee(params: {
+  payload: StudentFee;
+  userId?: number;
+}) {
+  const meta = await reqMeta(params.userId);
+  console.log(
+    "------------------------------------->",
+    JSON.stringify(
+      {
+        requestGuid: meta.requestGuid,
+        requestTime: meta.requestTime,
+        userId: meta.userId,
+        fee: params.payload,
+      },
+      null,
+      2,
+    ),
+  );
+
+  const res = await post<ApiResponse<unknown>>("/api/Fee/AddStudentFee", {
+    requestGuid: meta.requestGuid,
+    requestTime: meta.requestTime,
+    userId: meta.userId,
+    fee: params.payload,
+  });
+
+  revalidatePath(
+    `/dashboard/administration/admission/${params.payload.studentId}/admissions/${params.payload.admissionId}/fee-structure`,
+  );
+
+  return res;
+}
+
+export async function getStudentFeeDetails(params: {
+  headerId: number;
+  orgId: number;
+  userId?: number;
+}) {
+  const headerId = Number(params.headerId);
+  const orgId = Number(params.orgId);
+  if (!Number.isFinite(headerId) || headerId <= 0)
+    throw new Error("Invalid fee header ID");
+  if (!Number.isFinite(orgId) || orgId <= 0)
+    throw new Error("Invalid organisation ID");
+
+  const meta = await reqMeta(params.userId);
+  const res = await post<ApiResponse<unknown>>("/api/Fee/GetFeeDetails", {
+    requestGuid: meta.requestGuid,
+    requestTime: meta.requestTime,
+    userId: meta.userId,
+    headerId,
+    orgId,
+  });
+
+  return extractDetail<StudentFee>(res?.data, "fee");
+}
+
+export async function getApplicableCharges(params: {
+  payload: ApplicableChargesParams;
+  userId?: number;
+}) {
+  const orgId = Number(params.payload.orgId);
+  if (!Number.isFinite(orgId) || orgId <= 0)
+    throw new Error("Invalid organisation ID");
+
+  const meta = await reqMeta(params.userId);
+  const res = await post<ApiResponse<unknown>>(
+    "/api/Fee/GetApplicableCharges",
+    {
+      requestGuid: meta.requestGuid,
+      requestTime: meta.requestTime,
+      userId: meta.userId,
+      parameters: {
+        orgId,
+        grade: params.payload.grade,
+        includeTransport: params.payload.includeTransport,
+        distanceFromSchool: Number(params.payload.distanceFromSchool) || 0,
+        searchText: params.payload.searchText ?? "",
+        count: params.payload.count ?? 10,
+      },
+    },
+  );
+
+  if (!res?.status && !res?.data) return [];
+
+  return extractList<StudentFeeLineItem>(res?.data, "feeLineItems");
+}
+
 // Student Admissions API
 export type StudentAdmission = {
   admissionId: number;
@@ -414,6 +586,7 @@ export type StudentAdmission = {
   defaultDiscountPrecentage?: number;
   estimateFeeAmount?: number;
   isIncludeTransport: boolean;
+  distanceFromSchool?: number;
   isActive: boolean;
 };
 
@@ -522,12 +695,15 @@ export async function modifyAdmission(params: {
   userId?: number;
 }) {
   const meta = await reqMeta(params.userId);
-  const res = await post<ApiResponse<unknown>>("/api/Admissions/ModifyAdmission", {
-    requestGuid: meta.requestGuid,
-    requestTime: meta.requestTime,
-    userId: meta.userId,
-    ...params.payload,
-  });
+  const res = await post<ApiResponse<unknown>>(
+    "/api/Admissions/ModifyAdmission",
+    {
+      requestGuid: meta.requestGuid,
+      requestTime: meta.requestTime,
+      userId: meta.userId,
+      ...params.payload,
+    },
+  );
 
   revalidatePath(
     `/dashboard/administration/admission/${params.payload.studentId}/admissions`,
