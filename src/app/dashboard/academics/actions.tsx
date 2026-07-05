@@ -212,16 +212,24 @@ export async function modifyAttendanceSession(params: {
   };
   userId?: number;
 }) {
-  const meta = await reqMeta(params.userId);
-  const response = await post<AcademicsApiResponse<unknown>>(
-    "/api/Attendance/ModifyAttendanceSession",
-    {
-      ...meta,
-      attendance: params.attendance,
-    },
-  );
-  revalidatePath(
-    `/dashboard/academics/classes/${params.attendance.classId}/attendance`,
-  );
-  return response;
+  try {
+    const meta = await reqMeta(params.userId);
+    const response = await post<AcademicsApiResponse<unknown>>(
+      "/api/Attendance/ModifyAttendanceSession",
+      {
+        ...meta,
+        attendance: params.attendance,
+      },
+    );
+    revalidatePath(
+      `/dashboard/academics/classes/${params.attendance.classId}/attendance`,
+    );
+    return response;
+  } catch (error) {
+    return {
+      status: false,
+      message: error instanceof Error ? error.message : String(error),
+      data: null,
+    };
+  }
 }
