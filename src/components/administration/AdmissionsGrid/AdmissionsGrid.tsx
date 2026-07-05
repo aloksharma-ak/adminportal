@@ -169,6 +169,18 @@ export default function AdmissionsGrid({
         },
       },
       {
+        accessorKey: "totalDiscountAmount",
+        header: "Total Discount Amount",
+        cell: ({ getValue }) => {
+          const val = getValue<number>();
+          return (
+            <span className="text-slate-600 dark:text-slate-400 font-medium">
+              {typeof val === "number" ? `₹${val}` : "—"}
+            </span>
+          );
+        },
+      },
+      {
         accessorKey: "totalPaidFeeAmount",
         header: "Total Paid Fee Amount",
         cell: ({ getValue }) => {

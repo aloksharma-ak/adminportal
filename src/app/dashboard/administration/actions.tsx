@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { z } from "zod";
@@ -79,6 +80,7 @@ export type AdmissionMasterData = {
   gradeMasters: GradeMaster[];
   frequencyMasters: FrequencyMaster[];
   admissionStatusMasters: AdmissionStatusMaster[];
+  paymentModeMasters?: string[];
 };
 
 export type Student = {
@@ -169,6 +171,7 @@ export type StudentFee = {
   remarks: string;
   isActive: boolean;
   feeLineItems: StudentFeeLineItem[];
+  finalAmount?: number;
 };
 
 export type ApplicableChargesParams = {
@@ -481,7 +484,16 @@ export async function getAdmissionFeeList(params: {
     throw err;
   }
 
-  return extractList<StudentFee>(res?.data, "fees");
+  const apiData = res?.data as any;
+  const rawList = apiData?.admissionFees || apiData?.fees || [];
+  
+  return rawList.map((item: any) => ({
+    ...item,
+    totalAmount: item.totalFeeAmount ?? item.totalAmount ?? 0,
+    discountAmount: item.totalDiscountAmount ?? item.discountAmount ?? 0,
+    paidAmount: item.totalPaidAmount ?? item.paidAmount ?? 0,
+    pendingAmount: item.totalPendingAmount ?? item.pendingAmount ?? 0,
+  })) as StudentFee[];
 }
 
 export async function saveStudentFee(params: {
@@ -489,19 +501,6 @@ export async function saveStudentFee(params: {
   userId?: number;
 }) {
   const meta = await reqMeta(params.userId);
-  console.log(
-    "------------------------------------->",
-    JSON.stringify(
-      {
-        requestGuid: meta.requestGuid,
-        requestTime: meta.requestTime,
-        userId: meta.userId,
-        fee: params.payload,
-      },
-      null,
-      2,
-    ),
-  );
 
   const res = await post<ApiResponse<unknown>>("/api/Fee/AddStudentFee", {
     requestGuid: meta.requestGuid,
@@ -530,7 +529,7 @@ export async function getStudentFeeDetails(params: {
     throw new Error("Invalid organisation ID");
 
   const meta = await reqMeta(params.userId);
-  const res = await post<ApiResponse<unknown>>("/api/Fee/GetFeeDetails", {
+  const res = await post<ApiResponse<any>>("/api/Fee/GetFeeDetails", {
     requestGuid: meta.requestGuid,
     requestTime: meta.requestTime,
     userId: meta.userId,
@@ -538,7 +537,19 @@ export async function getStudentFeeDetails(params: {
     orgId,
   });
 
-  return extractDetail<StudentFee>(res?.data, "fee");
+  const apiData = res?.data;
+  if (!apiData) return undefined;
+
+  const fee = apiData.feeDetail || apiData.fee;
+  const feeLineItems = fee?.feeLineItems || apiData.feeLineItems || [];
+
+  if (fee) {
+    return {
+      ...fee,
+      feeLineItems,
+    } as StudentFee;
+  }
+  return undefined;
 }
 
 export async function getApplicableCharges(params: {
@@ -588,6 +599,13 @@ export type StudentAdmission = {
   isIncludeTransport: boolean;
   distanceFromSchool?: number;
   isActive: boolean;
+  defaultDistance?: number;
+  studentId?: number;
+  classId?: number;
+  totalFeeAmount?: number;
+  totalDiscountAmount?: number;
+  totalPaidFeeAmount?: number;
+  totalPendingFeeAmount?: number;
 };
 
 export type StudentAdmissionsResponse = {
@@ -607,7 +625,7 @@ export async function getStudentAdmissionsList(params: {
     throw new Error("Invalid student ID");
 
   const meta = await reqMeta(params.userId);
-  return post<ApiResponse<StudentAdmissionsResponse>>(
+  const res = await post<ApiResponse<StudentAdmissionsResponse>>(
     "/api/Admissions/GetStudetAdmissionsList",
     {
       requestGuid: meta.requestGuid,
@@ -617,6 +635,16 @@ export async function getStudentAdmissionsList(params: {
       orgId: orgId,
     },
   );
+
+  if (res?.data?.admissions) {
+    res.data.admissions = res.data.admissions.map((item: any) => ({
+      ...item,
+      defaultDiscountPrecentage: item.defaultDiscountPercentage ?? item.defaultDiscountPrecentage ?? 0,
+      estimateFeeAmount: item.totalEstimateFee ?? item.estimateFeeAmount ?? 0,
+    }));
+  }
+
+  return res;
 }
 
 export type StudentAdmissionDetailResponse = {

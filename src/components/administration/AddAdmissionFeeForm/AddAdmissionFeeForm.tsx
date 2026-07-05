@@ -12,6 +12,7 @@ import {
   saveStudentFee,
   type StudentFee,
   type StudentFeeLineItem,
+  type FrequencyMaster,
 } from "@/app/dashboard/administration/actions";
 import { getErrorMessage } from "@/app/dashboard/utils";
 import { ActionButton } from "@/components/controls/Buttons";
@@ -54,17 +55,14 @@ type Props = {
   defaultDiscountPercentage: number;
   initialCharges: StudentFeeLineItem[];
   brandColor?: string | null;
+  frequencyMasters: FrequencyMaster[];
+  paymentModeMasters: string[];
+  fee?: StudentFee;
 };
 
-type FormValues = StudentFee;
-
-const paymentModeOptions = [
-  { value: "Cash", label: "Cash" },
-  { value: "UPI", label: "UPI" },
-  { value: "Card", label: "Card" },
-  { value: "Bank Transfer", label: "Bank Transfer" },
-  { value: "Cheque", label: "Cheque" },
-];
+type FormValues = StudentFee & {
+  additionalDiscount: number;
+};
 
 const monthOptions = [
   "January",
@@ -80,6 +78,26 @@ const monthOptions = [
   "November",
   "December",
 ].map((label, index) => ({ value: String(index + 1), label }));
+
+function getMonthName(monthNum: number) {
+  if (!monthNum) return "-";
+  const index = (monthNum - 1) % 12;
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+  return months[index] ?? "-";
+}
 
 function toNumber(value: unknown) {
   const number = Number(value);
@@ -143,7 +161,6 @@ function buildPayload(values: FormValues): StudentFee {
     const finalAmount = roundAmount(
       toNumber(item.baseAmount) + toNumber(item.transportAmount),
     );
-    const paidAmount = roundAmount(toNumber(item.paidAmount));
 
     return {
       ...item,
@@ -158,8 +175,8 @@ function buildPayload(values: FormValues): StudentFee {
       baseAmount: toNumber(item.baseAmount),
       transportAmount: toNumber(item.transportAmount),
       finalAmount,
-      paidAmount,
-      pendingAmount: 0,
+      paidAmount: 0,
+      pendingAmount: finalAmount,
       isActive: true,
     };
   });
@@ -167,17 +184,21 @@ function buildPayload(values: FormValues): StudentFee {
   const totalAmount = roundAmount(
     rawItems.reduce((sum, item) => sum + item.finalAmount, 0),
   );
-  const discountAmount = roundAmount(
+  
+  const defaultDiscountAmount = roundAmount(
     (totalAmount * toNumber(values.defaultDiscountPercentage)) / 100,
   );
-  const paidAmount = roundAmount(
-    rawItems.reduce((sum, item) => sum + item.paidAmount, 0),
-  );
+  const additionalDiscount = toNumber(values.additionalDiscount);
+  const discountAmount = roundAmount(defaultDiscountAmount + additionalDiscount);
+  
+  const paidAmount = roundAmount(toNumber(values.paidAmount));
   const pendingAmount = roundAmount(
     Math.max(totalAmount - discountAmount - paidAmount, 0),
   );
 
   let remainingDiscount = discountAmount;
+  let remainingPaid = paidAmount;
+
   const feeLineItems = rawItems.map((item, index) => {
     const discountShare =
       index === rawItems.length - 1
@@ -189,16 +210,30 @@ function buildPayload(values: FormValues): StudentFee {
           );
     remainingDiscount = roundAmount(remainingDiscount - discountShare);
 
+    const netLineAmount = Math.max(item.finalAmount - discountShare, 0);
+
+    const paidShare =
+      index === rawItems.length - 1
+        ? remainingPaid
+        : roundAmount(
+            totalAmount > 0
+              ? (paidAmount * item.finalAmount) / totalAmount
+              : 0,
+          );
+    const actualPaidShare = Math.min(paidShare, netLineAmount);
+    remainingPaid = roundAmount(remainingPaid - actualPaidShare);
+
     return {
       ...item,
-      pendingAmount: roundAmount(
-        Math.max(item.finalAmount - discountShare - item.paidAmount, 0),
-      ),
+      paidAmount: actualPaidShare,
+      pendingAmount: roundAmount(Math.max(netLineAmount - actualPaidShare, 0)),
     };
   });
 
+  const { additionalDiscount: _, ...rest } = values;
+
   return {
-    ...values,
+    ...rest,
     id: 0,
     receiptNo: "",
     transactionDate: new Date(values.transactionDate).toISOString(),
@@ -208,6 +243,7 @@ function buildPayload(values: FormValues): StudentFee {
     pendingAmount,
     isActive: true,
     feeLineItems,
+    finalAmount: totalAmount,
   };
 }
 
@@ -234,6 +270,7 @@ function ChargePicker({
   distanceFromSchool,
   userId,
   onSelect,
+  frequencyMasters,
 }: {
   value: string;
   orgId: number;
@@ -242,6 +279,7 @@ function ChargePicker({
   distanceFromSchool: number;
   userId?: number;
   onSelect: (item: StudentFeeLineItem) => void;
+  frequencyMasters: FrequencyMaster[];
 }) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
@@ -314,22 +352,25 @@ function ChargePicker({
               {loading ? "Loading charges..." : "No charges found."}
             </CommandEmpty>
             <CommandGroup>
-              {options.map((item) => (
-                <CommandItem
-                  key={`${item.chargeId}-${item.frequencyId}-${item.chargeName}`}
-                  onSelect={() => {
-                    onSelect(item);
-                    setOpen(false);
-                  }}
-                >
-                  <div className="min-w-0">
-                    <div className="truncate font-medium">{item.chargeName}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {item.chargeType || "Charge"} · {item.finalAmount}
+              {options.map((item) => {
+                const freqName = frequencyMasters.find((f) => f.id == item.frequencyId)?.name || "";
+                return (
+                  <CommandItem
+                    key={`${item.chargeId}-${item.frequencyId}-${item.chargeName}`}
+                    onSelect={() => {
+                      onSelect(item);
+                      setOpen(false);
+                    }}
+                  >
+                    <div className="min-w-0">
+                      <div className="truncate font-medium">{item.chargeName}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {item.chargeType || "Charge"} · {freqName ? `${freqName} · ` : ""}{item.finalAmount}
+                      </div>
                     </div>
-                  </div>
-                </CommandItem>
-              ))}
+                  </CommandItem>
+                );
+              })}
             </CommandGroup>
           </CommandList>
         </Command>
@@ -349,34 +390,58 @@ export default function AddAdmissionFeeForm({
   defaultDiscountPercentage,
   initialCharges,
   brandColor,
+  frequencyMasters,
+  paymentModeMasters,
+  fee,
 }: Props) {
+  const paymentModeOptions = React.useMemo(() => {
+    const modes = paymentModeMasters && paymentModeMasters.length > 0
+      ? paymentModeMasters
+      : ["Cheque", "Cash", "UPI", "Debit Card", "Credit Card"];
+    return modes.map((mode) => ({
+      value: mode,
+      label: mode,
+    }));
+  }, [paymentModeMasters]);
+
   const router = useRouter();
   const { data: session } = useSession();
   const [saving, setSaving] = React.useState(false);
+  const isEdit = Boolean(fee?.id);
+
+  const initialAdditionalDiscount = React.useMemo(() => {
+    if (!fee) return 0;
+    const total = fee.totalAmount || 0;
+    const defaultPct = fee.defaultDiscountPercentage || 0;
+    const defaultAmt = roundAmount((total * defaultPct) / 100);
+    return Math.max((fee.discountAmount || 0) - defaultAmt, 0);
+  }, [fee]);
 
   const form = useForm<FormValues>({
     defaultValues: {
-      id: 0,
-      orgId,
-      admissionId,
-      studentId,
-      isTransportInclude: includeTransport,
-      distanceFromSchool,
-      defaultFrequencyId,
-      defaultDiscountPercentage,
-      receiptNo: "",
-      transactionDate: new Date().toISOString().slice(0, 16),
-      totalAmount: 0,
-      discountAmount: 0,
-      paidAmount: 0,
-      pendingAmount: 0,
-      paymentMode: "",
-      remarks: "",
-      isActive: true,
-      feeLineItems:
-        initialCharges.length > 0
-          ? initialCharges.map((item) => normalizeCharge(item))
-          : [emptyLineItem()],
+      id: fee?.id ?? 0,
+      orgId: fee?.orgId ?? orgId,
+      admissionId: fee?.admissionId ?? admissionId,
+      studentId: fee?.studentId ?? studentId,
+      isTransportInclude: fee?.isTransportInclude ?? includeTransport,
+      distanceFromSchool: fee?.distanceFromSchool ?? distanceFromSchool,
+      defaultFrequencyId: fee?.defaultFrequencyId ?? defaultFrequencyId,
+      defaultDiscountPercentage: fee?.defaultDiscountPercentage ?? defaultDiscountPercentage,
+      receiptNo: fee?.receiptNo ?? "",
+      transactionDate: fee?.transactionDate
+        ? new Date(fee.transactionDate).toISOString().slice(0, 16)
+        : new Date().toISOString().slice(0, 16),
+      totalAmount: fee?.totalAmount ?? 0,
+      discountAmount: fee?.discountAmount ?? 0,
+      paidAmount: fee?.paidAmount ?? 0,
+      pendingAmount: fee?.pendingAmount ?? 0,
+      paymentMode: fee?.paymentMode ?? "",
+      remarks: fee?.remarks ?? "",
+      isActive: fee?.isActive ?? true,
+      feeLineItems: fee?.feeLineItems && fee.feeLineItems.length > 0
+        ? fee.feeLineItems
+        : [],
+      additionalDiscount: initialAdditionalDiscount,
     },
   });
 
@@ -392,6 +457,7 @@ export default function AddAdmissionFeeForm({
     () => watchedLineItems ?? [],
     [watchedLineItems],
   );
+
   const totals = React.useMemo(() => {
     const totalFinalAmount = roundAmount(
       lineItems.reduce(
@@ -403,20 +469,25 @@ export default function AddAdmissionFeeForm({
     const discountAmount = roundAmount(
       (totalFinalAmount * defaultDiscountPercentage) / 100,
     );
-    const paidAmount = roundAmount(
-      lineItems.reduce((sum, item) => sum + toNumber(item.paidAmount), 0),
-    );
-    const pendingAmount = roundAmount(
-      Math.max(totalFinalAmount - discountAmount - paidAmount, 0),
-    );
 
     return {
       totalFinalAmount,
       discountAmount,
-      paidAmount,
-      pendingAmount,
     };
-  }, [defaultDiscountPercentage, lineItems]);
+  }, [defaultDiscountPercentage, lineItems.length, lineItems.map((item) => item.chargeId).join(",")]);
+
+  const watchedAdditionalDiscount = watch("additionalDiscount") ?? 0;
+  const watchedPaidAmount = watch("paidAmount") ?? 0;
+  const watchedReceiptNo = watch("receiptNo") ?? "";
+
+  const finalAmount = totals.totalFinalAmount;
+  const defaultDiscountAmount = totals.discountAmount;
+  const additionalDiscount = toNumber(watchedAdditionalDiscount);
+  const paidAmount = toNumber(watchedPaidAmount);
+
+  const pendingAmount = roundAmount(
+    Math.max(finalAmount - (defaultDiscountAmount + additionalDiscount + paidAmount), 0),
+  );
 
   const submit = handleSubmit(async (values) => {
     const selectedItems = values.feeLineItems.filter(
@@ -432,17 +503,17 @@ export default function AddAdmissionFeeForm({
     }
 
     setSaving(true);
-    const toastId = toast.loading("Adding fee...");
+    const toastId = toast.loading(isEdit ? "Saving changes..." : "Adding fee...");
     try {
       const response = await saveStudentFee({
         payload: buildPayload({ ...values, feeLineItems: selectedItems }),
         userId: session?.user?.profileId,
       });
       if (!response?.status) {
-        throw new Error(response?.message || "Failed to add fee.");
+        throw new Error(response?.message || (isEdit ? "Failed to save changes." : "Failed to add fee."));
       }
 
-      toast.success(response.message || "Fee added successfully.", {
+      toast.success(response.message || (isEdit ? "Changes saved successfully." : "Fee added successfully."), {
         id: toastId,
       });
       router.push(
@@ -476,7 +547,7 @@ export default function AddAdmissionFeeForm({
             label="Discount %"
             value={defaultDiscountPercentage}
           />
-          <LockedField label="Receipt No" value="" />
+          <LockedField label="Receipt No" value={watchedReceiptNo || "-"} />
 
           <InputField
             control={control}
@@ -532,8 +603,6 @@ export default function AddAdmissionFeeForm({
                 <TableHead>Base</TableHead>
                 <TableHead>Transport</TableHead>
                 <TableHead>Final</TableHead>
-                <TableHead>Paid</TableHead>
-                <TableHead>Pending</TableHead>
                 <TableHead className="w-12" />
               </TableRow>
             </TableHeader>
@@ -550,20 +619,25 @@ export default function AddAdmissionFeeForm({
                         includeTransport={includeTransport}
                         distanceFromSchool={distanceFromSchool}
                         userId={session?.user?.profileId}
+                        frequencyMasters={frequencyMasters}
                         onSelect={(charge) => {
                           setValue(`feeLineItems.${index}`, {
                             ...charge,
                             id: 0,
                             headerId: 0,
                             fromMonth: item.fromMonth || 0,
-                            paidAmount: item.paidAmount || 0,
+                            paidAmount: 0,
                             isActive: true,
                           });
                         }}
                       />
                     </TableCell>
                     <TableCell>{item.chargeType || "-"}</TableCell>
-                    <TableCell>{item.frequencyId || "-"}</TableCell>
+                    <TableCell>
+                      {frequencyMasters.find((f) => f.id == item.frequencyId)?.name ||
+                        item.frequencyId ||
+                        "-"}
+                    </TableCell>
                     <TableCell>
                       <Controller
                         control={control}
@@ -584,8 +658,7 @@ export default function AddAdmissionFeeForm({
                     </TableCell>
                     <TableCell>
                       {item.fromMonth
-                        ? toNumber(item.fromMonth) +
-                          toNumber(item.monthsInterval)
+                        ? getMonthName(toNumber(item.fromMonth) + toNumber(item.monthsInterval))
                         : "-"}
                     </TableCell>
                     <TableCell>{toNumber(item.baseAmount).toFixed(2)}</TableCell>
@@ -599,36 +672,10 @@ export default function AddAdmissionFeeForm({
                       ).toFixed(2)}
                     </TableCell>
                     <TableCell>
-                      <Controller
-                        control={control}
-                        name={`feeLineItems.${index}.paidAmount`}
-                        render={({ field: paidField }) => (
-                          <Input
-                            {...paidField}
-                            type="number"
-                            min={0}
-                            max={item.finalAmount}
-                            className="w-28"
-                          />
-                        )}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {roundAmount(
-                        Math.max(
-                          toNumber(item.baseAmount) +
-                            toNumber(item.transportAmount) -
-                            toNumber(item.paidAmount),
-                          0,
-                        ),
-                      ).toFixed(2)}
-                    </TableCell>
-                    <TableCell>
                       <Button
                         type="button"
                         size="icon"
                         variant="ghost"
-                        disabled={fields.length === 1}
                         onClick={() => remove(index)}
                         title="Remove row"
                       >
@@ -647,20 +694,29 @@ export default function AddAdmissionFeeForm({
         <CardContent className="grid grid-cols-2 gap-4 p-5 md:grid-cols-5">
           <LockedField
             label="Final Amount"
-            value={totals.totalFinalAmount.toFixed(2)}
+            value={finalAmount.toFixed(2)}
           />
           <LockedField
-            label="Discount"
-            value={totals.discountAmount.toFixed(2)}
+            label="Default Discount Amount"
+            value={defaultDiscountAmount.toFixed(2)}
           />
-          <LockedField label="Paid" value={totals.paidAmount.toFixed(2)} />
-          <LockedField
-            label="Pending"
-            value={totals.pendingAmount.toFixed(2)}
+          <InputField
+            control={control}
+            name="additionalDiscount"
+            label="Additional Discount"
+            type="number"
+            rules={{ min: { value: 0, message: "Cannot be negative" } }}
+          />
+          <InputField
+            control={control}
+            name="paidAmount"
+            label="Paid Amount"
+            type="number"
+            rules={{ min: { value: 0, message: "Cannot be negative" } }}
           />
           <LockedField
-            label="Total Amount"
-            value={totals.totalFinalAmount.toFixed(2)}
+            label="Pending Amount"
+            value={pendingAmount.toFixed(2)}
           />
         </CardContent>
       </Card>
@@ -681,7 +737,7 @@ export default function AddAdmissionFeeForm({
           loading={saving}
           disabled={saving}
         >
-          Add Fee
+          {isEdit ? "Save Changes" : "Add Fee"}
         </ActionButton>
       </div>
     </form>

@@ -4,6 +4,8 @@ import { notFound, redirect } from "next/navigation";
 import {
   getStudentDetail,
   getStudentAdmissionDetail,
+  getAdmissionMasterData,
+  type FrequencyMaster,
 } from "@/app/dashboard/administration/actions";
 import { PageHeader } from "@/components/shared-ui/PageHeader";
 import { ErrorCard } from "@/components/shared-ui/States";
@@ -44,6 +46,7 @@ export default async function AdmissionDetailPage({ params }: PageProps) {
 
   let student;
   let admission;
+  let frequencyMasters: FrequencyMaster[] = [];
   let errorMsg: string | null = null;
 
   try {
@@ -64,6 +67,16 @@ export default async function AdmissionDetailPage({ params }: PageProps) {
         admission = detailRes?.data?.admission;
         if (!admission) {
           errorMsg = `Admission reference #${admId} not found.`;
+        } else {
+          try {
+            const masterRes = await getAdmissionMasterData({
+              orgId: session.user.orgId,
+              userId: session.user.profileId,
+            });
+            frequencyMasters = masterRes?.data?.frequencyMasters ?? [];
+          } catch (e) {
+            console.error("Failed to load admission master data:", e);
+          }
         }
       } catch (listErr) {
         errorMsg =
@@ -102,7 +115,7 @@ export default async function AdmissionDetailPage({ params }: PageProps) {
           currency: "INR",
           maximumFractionDigits: 0,
         }).format(admission.estimateFeeAmount)
-      : "â€”";
+      : "—";
 
   return (
     <Container className="py-8">
@@ -236,7 +249,25 @@ export default async function AdmissionDetailPage({ params }: PageProps) {
                 </span>
                 <span className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
                   <Repeat className="h-4 w-4 text-slate-400 shrink-0" />
-                  {admission.defaultFrequency || "â€”"}
+                  {frequencyMasters.find(
+                    (f) =>
+                      f.id == admission.defaultFrequencyId ||
+                      f.id == admission.defaultFrequency,
+                  )?.name ||
+                    admission.defaultFrequency ||
+                    "—"}
+                </span>
+              </div>
+
+              <div className="space-y-1">
+                <span className="block text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                  Default Distance
+                </span>
+                <span className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                  <Truck className="h-4 w-4 text-slate-400 shrink-0" />
+                  {typeof admission.defaultDistance === "number"
+                    ? `${admission.defaultDistance} Km`
+                    : admission.defaultDistance || "—"}
                 </span>
               </div>
 
@@ -248,7 +279,7 @@ export default async function AdmissionDetailPage({ params }: PageProps) {
                   <Percent className="h-4 w-4 text-slate-400 shrink-0" />
                   {typeof admission.defaultDiscountPrecentage === "number"
                     ? `${admission.defaultDiscountPrecentage}%`
-                    : "â€”"}
+                    : "—"}
                 </span>
               </div>
 

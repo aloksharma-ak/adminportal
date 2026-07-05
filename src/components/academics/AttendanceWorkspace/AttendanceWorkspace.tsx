@@ -325,9 +325,13 @@ export default function AttendanceWorkspace({
               onChange={(event) => setToDate(event.target.value)}
             />
           </div>
-          <Button type="button" onClick={applyDateFilter}>
+          <ActionButton
+            type="button"
+            color={brandColor ?? "blue"}
+            onClick={applyDateFilter}
+          >
             Load Attendance
-          </Button>
+          </ActionButton>
         </CardContent>
       </Card>
 

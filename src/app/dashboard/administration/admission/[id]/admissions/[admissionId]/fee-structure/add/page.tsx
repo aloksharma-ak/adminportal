@@ -5,6 +5,7 @@ import {
   getStudentAdmissionDetail,
   getStudentDetail,
   type StudentFeeLineItem,
+  type FrequencyMaster,
 } from "@/app/dashboard/administration/actions";
 import AddAdmissionFeeForm from "@/components/administration/AddAdmissionFeeForm";
 import { Container } from "@/components";
@@ -36,6 +37,8 @@ export default async function AddAdmissionFeePage({ params }: PageProps) {
   let defaultFrequencyId = 0;
   let defaultDiscountPercentage = 0;
   let initialCharges: StudentFeeLineItem[] = [];
+  let frequencyMasters: FrequencyMaster[] = [];
+  let paymentModeMasters: string[] = [];
   let errorMessage: string | null = null;
 
   try {
@@ -70,7 +73,7 @@ export default async function AddAdmissionFeePage({ params }: PageProps) {
       description = `${admission.academicYear || "Admission"} - Class ${
         admission.class || "-"
       }`;
-
+ 
       const admissionClass = admission.class?.toLowerCase();
       const matchedClass = masterResponse?.data?.classMasters?.find(
         (classMaster) =>
@@ -80,13 +83,15 @@ export default async function AddAdmissionFeePage({ params }: PageProps) {
             `${classMaster.grade}-${classMaster.section}`.toLowerCase() ===
               admissionClass),
       );
-
+ 
       grade = matchedClass?.grade || admission.class || "";
       includeTransport = admission.isIncludeTransport ?? false;
       distanceFromSchool = admission.distanceFromSchool ?? 0;
       defaultFrequencyId = admission.defaultFrequencyId ?? 0;
       defaultDiscountPercentage =
         admission.defaultDiscountPrecentage ?? 0;
+      frequencyMasters = masterResponse?.data?.frequencyMasters ?? [];
+      paymentModeMasters = masterResponse?.data?.paymentModeMasters ?? [];
 
       if (grade) {
         try {
@@ -133,6 +138,8 @@ export default async function AddAdmissionFeePage({ params }: PageProps) {
           defaultDiscountPercentage={defaultDiscountPercentage}
           initialCharges={initialCharges}
           brandColor={session.user.brandColor}
+          frequencyMasters={frequencyMasters}
+          paymentModeMasters={paymentModeMasters}
         />
       )}
     </Container>
