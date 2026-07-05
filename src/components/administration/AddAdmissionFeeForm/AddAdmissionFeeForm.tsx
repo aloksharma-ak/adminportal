@@ -561,7 +561,14 @@ export default function AddAdmissionFeeForm({
             label="Distance From School"
             value={distanceFromSchool}
           />
-          <LockedField label="Frequency ID" value={defaultFrequencyId} />
+          <LockedField
+            label="Frequency"
+            value={
+              frequencyMasters.find((f) => f.id === defaultFrequencyId)?.name ||
+              defaultFrequencyId ||
+              "-"
+            }
+          />
           <LockedField label="Discount %" value={defaultDiscountPercentage} />
           <LockedField label="Receipt No" value={watchedReceiptNo || "-"} />
 

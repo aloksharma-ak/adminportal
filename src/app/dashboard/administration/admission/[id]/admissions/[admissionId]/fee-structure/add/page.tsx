@@ -73,7 +73,7 @@ export default async function AddAdmissionFeePage({ params }: PageProps) {
       description = `${admission.academicYear || "Admission"} - Class ${
         admission.class || "-"
       }`;
- 
+
       const admissionClass = admission.class?.toLowerCase();
       const matchedClass = masterResponse?.data?.classMasters?.find(
         (classMaster) =>
@@ -83,14 +83,28 @@ export default async function AddAdmissionFeePage({ params }: PageProps) {
             `${classMaster.grade}-${classMaster.section}`.toLowerCase() ===
               admissionClass),
       );
- 
+
       grade = matchedClass?.grade || admission.class || "";
       includeTransport = admission.isIncludeTransport ?? false;
-      distanceFromSchool = admission.distanceFromSchool ?? 0;
-      defaultFrequencyId = admission.defaultFrequencyId ?? 0;
-      defaultDiscountPercentage =
-        admission.defaultDiscountPrecentage ?? 0;
-      frequencyMasters = masterResponse?.data?.frequencyMasters ?? [];
+      distanceFromSchool =
+        admission.distanceFromSchool ?? admission.defaultDistance ?? 0;
+
+      const freqMasters = masterResponse?.data?.frequencyMasters ?? [];
+      const admissionFreq = admission.defaultFrequency;
+      if (admission.defaultFrequencyId) {
+        defaultFrequencyId = admission.defaultFrequencyId;
+      } else if (admissionFreq != null) {
+        const dfStr = String(admissionFreq).toLowerCase();
+        const matched = freqMasters.find(
+          (f) => f.name?.toLowerCase() === dfStr || String(f.id) === dfStr,
+        );
+        defaultFrequencyId = matched ? matched.id : 0;
+      } else {
+        defaultFrequencyId = 0;
+      }
+
+      defaultDiscountPercentage = admission.defaultDiscountPrecentage ?? 0;
+      frequencyMasters = freqMasters;
       paymentModeMasters = masterResponse?.data?.paymentModeMasters ?? [];
 
       if (grade) {
