@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { ClipboardPlus, Pencil, Eye } from "lucide-react";
+import { ClipboardPlus, Eye } from "lucide-react";
 import Link from "next/link";
 
 import { type StudentFee } from "@/app/dashboard/administration/actions";

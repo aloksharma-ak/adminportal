@@ -8,7 +8,6 @@ import type { StudentAdmission } from "@/app/dashboard/administration/actions";
 import {
   Calendar,
   GraduationCap,
-  Truck,
   Eye,
   Pencil,
   IndianRupee,

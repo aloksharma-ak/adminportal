@@ -184,13 +184,15 @@ function buildPayload(values: FormValues): StudentFee {
   const totalAmount = roundAmount(
     rawItems.reduce((sum, item) => sum + item.finalAmount, 0),
   );
-  
+
   const defaultDiscountAmount = roundAmount(
     (totalAmount * toNumber(values.defaultDiscountPercentage)) / 100,
   );
   const additionalDiscount = toNumber(values.additionalDiscount);
-  const discountAmount = roundAmount(defaultDiscountAmount + additionalDiscount);
-  
+  const discountAmount = roundAmount(
+    defaultDiscountAmount + additionalDiscount,
+  );
+
   const paidAmount = roundAmount(toNumber(values.paidAmount));
   const pendingAmount = roundAmount(
     Math.max(totalAmount - discountAmount - paidAmount, 0),
@@ -216,9 +218,7 @@ function buildPayload(values: FormValues): StudentFee {
       index === rawItems.length - 1
         ? remainingPaid
         : roundAmount(
-            totalAmount > 0
-              ? (paidAmount * item.finalAmount) / totalAmount
-              : 0,
+            totalAmount > 0 ? (paidAmount * item.finalAmount) / totalAmount : 0,
           );
     const actualPaidShare = Math.min(paidShare, netLineAmount);
     remainingPaid = roundAmount(remainingPaid - actualPaidShare);
@@ -318,15 +318,7 @@ function ChargePicker({
     }, 350);
 
     return () => window.clearTimeout(timer);
-  }, [
-    distanceFromSchool,
-    grade,
-    includeTransport,
-    open,
-    orgId,
-    query,
-    userId,
-  ]);
+  }, [distanceFromSchool, grade, includeTransport, open, orgId, query, userId]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -353,7 +345,9 @@ function ChargePicker({
             </CommandEmpty>
             <CommandGroup>
               {options.map((item) => {
-                const freqName = frequencyMasters.find((f) => f.id == item.frequencyId)?.name || "";
+                const freqName =
+                  frequencyMasters.find((f) => f.id == item.frequencyId)
+                    ?.name || "";
                 return (
                   <CommandItem
                     key={`${item.chargeId}-${item.frequencyId}-${item.chargeName}`}
@@ -363,9 +357,13 @@ function ChargePicker({
                     }}
                   >
                     <div className="min-w-0">
-                      <div className="truncate font-medium">{item.chargeName}</div>
+                      <div className="truncate font-medium">
+                        {item.chargeName}
+                      </div>
                       <div className="text-xs text-muted-foreground">
-                        {item.chargeType || "Charge"} · {freqName ? `${freqName} · ` : ""}{item.finalAmount}
+                        {item.chargeType || "Charge"} ·{" "}
+                        {freqName ? `${freqName} · ` : ""}
+                        {item.finalAmount}
                       </div>
                     </div>
                   </CommandItem>
@@ -388,16 +386,16 @@ export default function AddAdmissionFeeForm({
   distanceFromSchool,
   defaultFrequencyId,
   defaultDiscountPercentage,
-  initialCharges,
   brandColor,
   frequencyMasters,
   paymentModeMasters,
   fee,
 }: Props) {
   const paymentModeOptions = React.useMemo(() => {
-    const modes = paymentModeMasters && paymentModeMasters.length > 0
-      ? paymentModeMasters
-      : ["Cheque", "Cash", "UPI", "Debit Card", "Credit Card"];
+    const modes =
+      paymentModeMasters && paymentModeMasters.length > 0
+        ? paymentModeMasters
+        : ["Cheque", "Cash", "UPI", "Debit Card", "Credit Card"];
     return modes.map((mode) => ({
       value: mode,
       label: mode,
@@ -426,7 +424,8 @@ export default function AddAdmissionFeeForm({
       isTransportInclude: fee?.isTransportInclude ?? includeTransport,
       distanceFromSchool: fee?.distanceFromSchool ?? distanceFromSchool,
       defaultFrequencyId: fee?.defaultFrequencyId ?? defaultFrequencyId,
-      defaultDiscountPercentage: fee?.defaultDiscountPercentage ?? defaultDiscountPercentage,
+      defaultDiscountPercentage:
+        fee?.defaultDiscountPercentage ?? defaultDiscountPercentage,
       receiptNo: fee?.receiptNo ?? "",
       transactionDate: fee?.transactionDate
         ? new Date(fee.transactionDate).toISOString().slice(0, 16)
@@ -438,9 +437,10 @@ export default function AddAdmissionFeeForm({
       paymentMode: fee?.paymentMode ?? "",
       remarks: fee?.remarks ?? "",
       isActive: fee?.isActive ?? true,
-      feeLineItems: fee?.feeLineItems && fee.feeLineItems.length > 0
-        ? fee.feeLineItems
-        : [],
+      feeLineItems:
+        fee?.feeLineItems && fee.feeLineItems.length > 0
+          ? fee.feeLineItems
+          : [],
       additionalDiscount: initialAdditionalDiscount,
     },
   });
@@ -474,7 +474,11 @@ export default function AddAdmissionFeeForm({
       totalFinalAmount,
       discountAmount,
     };
-  }, [defaultDiscountPercentage, lineItems.length, lineItems.map((item) => item.chargeId).join(",")]);
+  }, [
+    defaultDiscountPercentage,
+    lineItems.length,
+    lineItems.map((item) => item.chargeId).join(","),
+  ]);
 
   const watchedAdditionalDiscount = watch("additionalDiscount") ?? 0;
   const watchedPaidAmount = watch("paidAmount") ?? 0;
@@ -486,7 +490,10 @@ export default function AddAdmissionFeeForm({
   const paidAmount = toNumber(watchedPaidAmount);
 
   const pendingAmount = roundAmount(
-    Math.max(finalAmount - (defaultDiscountAmount + additionalDiscount + paidAmount), 0),
+    Math.max(
+      finalAmount - (defaultDiscountAmount + additionalDiscount + paidAmount),
+      0,
+    ),
   );
 
   const submit = handleSubmit(async (values) => {
@@ -503,19 +510,28 @@ export default function AddAdmissionFeeForm({
     }
 
     setSaving(true);
-    const toastId = toast.loading(isEdit ? "Saving changes..." : "Adding fee...");
+    const toastId = toast.loading(
+      isEdit ? "Saving changes..." : "Adding fee...",
+    );
     try {
       const response = await saveStudentFee({
         payload: buildPayload({ ...values, feeLineItems: selectedItems }),
         userId: session?.user?.profileId,
       });
       if (!response?.status) {
-        throw new Error(response?.message || (isEdit ? "Failed to save changes." : "Failed to add fee."));
+        throw new Error(
+          response?.message ||
+            (isEdit ? "Failed to save changes." : "Failed to add fee."),
+        );
       }
 
-      toast.success(response.message || (isEdit ? "Changes saved successfully." : "Fee added successfully."), {
-        id: toastId,
-      });
+      toast.success(
+        response.message ||
+          (isEdit ? "Changes saved successfully." : "Fee added successfully."),
+        {
+          id: toastId,
+        },
+      );
       router.push(
         `/dashboard/administration/admission/${studentId}/admissions/${admissionId}/fee-structure`,
       );
@@ -541,12 +557,12 @@ export default function AddAdmissionFeeForm({
             label="Transport"
             value={includeTransport ? "Included" : "Not Included"}
           />
-          <LockedField label="Distance From School" value={distanceFromSchool} />
-          <LockedField label="Frequency ID" value={defaultFrequencyId} />
           <LockedField
-            label="Discount %"
-            value={defaultDiscountPercentage}
+            label="Distance From School"
+            value={distanceFromSchool}
           />
+          <LockedField label="Frequency ID" value={defaultFrequencyId} />
+          <LockedField label="Discount %" value={defaultDiscountPercentage} />
           <LockedField label="Receipt No" value={watchedReceiptNo || "-"} />
 
           <InputField
@@ -634,7 +650,8 @@ export default function AddAdmissionFeeForm({
                     </TableCell>
                     <TableCell>{item.chargeType || "-"}</TableCell>
                     <TableCell>
-                      {frequencyMasters.find((f) => f.id == item.frequencyId)?.name ||
+                      {frequencyMasters.find((f) => f.id == item.frequencyId)
+                        ?.name ||
                         item.frequencyId ||
                         "-"}
                     </TableCell>
@@ -658,10 +675,15 @@ export default function AddAdmissionFeeForm({
                     </TableCell>
                     <TableCell>
                       {item.fromMonth
-                        ? getMonthName(toNumber(item.fromMonth) + toNumber(item.monthsInterval))
+                        ? getMonthName(
+                            toNumber(item.fromMonth) +
+                              toNumber(item.monthsInterval),
+                          )
                         : "-"}
                     </TableCell>
-                    <TableCell>{toNumber(item.baseAmount).toFixed(2)}</TableCell>
+                    <TableCell>
+                      {toNumber(item.baseAmount).toFixed(2)}
+                    </TableCell>
                     <TableCell>
                       {toNumber(item.transportAmount).toFixed(2)}
                     </TableCell>
@@ -692,10 +714,7 @@ export default function AddAdmissionFeeForm({
 
       <Card>
         <CardContent className="grid grid-cols-2 gap-4 p-5 md:grid-cols-5">
-          <LockedField
-            label="Final Amount"
-            value={finalAmount.toFixed(2)}
-          />
+          <LockedField label="Final Amount" value={finalAmount.toFixed(2)} />
           <LockedField
             label="Default Discount Amount"
             value={defaultDiscountAmount.toFixed(2)}
