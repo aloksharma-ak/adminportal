@@ -127,19 +127,31 @@ export default function ModifyAdmissionForm({
     return matched ? String(matched.id) : "";
   }, [admissionStatusMasters, admission.status]);
 
+  const resolvedFrequencyId = React.useMemo(() => {
+    if (admission.defaultFrequencyId) return String(admission.defaultFrequencyId);
+    const df = admission.defaultFrequency;
+    if (df == null) return "";
+
+    const dfStr = String(df).toLowerCase();
+    const matched = frequencyMasters.find(
+      (f) =>
+        f.name?.toLowerCase() === dfStr ||
+        String(f.id) === String(df),
+    );
+    return matched ? String(matched.id) : "";
+  }, [frequencyMasters, admission.defaultFrequency, admission.defaultFrequencyId]);
+
   const form = useForm<FormValues>({
     mode: "onSubmit",
     defaultValues: {
       academicYear: admission.academicYear ?? "",
       classId: resolvedClassId,
       statusId: resolvedStatusId,
-      defaultFrequencyId: admission.defaultFrequencyId
-        ? String(admission.defaultFrequencyId)
-        : "",
+      defaultFrequencyId: resolvedFrequencyId,
       defaultDiscountPrecentage: admission.defaultDiscountPrecentage ?? 0,
       estimateFeeAmount: admission.estimateFeeAmount ?? 0,
       isIncludeTransport: admission.isIncludeTransport ?? false,
-      distanceFromSchool: 0, // default distance
+      distanceFromSchool: admission.distanceFromSchool ?? admission.defaultDistance ?? 0,
       isActive: admission.isActive ?? true,
     },
   });

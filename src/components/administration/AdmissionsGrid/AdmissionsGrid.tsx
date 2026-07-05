@@ -8,7 +8,6 @@ import type { StudentAdmission } from "@/app/dashboard/administration/actions";
 import {
   Calendar,
   GraduationCap,
-  Truck,
   Eye,
   Pencil,
   IndianRupee,
@@ -159,6 +158,18 @@ export default function AdmissionsGrid({
       {
         accessorKey: "totalFeeAmount",
         header: "Total Fee Amount",
+        cell: ({ getValue }) => {
+          const val = getValue<number>();
+          return (
+            <span className="text-slate-600 dark:text-slate-400 font-medium">
+              {typeof val === "number" ? `₹${val}` : "—"}
+            </span>
+          );
+        },
+      },
+      {
+        accessorKey: "totalDiscountAmount",
+        header: "Total Discount Amount",
         cell: ({ getValue }) => {
           const val = getValue<number>();
           return (
