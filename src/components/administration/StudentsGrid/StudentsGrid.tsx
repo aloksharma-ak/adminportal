@@ -158,12 +158,14 @@ export default function StudentsGrid({
   classOptions,
   initialClassId,
   initialSearch = "",
+  errorMessage,
 }: {
   data: Student[];
   brandColor?: string | null;
   classOptions?: { label: string; value: string }[];
   initialClassId?: string;
   initialSearch?: string;
+  errorMessage?: string | null;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -234,6 +236,7 @@ export default function StudentsGrid({
       onSearchChange={setSearch}
       searchPlaceholder="Search by name"
       topFilters={topFilters}
+      errorMessage={errorMessage}
       onToolbarSearch={({ searchValue, filters }) => {
         const nextClassId = filters.classId;
         setSearch(searchValue);

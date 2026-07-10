@@ -288,11 +288,14 @@ export async function getStudentsByOrgId(
   classId?: number,
   searchText?: string,
 ) {
+  const finalOrgId = Number(orgId);
+  const finalClassId = Number(classId ?? 0);
+
   const data = await post<ApiResponse<Student[]>>("/api/Student/GetStudents", {
     ...(await reqMeta(userId)),
-    orgId,
+    orgId: Number.isFinite(finalOrgId) ? finalOrgId : 0,
     isActive: isActive ?? true,
-    classId: classId ?? 0,
+    classId: Number.isFinite(finalClassId) ? finalClassId : 0,
     searchText: searchText ?? "",
   });
   return Array.isArray(data?.data) ? data.data : [];
@@ -340,18 +343,20 @@ export async function enrollStudent(params: {
     throw new Error("Communication address is required");
   }
 
-  const res = await post<ApiResponse<unknown>>("/api/Student/EnrollStudent", {
+  const payloadBody = {
     ...(await reqMeta(params.userId)),
     ...p,
     id: p.id ?? 0,
     orgId: p.orgId,
     communicationAddress,
-  });
+  };
+
+  const res = await post<ApiResponse<unknown>>(
+    "/api/Student/EnrollStudent",
+    payloadBody,
+  );
 
   revalidatePath("/dashboard/administration/admission");
-  if (p.id) {
-    revalidatePath(`/dashboard/administration/admission/${p.id}`);
-  }
 
   return res;
 }

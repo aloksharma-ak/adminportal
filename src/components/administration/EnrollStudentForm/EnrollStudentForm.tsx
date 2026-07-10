@@ -83,13 +83,6 @@ type FormValues = {
 
 const trim = (v?: string) => (v ?? "").trim();
 const onlyDigits = (v?: string) => (v ?? "").replace(/\D/g, "");
-const EMPTY_ADDR: Address = {
-  addressLine1: "",
-  addressLine2: "",
-  pinCode: "",
-  city: "",
-  state: "",
-};
 
 type Props = {
   orgId: number;
@@ -284,7 +277,6 @@ export default function EnrollStudentForm({
       { addressLine1: p1, addressLine2: p2, pinCode: p3, city: p4, state: p5 },
       { shouldValidate: false },
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sameAddress, p1, p2, p3, p4, p5, setValue]);
 
   const stateOptions = React.useMemo<DropdownOption[]>(
@@ -438,7 +430,7 @@ export default function EnrollStudentForm({
         { id: tId },
       );
       if (isEditing) {
-        router.push(`/dashboard/administration/admission/${studentId}`);
+        router.push(`/dashboard/administration/admission`);
       } else {
         router.push("/dashboard/administration/admission");
       }
