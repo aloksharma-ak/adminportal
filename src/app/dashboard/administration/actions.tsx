@@ -486,7 +486,7 @@ export async function getAdmissionFeeList(params: {
 
   const apiData = res?.data as any;
   const rawList = apiData?.admissionFees || apiData?.fees || [];
-  
+
   return rawList.map((item: any) => ({
     ...item,
     totalAmount: item.totalFeeAmount ?? item.totalAmount ?? 0,
@@ -639,7 +639,8 @@ export async function getStudentAdmissionsList(params: {
   if (res?.data?.admissions) {
     res.data.admissions = res.data.admissions.map((item: any) => ({
       ...item,
-      defaultDiscountPrecentage: item.defaultDiscountPercentage ?? item.defaultDiscountPrecentage ?? 0,
+      defaultDiscountPrecentage:
+        item.defaultDiscountPercentage ?? item.defaultDiscountPrecentage ?? 0,
       estimateFeeAmount: item.totalEstimateFee ?? item.estimateFeeAmount ?? 0,
     }));
   }
@@ -743,4 +744,58 @@ export async function modifyAdmission(params: {
   }
 
   return res;
+}
+
+export type StudentWithFeeDetail = {
+  academicYear: string;
+  currentAdmissionId: number;
+  currentAdmissionStatus: string;
+  enrolledClass: string;
+  enrolledClassId: number;
+  fatherName: string;
+  firstName: string;
+  initials: string;
+  isActive: boolean;
+  lastName: string;
+  motherName: string;
+  studentId: number;
+  totalDiscountAmount: number;
+  totalEstimateFee: number;
+  totalFeeAmount: number;
+  totalPaidFeeAmount: number;
+  totalPendingFeeAmount: number;
+};
+
+export type StudentListWithFeeDetailsParams = {
+  orgId: number;
+  studentName?: string;
+  classId?: number;
+  studentId?: number;
+  fName?: string;
+};
+
+export async function getStudentListWithFeeDetails(params: {
+  payload: StudentListWithFeeDetailsParams;
+  userId?: number;
+}) {
+  const orgId = Number(params.payload.orgId);
+  if (!Number.isFinite(orgId) || orgId <= 0)
+    throw new Error("Invalid organisation ID");
+
+  const meta = await reqMeta(params.userId);
+  return post<ApiResponse<StudentWithFeeDetail[]>>(
+    "/api/Student/GetStudentListWithFeeDetails",
+    {
+      requestGuid: meta.requestGuid,
+      requestTime: meta.requestTime,
+      userId: Number(meta.userId) || 0,
+      orgId,
+      studentName: params.payload.studentName
+        ? String(params.payload.studentName).trim()
+        : "",
+      classId: Number(params.payload.classId) || 0,
+      studentId: Number(params.payload.studentId) || 0,
+      fName: params.payload.fName ? String(params.payload.fName).trim() : "",
+    },
+  );
 }

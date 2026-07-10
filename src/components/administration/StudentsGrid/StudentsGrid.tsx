@@ -125,7 +125,14 @@ const getColumns = (brandColor?: string): ColumnDef<Student>[] => [
   {
     accessorKey: "enrolledClass",
     header: "Class",
-    cell: ({ getValue }) => getValue<string>() || "",
+    cell: ({ row }) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const s = row.original as any;
+      const val = s.enrolledClass;
+      if (!val) return s.classText ?? s.className ?? s.class ?? "";
+      if (typeof val === "string") return val;
+      return val.classText ?? val.className ?? "";
+    },
   },
   {
     accessorKey: "currentAdmissionStatus",

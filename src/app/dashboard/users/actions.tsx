@@ -413,6 +413,7 @@ export async function updateRolePermissions(params: {
   const roleId = Number(params.roleId);
   if (!Number.isFinite(roleId) || roleId <= 0)
     throw new Error("Invalid role ID");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return apiPost<ApiResponse<any>>(
     base,
     "/api/RolePermission/UpdateRolePermission",
@@ -431,6 +432,7 @@ export async function createPermission(params: {
   userId?: number;
 }) {
   const base = requireUrl(USER_API_URL, "USER_API_URL");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return apiPost<ApiResponse<any>>(
     base,
     "/api/RolePermission/CreatePermission",

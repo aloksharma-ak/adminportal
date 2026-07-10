@@ -20,7 +20,7 @@ type PageProps = {
   searchParams: Promise<{ fromDate?: string; toDate?: string }>;
 };
 
-function todayInIndia() {
+function currentMonthRangeInIndia() {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Kolkata",
     year: "numeric",
@@ -28,7 +28,15 @@ function todayInIndia() {
     day: "2-digit",
   }).formatToParts(new Date());
   const value = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-  return `${value.year}-${value.month}-${value.day}`;
+  const year = Number(value.year);
+  const month = Number(value.month);
+  
+  const fromDate = `${value.year}-${value.month}-01`;
+  const lastDayDate = new Date(Date.UTC(year, month, 0));
+  const lastDay = String(lastDayDate.getUTCDate()).padStart(2, "0");
+  const toDate = `${value.year}-${value.month}-${lastDay}`;
+  
+  return { fromDate, toDate };
 }
 
 function validDate(value?: string) {
@@ -47,9 +55,9 @@ export default async function ClassAttendancePage({
   const classId = Number(rawClassId);
   if (!Number.isInteger(classId) || classId <= 0) notFound();
 
-  const today = todayInIndia();
-  const fromDate = validDate(query.fromDate) ?? today;
-  const toDate = validDate(query.toDate) ?? today;
+  const { fromDate: defaultFromDate, toDate: defaultToDate } = currentMonthRangeInIndia();
+  const fromDate = validDate(query.fromDate) ?? defaultFromDate;
+  const toDate = validDate(query.toDate) ?? defaultToDate;
 
   let students: ClassStudent[] = [];
   let sessions: AttendanceSession[] = [];

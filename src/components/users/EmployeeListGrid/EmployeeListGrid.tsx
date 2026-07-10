@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/Badge";
 import { DataGrid } from "@/components/controls/DataGrid";
@@ -10,7 +9,9 @@ import { EmployeeListItem } from "@/app/dashboard/users/actions";
 import { Eye, Pencil } from "lucide-react";
 import { Avatar } from "@/components/shared-ui/Avatar";
 
-const getColumns = (brandColor?: string | null): ColumnDef<EmployeeListItem>[] => [
+const getColumns = (
+  brandColor?: string | null,
+): ColumnDef<EmployeeListItem>[] => [
   {
     id: "sino",
     header: "#",
@@ -42,12 +43,33 @@ const getColumns = (brandColor?: string | null): ColumnDef<EmployeeListItem>[] =
   },
   {
     accessorKey: "empId",
-    header: "ID",
+    header: "Employee ID",
     cell: ({ getValue }) => (
       <Badge
         variant="outline"
         className="font-mono text-xs"
-        style={brandColor ? { borderColor: brandColor, color: brandColor } : undefined}
+        style={
+          brandColor
+            ? { borderColor: brandColor, color: brandColor }
+            : undefined
+        }
+      >
+        #{getValue<number>()}
+      </Badge>
+    ),
+  },
+  {
+    accessorKey: "profileId",
+    header: "Profile ID",
+    cell: ({ getValue }) => (
+      <Badge
+        variant="outline"
+        className="font-mono text-xs"
+        style={
+          brandColor
+            ? { borderColor: brandColor, color: brandColor }
+            : undefined
+        }
       >
         #{getValue<number>()}
       </Badge>
@@ -61,9 +83,11 @@ const getColumns = (brandColor?: string | null): ColumnDef<EmployeeListItem>[] =
       return (
         <Badge
           variant="outline"
-          className={active
-            ? "border-green-500 bg-green-50 text-green-600 dark:bg-green-950/30"
-            : "border-gray-300 bg-gray-50 text-gray-500"}
+          className={
+            active
+              ? "border-green-500 bg-green-50 text-green-600 dark:bg-green-950/30"
+              : "border-gray-300 bg-gray-50 text-gray-500"
+          }
         >
           {active ? "Active" : "Inactive"}
         </Badge>
@@ -107,11 +131,11 @@ const getColumns = (brandColor?: string | null): ColumnDef<EmployeeListItem>[] =
     accessorKey: "roleName",
     header: "Role",
     cell: ({ getValue }) => (
-      <Badge variant="outline" className="text-xs">{getValue<string>()}</Badge>
+      <Badge variant="outline" className="text-xs">
+        {getValue<string>()}
+      </Badge>
     ),
   },
-
-
 ];
 
 export default function EmployeeListGrid({
