@@ -31,6 +31,7 @@ export default async function AddAdmissionFeePage({ params }: PageProps) {
 
   let title = "Add Fee";
   let description = `Admission #${admId}`;
+  let studentName = "";
   let grade = "";
   let includeTransport = false;
   let distanceFromSchool = 0;
@@ -65,7 +66,7 @@ export default async function AddAdmissionFeePage({ params }: PageProps) {
     if (!student || !admission) {
       errorMessage = "Admission record not found.";
     } else {
-      const studentName =
+      studentName =
         `${student.firstName ?? ""} ${student.lastName ?? ""}`.trim() ||
         admission.studentName ||
         "Student";
@@ -144,6 +145,7 @@ export default async function AddAdmissionFeePage({ params }: PageProps) {
         <AddAdmissionFeeForm
           orgId={session.user.orgId}
           studentId={studentId}
+          studentName={studentName}
           admissionId={admId}
           grade={grade}
           includeTransport={includeTransport}
