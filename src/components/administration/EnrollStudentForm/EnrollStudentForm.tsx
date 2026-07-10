@@ -1,48 +1,88 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import * as React from "react";
 import { useForm, Controller } from "react-hook-form";
 import Indian_states_cities_list from "indian-states-cities-list";
 import { toast } from "sonner";
-import { User2, Mail, Phone, ImageIcon, MapPin, GraduationCap, CalendarDays } from "lucide-react";
+import {
+  User2,
+  Mail,
+  Phone,
+  ImageIcon,
+  MapPin,
+  GraduationCap,
+  CalendarDays,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { getErrorMessage } from "@/app/dashboard/utils";
 
 import { InputField } from "@/components/controls/InputField";
-import { DropdownFilter, type DropdownOption } from "@/components/controls/DropdownFilter";
+import {
+  DropdownFilter,
+  type DropdownOption,
+} from "@/components/controls/DropdownFilter";
 import { ToggleControl } from "@/components/controls/ToggleControl";
 import { ActionButton } from "@/components/controls/Buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
 import { cn } from "@/lib/utils";
-import { getCachedBlobUrl, fileToDataUrl, stripDataUrl, validateImageFile } from "@/lib/image-loader";
+import {
+  getCachedBlobUrl,
+  fileToDataUrl,
+  stripDataUrl,
+  validateImageFile,
+} from "@/lib/image-loader";
 import { enrollStudent } from "@/app/dashboard/administration/actions";
 import type { StudentDetail } from "@/components/administration/StudentDetails";
 
 const MAX_IMAGE_BYTES = 500 * 1024;
 
-type Address = { addressLine1: string; addressLine2: string; pinCode: string; city: string; state: string };
+type Address = {
+  addressLine1: string;
+  addressLine2: string;
+  pinCode: string;
+  city: string;
+  state: string;
+};
 
 type FormValues = {
   orgId: number;
   classId: string;
-  firstName: string; middleName: string; lastName: string; initials: string;
-  phone: string; secondaryPhone: string; aadharNo: string; email: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  initials: string;
+  phone: string;
+  secondaryPhone: string;
+  aadharNo: string;
+  email: string;
   profilePicture: string;
   permanantAddress: Address;
   isCommunicationAddressSameAsPermanant: boolean;
   communicationAddress: Address;
-  previousSchoolName: string; previousSchoolAddress: string;
-  fatherName: string; fatherPhone: string; fatherSecondaryPhone: string; fatherAadharNo: string; fatherEmail: string;
-  motherName: string; motherPhone: string; motherSecondaryPhone: string; motherAadharNo: string; motherEmail: string;
-  dob: string; religion: string; cateogry: string;
-  contactPersonName: string; contactPersonPhone: string;
+  previousSchoolName: string;
+  previousSchoolAddress: string;
+  fatherName: string;
+  fatherPhone: string;
+  fatherSecondaryPhone: string;
+  fatherAadharNo: string;
+  fatherEmail: string;
+  motherName: string;
+  motherPhone: string;
+  motherSecondaryPhone: string;
+  motherAadharNo: string;
+  motherEmail: string;
+  dob: string;
+  religion: string;
+  cateogry: string;
+  contactPersonName: string;
+  contactPersonPhone: string;
 };
 
 const trim = (v?: string) => (v ?? "").trim();
 const onlyDigits = (v?: string) => (v ?? "").replace(/\D/g, "");
-const EMPTY_ADDR: Address = { addressLine1: "", addressLine2: "", pinCode: "", city: "", state: "" };
 
 type Props = {
   orgId: number;
@@ -54,7 +94,15 @@ type Props = {
   defaultValues?: StudentDetail;
 };
 
-function addrFromStudent(a?: { addressLine1?: string; addressLine2?: string; pinCode?: string; city?: string; state?: string } | null): Address {
+function addrFromStudent(
+  a?: {
+    addressLine1?: string;
+    addressLine2?: string;
+    pinCode?: string;
+    city?: string;
+    state?: string;
+  } | null,
+): Address {
   return {
     addressLine1: a?.addressLine1 ?? "",
     addressLine2: a?.addressLine2 ?? "",
@@ -64,7 +112,15 @@ function addrFromStudent(a?: { addressLine1?: string; addressLine2?: string; pin
   };
 }
 
-export default function EnrollStudentForm({ orgId, orgName, brandColor, classOptions = [], categoryOptions = [], studentId = 0, defaultValues }: Props) {
+export default function EnrollStudentForm({
+  orgId,
+  orgName,
+  brandColor,
+  classOptions = [],
+  categoryOptions = [],
+  studentId = 0,
+  defaultValues,
+}: Props) {
   const router = useRouter();
   const { data: session } = useSession();
   const isEditing = studentId > 0;
@@ -84,13 +140,20 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
   React.useEffect(() => {
     const localUrls = localUrlsRef.current;
     return () => {
-      console.log(`[EnrollStudentForm] Unmounting. Revoking ${localUrls.size} local URLs`);
+      console.log(
+        `[EnrollStudentForm] Unmounting. Revoking ${localUrls.size} local URLs`,
+      );
       localUrls.forEach((url) => {
         try {
           URL.revokeObjectURL(url);
-          console.log(`[EnrollStudentForm] Revoked local URL on unmount: ${url}`);
+          console.log(
+            `[EnrollStudentForm] Revoked local URL on unmount: ${url}`,
+          );
         } catch (e) {
-          console.error("[EnrollStudentForm] Failed to revoke local URL on unmount:", e);
+          console.error(
+            "[EnrollStudentForm] Failed to revoke local URL on unmount:",
+            e,
+          );
         }
       });
     };
@@ -104,14 +167,21 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
     setPreview(newUrl);
     if (oldUrl && oldUrl.startsWith("blob:") && oldUrl !== newUrl) {
       if (localUrlsRef.current.has(oldUrl)) {
-        console.log(`[EnrollStudentForm] Scheduling revocation of local preview URL: ${oldUrl}`);
+        console.log(
+          `[EnrollStudentForm] Scheduling revocation of local preview URL: ${oldUrl}`,
+        );
         setTimeout(() => {
           try {
             URL.revokeObjectURL(oldUrl);
             localUrlsRef.current.delete(oldUrl);
-            console.log(`[EnrollStudentForm] Successfully revoked local preview URL: ${oldUrl}`);
+            console.log(
+              `[EnrollStudentForm] Successfully revoked local preview URL: ${oldUrl}`,
+            );
           } catch (e) {
-            console.error("[EnrollStudentForm] Failed to revoke old preview URL:", e);
+            console.error(
+              "[EnrollStudentForm] Failed to revoke old preview URL:",
+              e,
+            );
           }
         }, 100);
       }
@@ -124,13 +194,30 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
   }));
   const hasClassOptions = classDropdownOptions.length > 0;
 
-  const permAddr = addrFromStudent(defaultValues?.permanantAddress ?? defaultValues?.permanentAddress);
+  const permAddr = addrFromStudent(
+    defaultValues?.permanantAddress ?? defaultValues?.permanentAddress,
+  );
   const commAddr = addrFromStudent(defaultValues?.communicationAddress);
 
   const getEnrolledClassId = (): string => {
-    if (!defaultValues?.enrolledClass) return "";
-    if (typeof defaultValues.enrolledClass === "string") return defaultValues.enrolledClass;
-    return String((defaultValues.enrolledClass as { classId?: number }).classId ?? "");
+    const directId = defaultValues?.enrolledClassId ?? defaultValues?.classId;
+    if (directId !== undefined && directId !== null) {
+      return String(directId);
+    }
+    const enrolledClass = defaultValues?.enrolledClass;
+    if (!enrolledClass) return "";
+    if (typeof enrolledClass === "string") {
+      const parsed = Number(enrolledClass);
+      if (!isNaN(parsed) && Number.isInteger(parsed)) {
+        return String(parsed);
+      }
+      const matched = classOptions.find(
+        (c) => c.className?.toLowerCase() === enrolledClass.toLowerCase(),
+      );
+      if (matched) return String(matched.classId);
+      return enrolledClass;
+    }
+    return String((enrolledClass as { classId?: number }).classId ?? "");
   };
 
   const form = useForm<FormValues>({
@@ -148,18 +235,21 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
       email: defaultValues?.email ?? "",
       profilePicture: defaultValues?.profilePicture ?? "",
       permanantAddress: permAddr,
-      isCommunicationAddressSameAsPermanant: defaultValues?.isCommunicationAddressSameAsPermanant ?? true,
+      isCommunicationAddressSameAsPermanant:
+        defaultValues?.isCommunicationAddressSameAsPermanant ?? true,
       communicationAddress: commAddr,
       previousSchoolName: defaultValues?.previousSchoolName ?? "",
       previousSchoolAddress: defaultValues?.previousSchoolAddress ?? "",
       fatherName: defaultValues?.fatherContactDetails?.name ?? "",
       fatherPhone: defaultValues?.fatherContactDetails?.phone ?? "",
-      fatherSecondaryPhone: defaultValues?.fatherContactDetails?.secondaryPhone ?? "",
+      fatherSecondaryPhone:
+        defaultValues?.fatherContactDetails?.secondaryPhone ?? "",
       fatherAadharNo: defaultValues?.fatherContactDetails?.aadharNo ?? "",
       fatherEmail: defaultValues?.fatherContactDetails?.email ?? "",
       motherName: defaultValues?.motherContactDetails?.name ?? "",
       motherPhone: defaultValues?.motherContactDetails?.phone ?? "",
-      motherSecondaryPhone: defaultValues?.motherContactDetails?.secondaryPhone ?? "",
+      motherSecondaryPhone:
+        defaultValues?.motherContactDetails?.secondaryPhone ?? "",
       motherAadharNo: defaultValues?.motherContactDetails?.aadharNo ?? "",
       motherEmail: defaultValues?.motherContactDetails?.email ?? "",
       dob: defaultValues?.dob ?? "",
@@ -182,25 +272,48 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
 
   React.useEffect(() => {
     if (!sameAddress) return;
-    setValue("communicationAddress", { addressLine1: p1, addressLine2: p2, pinCode: p3, city: p4, state: p5 }, { shouldValidate: false });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setValue(
+      "communicationAddress",
+      { addressLine1: p1, addressLine2: p2, pinCode: p3, city: p4, state: p5 },
+      { shouldValidate: false },
+    );
   }, [sameAddress, p1, p2, p3, p4, p5, setValue]);
 
   const stateOptions = React.useMemo<DropdownOption[]>(
-    () => (Indian_states_cities_list.STATES_OBJECT ?? []).map((s: any) => ({ value: String(s?.name ?? ""), label: String(s?.label ?? s?.name ?? "") })).filter((x) => x.value && x.label),
+    () =>
+      (Indian_states_cities_list.STATES_OBJECT ?? [])
+        .map((s: any) => ({
+          value: String(s?.name ?? ""),
+          label: String(s?.label ?? s?.name ?? ""),
+        }))
+        .filter((x) => x.value && x.label),
     [],
   );
 
   const getCityOptions = (state: string): DropdownOption[] => {
     if (!state) return [];
-    const cities = (Indian_states_cities_list.STATE_WISE_CITIES as any)?.[state] ?? [];
-    return cities.map((c: any) =>
-      typeof c === "string" ? { value: c, label: c } : { value: String(c?.value ?? c?.name ?? ""), label: String(c?.label ?? c?.name ?? c?.value ?? "") }
-    ).filter((x: DropdownOption) => x.value && x.label);
+    const cities =
+      (Indian_states_cities_list.STATE_WISE_CITIES as any)?.[state] ?? [];
+    return cities
+      .map((c: any) =>
+        typeof c === "string"
+          ? { value: c, label: c }
+          : {
+              value: String(c?.value ?? c?.name ?? ""),
+              label: String(c?.label ?? c?.name ?? c?.value ?? ""),
+            },
+      )
+      .filter((x: DropdownOption) => x.value && x.label);
   };
 
-  const permCityOptions = React.useMemo(() => getCityOptions(selectedPermState), [selectedPermState]);
-  const commCityOptions = React.useMemo(() => getCityOptions(selectedCommState), [selectedCommState]);
+  const permCityOptions = React.useMemo(
+    () => getCityOptions(selectedPermState),
+    [selectedPermState],
+  );
+  const commCityOptions = React.useMemo(
+    () => getCityOptions(selectedCommState),
+    [selectedCommState],
+  );
 
   const onImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.currentTarget.files?.[0];
@@ -231,52 +344,102 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
     }
   };
 
-  const categoryDropdownOptions: DropdownOption[] = categoryOptions.map((c) => ({
-    value: c,
-    label: c,
-  }));
+  const categoryDropdownOptions: DropdownOption[] = categoryOptions.map(
+    (c) => ({
+      value: c,
+      label: c,
+    }),
+  );
 
   const onSubmit = handleSubmit(async (v) => {
     const orgIdNum = Number(orgId || v.orgId);
     const classIdNum = Number(trim(v.classId));
     if (!orgIdNum || orgIdNum <= 0) return toast.error("OrgId is required");
     if (!trim(v.classId)) return toast.error("Class is required");
-    if (!Number.isInteger(classIdNum) || classIdNum < 0) return toast.error("Class ID must be 0 or greater");
+    if (!Number.isInteger(classIdNum) || classIdNum < 0)
+      return toast.error("Class ID must be 0 or greater");
 
     setLoading(true);
-    const tId = toast.loading(isEditing ? "Updating student..." : "Enrolling student...");
+    const tId = toast.loading(
+      isEditing ? "Updating student..." : "Enrolling student...",
+    );
     try {
       const payload = {
         id: isEditing ? studentId : 0,
         orgId: orgIdNum,
         classId: classIdNum,
-        firstName: trim(v.firstName), middleName: trim(v.middleName), lastName: trim(v.lastName), initials: trim(v.initials),
-        phone: onlyDigits(v.phone), secondaryPhone: onlyDigits(v.secondaryPhone), aadharNo: onlyDigits(v.aadharNo),
-        email: trim(v.email) || null, profilePicture: v.profilePicture || null,
-        permanantAddress: { addressLine1: trim(v.permanantAddress.addressLine1), addressLine2: trim(v.permanantAddress.addressLine2), pinCode: onlyDigits(v.permanantAddress.pinCode), city: trim(v.permanantAddress.city), state: trim(v.permanantAddress.state) },
-        isCommunicationAddressSameAsPermanant: v.isCommunicationAddressSameAsPermanant,
+        firstName: trim(v.firstName),
+        middleName: trim(v.middleName),
+        lastName: trim(v.lastName),
+        initials: trim(v.initials),
+        phone: onlyDigits(v.phone),
+        secondaryPhone: onlyDigits(v.secondaryPhone),
+        aadharNo: onlyDigits(v.aadharNo),
+        email: trim(v.email) || null,
+        profilePicture: v.profilePicture || null,
+        permanantAddress: {
+          addressLine1: trim(v.permanantAddress.addressLine1),
+          addressLine2: trim(v.permanantAddress.addressLine2),
+          pinCode: onlyDigits(v.permanantAddress.pinCode),
+          city: trim(v.permanantAddress.city),
+          state: trim(v.permanantAddress.state),
+        },
+        isCommunicationAddressSameAsPermanant:
+          v.isCommunicationAddressSameAsPermanant,
         communicationAddress: v.isCommunicationAddressSameAsPermanant
-          ? { addressLine1: trim(v.permanantAddress.addressLine1), addressLine2: trim(v.permanantAddress.addressLine2), pinCode: onlyDigits(v.permanantAddress.pinCode), city: trim(v.permanantAddress.city), state: trim(v.permanantAddress.state) }
-          : { addressLine1: trim(v.communicationAddress.addressLine1), addressLine2: trim(v.communicationAddress.addressLine2), pinCode: onlyDigits(v.communicationAddress.pinCode), city: trim(v.communicationAddress.city), state: trim(v.communicationAddress.state) },
-        previousSchoolName: trim(v.previousSchoolName), previousSchoolAddress: trim(v.previousSchoolAddress),
-        fatherName: trim(v.fatherName), fatherPhone: onlyDigits(v.fatherPhone), fatherSecondaryPhone: onlyDigits(v.fatherSecondaryPhone), fatherAadharNo: onlyDigits(v.fatherAadharNo), fatherEmail: trim(v.fatherEmail) || null,
-        motherName: trim(v.motherName), motherPhone: onlyDigits(v.motherPhone), motherSecondaryPhone: onlyDigits(v.motherSecondaryPhone), motherAadharNo: onlyDigits(v.motherAadharNo), motherEmail: trim(v.motherEmail) || null,
-        dob: v.dob || null, religion: trim(v.religion) || null, cateogry: trim(v.cateogry) || null,
-        contactPersonName: trim(v.contactPersonName) || null, contactPersonPhone: onlyDigits(v.contactPersonPhone),
+          ? {
+              addressLine1: trim(v.permanantAddress.addressLine1),
+              addressLine2: trim(v.permanantAddress.addressLine2),
+              pinCode: onlyDigits(v.permanantAddress.pinCode),
+              city: trim(v.permanantAddress.city),
+              state: trim(v.permanantAddress.state),
+            }
+          : {
+              addressLine1: trim(v.communicationAddress.addressLine1),
+              addressLine2: trim(v.communicationAddress.addressLine2),
+              pinCode: onlyDigits(v.communicationAddress.pinCode),
+              city: trim(v.communicationAddress.city),
+              state: trim(v.communicationAddress.state),
+            },
+        previousSchoolName: trim(v.previousSchoolName),
+        previousSchoolAddress: trim(v.previousSchoolAddress),
+        fatherName: trim(v.fatherName),
+        fatherPhone: onlyDigits(v.fatherPhone),
+        fatherSecondaryPhone: onlyDigits(v.fatherSecondaryPhone),
+        fatherAadharNo: onlyDigits(v.fatherAadharNo),
+        fatherEmail: trim(v.fatherEmail) || null,
+        motherName: trim(v.motherName),
+        motherPhone: onlyDigits(v.motherPhone),
+        motherSecondaryPhone: onlyDigits(v.motherSecondaryPhone),
+        motherAadharNo: onlyDigits(v.motherAadharNo),
+        motherEmail: trim(v.motherEmail) || null,
+        dob: v.dob || null,
+        religion: trim(v.religion) || null,
+        cateogry: trim(v.cateogry) || null,
+        contactPersonName: trim(v.contactPersonName) || null,
+        contactPersonPhone: onlyDigits(v.contactPersonPhone),
       };
 
-      const res = await enrollStudent({ payload, userId: session?.user?.profileId ?? 0 });
+      const res = await enrollStudent({
+        payload,
+        userId: session?.user?.profileId ?? 0,
+      });
       if (!res?.status) throw new Error(res?.message || "Failed");
-      toast.success(res?.message || (isEditing ? "Student updated!" : "Student enrolled!"), { id: tId });
+      toast.success(
+        res?.message || (isEditing ? "Student updated!" : "Student enrolled!"),
+        { id: tId },
+      );
       if (isEditing) {
-        router.push(`/dashboard/administration/admission/${studentId}`);
+        router.push(`/dashboard/administration/admission`);
       } else {
         router.push("/dashboard/administration/admission");
       }
       router.refresh();
     } catch (e) {
       toast.error(getErrorMessage(e), { id: tId });
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   });
 
   return (
@@ -284,7 +447,14 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
       <Card className="rounded-3xl border-slate-200/70 dark:border-slate-700/70">
         <CardHeader>
           <CardTitle>{isEditing ? "Edit Student" : "Enroll Student"}</CardTitle>
-          {orgName && <p className="text-sm text-slate-500">Organisation: <span className="font-medium text-slate-900 dark:text-slate-100">{orgName}</span></p>}
+          {orgName && (
+            <p className="text-sm text-slate-500">
+              Organisation:{" "}
+              <span className="font-medium text-slate-900 dark:text-slate-100">
+                {orgName}
+              </span>
+            </p>
+          )}
         </CardHeader>
         <CardContent>
           <form onSubmit={onSubmit} className="space-y-8" noValidate>
@@ -304,7 +474,7 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
                       options={classDropdownOptions}
                       className={cn(
                         "h-11 rounded-2xl",
-                        fieldState.invalid && "border-red-500"
+                        fieldState.invalid && "border-red-500",
                       )}
                       allowClear={false}
                     />
@@ -318,8 +488,22 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
                 )}
               />
             ) : (
-              <InputField control={control} name="classId" label="Class ID" placeholder="e.g. 6" className="h-11 rounded-2xl" leftIcon={<GraduationCap className="h-4 w-4" />}
-                rules={{ required: "Class ID is required", validate: (v) => { const n = Number(String(v ?? "").trim()); return (Number.isInteger(n) && n >= 0) ? true : "Class ID must be a non-negative integer"; } }}
+              <InputField
+                control={control}
+                name="classId"
+                label="Class ID"
+                placeholder="e.g. 6"
+                className="h-11 rounded-2xl"
+                leftIcon={<GraduationCap className="h-4 w-4" />}
+                rules={{
+                  required: "Class ID is required",
+                  validate: (v) => {
+                    const n = Number(String(v ?? "").trim());
+                    return Number.isInteger(n) && n >= 0
+                      ? true
+                      : "Class ID must be a non-negative integer";
+                  },
+                }}
               />
             )}
 
@@ -327,28 +511,97 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
 
             {/* Student Info */}
             <div className="space-y-4">
-              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Student Details</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Student Details
+              </p>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <InputField control={control} name="firstName" label="First Name" placeholder="First name" className="h-11 rounded-2xl" leftIcon={<User2 className="h-4 w-4" />} rules={{ required: "First name is required" }} />
-                <InputField control={control} name="middleName" label="Middle Name" placeholder="Optional" className="h-11 rounded-2xl" />
-                <InputField control={control} name="lastName" label="Last Name" placeholder="Last name" className="h-11 rounded-2xl" rules={{ required: "Last name is required" }} />
+                <InputField
+                  control={control}
+                  name="firstName"
+                  label="First Name"
+                  placeholder="First name"
+                  className="h-11 rounded-2xl"
+                  leftIcon={<User2 className="h-4 w-4" />}
+                  rules={{ required: "First name is required" }}
+                />
+                <InputField
+                  control={control}
+                  name="middleName"
+                  label="Middle Name"
+                  placeholder="Optional"
+                  className="h-11 rounded-2xl"
+                />
+                <InputField
+                  control={control}
+                  name="lastName"
+                  label="Last Name"
+                  placeholder="Last name"
+                  className="h-11 rounded-2xl"
+                  rules={{ required: "Last name is required" }}
+                />
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <InputField control={control} name="initials" label="Initials" placeholder="e.g. VM" className="h-11 rounded-2xl" leftIcon={<GraduationCap className="h-4 w-4" />} rules={{ required: "Initial is required" }} />
-                <InputField control={control} name="email" label="Email" placeholder="name@domain.com" className="h-11 rounded-2xl" leftIcon={<Mail className="h-4 w-4" />} />
-                <InputField control={control} name="dob" label="Date of Birth" type="date" className="h-11 rounded-2xl" leftIcon={<CalendarDays className="h-4 w-4" />} />
+                <InputField
+                  control={control}
+                  name="initials"
+                  label="Initials"
+                  placeholder="e.g. VM"
+                  className="h-11 rounded-2xl"
+                  leftIcon={<GraduationCap className="h-4 w-4" />}
+                  rules={{ required: "Initial is required" }}
+                />
+                <InputField
+                  control={control}
+                  name="email"
+                  label="Email"
+                  placeholder="name@domain.com"
+                  className="h-11 rounded-2xl"
+                  leftIcon={<Mail className="h-4 w-4" />}
+                />
+                <InputField
+                  control={control}
+                  name="dob"
+                  label="Date of Birth"
+                  type="date"
+                  className="h-11 rounded-2xl"
+                  leftIcon={<CalendarDays className="h-4 w-4" />}
+                />
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <InputField control={control} name="phone" label="Phone" placeholder="0123456789" className="h-11 rounded-2xl" leftIcon={<Phone className="h-4 w-4" />} rules={{ required: "Phone is required" }} />
-                <InputField control={control} name="secondaryPhone" label="Secondary Phone" placeholder="Optional" className="h-11 rounded-2xl" />
-                <InputField control={control} name="aadharNo" label="Aadhar No" placeholder="Optional" className="h-11 rounded-2xl" />
+                <InputField
+                  control={control}
+                  name="phone"
+                  label="Phone"
+                  placeholder="0123456789"
+                  className="h-11 rounded-2xl"
+                  leftIcon={<Phone className="h-4 w-4" />}
+                  rules={{ required: "Phone is required" }}
+                />
+                <InputField
+                  control={control}
+                  name="secondaryPhone"
+                  label="Secondary Phone"
+                  placeholder="Optional"
+                  className="h-11 rounded-2xl"
+                />
+                <InputField
+                  control={control}
+                  name="aadharNo"
+                  label="Aadhar No"
+                  placeholder="Optional"
+                  className="h-11 rounded-2xl"
+                />
               </div>
 
               {/* Profile Pic */}
               <div className="flex items-center justify-between rounded-2xl border border-slate-200 dark:border-slate-700 p-4">
                 <div>
-                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Profile Picture</p>
-                  <p className="text-xs text-slate-500">Only .png and .jpg files allowed · max 500 KB</p>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    Profile Picture
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Only .png and .jpg files allowed · max 500 KB
+                  </p>
                 </div>
                 <div className="flex items-center gap-3">
                   {preview ? (
@@ -359,11 +612,19 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
                       onError={() => changePreview("")}
                     />
                   ) : (
-                    <div className="grid h-12 w-12 place-items-center rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-xs text-slate-400">N/A</div>
+                    <div className="grid h-12 w-12 place-items-center rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-xs text-slate-400">
+                      N/A
+                    </div>
                   )}
                   <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 px-3 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
-                    <ImageIcon className="h-3.5 w-3.5" />Upload
-                    <input type="file" accept=".png,.jpg,.jpeg" className="hidden" onChange={onImageChange} />
+                    <ImageIcon className="h-3.5 w-3.5" />
+                    Upload
+                    <input
+                      type="file"
+                      accept=".png,.jpg,.jpeg"
+                      className="hidden"
+                      onChange={onImageChange}
+                    />
                   </label>
                 </div>
               </div>
@@ -374,24 +635,53 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
             {/* Permanent Address */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Permanent Address</p>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  Permanent Address
+                </p>
                 <MapPin className="h-4 w-4 text-slate-400" />
               </div>
-              <AddressBlock prefix="permanantAddress" control={control} setValue={setValue} selectedState={selectedPermState} stateOptions={stateOptions} cityOptions={permCityOptions} />
+              <AddressBlock
+                prefix="permanantAddress"
+                control={control}
+                setValue={setValue}
+                selectedState={selectedPermState}
+                stateOptions={stateOptions}
+                cityOptions={permCityOptions}
+              />
             </div>
 
             <div className="flex items-center justify-between rounded-2xl border border-slate-200 dark:border-slate-700 p-4">
               <div>
-                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Communication address same as permanent</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Turn off to enter a different communication address</p>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  Communication address same as permanent
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Turn off to enter a different communication address
+                </p>
               </div>
-              <ToggleControl color={brandColor} label="" checked={sameAddress} onChange={(v) => setValue("isCommunicationAddressSameAsPermanant", v)} />
+              <ToggleControl
+                color={brandColor}
+                label=""
+                checked={sameAddress}
+                onChange={(v) =>
+                  setValue("isCommunicationAddressSameAsPermanant", v)
+                }
+              />
             </div>
 
             {!sameAddress && (
               <div className="space-y-4">
-                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Communication Address</p>
-                <AddressBlock prefix="communicationAddress" control={control} setValue={setValue} selectedState={selectedCommState} stateOptions={stateOptions} cityOptions={commCityOptions} />
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  Communication Address
+                </p>
+                <AddressBlock
+                  prefix="communicationAddress"
+                  control={control}
+                  setValue={setValue}
+                  selectedState={selectedCommState}
+                  stateOptions={stateOptions}
+                  cityOptions={commCityOptions}
+                />
               </div>
             )}
 
@@ -399,10 +689,24 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
 
             {/* Previous School */}
             <div className="space-y-4">
-              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Previous School (Optional)</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Previous School (Optional)
+              </p>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <InputField control={control} name="previousSchoolName" label="School Name" placeholder="Optional" className="h-11 rounded-2xl" />
-                <InputField control={control} name="previousSchoolAddress" label="School Address" placeholder="Optional" className="h-11 rounded-2xl" />
+                <InputField
+                  control={control}
+                  name="previousSchoolName"
+                  label="School Name"
+                  placeholder="Optional"
+                  className="h-11 rounded-2xl"
+                />
+                <InputField
+                  control={control}
+                  name="previousSchoolAddress"
+                  label="School Address"
+                  placeholder="Optional"
+                  className="h-11 rounded-2xl"
+                />
               </div>
             </div>
 
@@ -410,16 +714,58 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
 
             {/* Parents */}
             <div className="space-y-4">
-              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Parent Details (Optional)</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Parent Details (Optional)
+              </p>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <InputField control={control} name="fatherName" label="Father's Name" className="h-11 rounded-2xl" />
-                <InputField control={control} name="motherName" label="Mother's Name" className="h-11 rounded-2xl" />
-                <InputField control={control} name="fatherPhone" label="Father's Phone" className="h-11 rounded-2xl" />
-                <InputField control={control} name="motherPhone" label="Mother's Phone" className="h-11 rounded-2xl" />
-                <InputField control={control} name="fatherEmail" label="Father's Email" className="h-11 rounded-2xl" />
-                <InputField control={control} name="motherEmail" label="Mother's Email" className="h-11 rounded-2xl" />
-                <InputField control={control} name="fatherAadharNo" label="Father's Aadhar" className="h-11 rounded-2xl" />
-                <InputField control={control} name="motherAadharNo" label="Mother's Aadhar" className="h-11 rounded-2xl" />
+                <InputField
+                  control={control}
+                  name="fatherName"
+                  label="Father's Name"
+                  className="h-11 rounded-2xl"
+                />
+                <InputField
+                  control={control}
+                  name="motherName"
+                  label="Mother's Name"
+                  className="h-11 rounded-2xl"
+                />
+                <InputField
+                  control={control}
+                  name="fatherPhone"
+                  label="Father's Phone"
+                  className="h-11 rounded-2xl"
+                />
+                <InputField
+                  control={control}
+                  name="motherPhone"
+                  label="Mother's Phone"
+                  className="h-11 rounded-2xl"
+                />
+                <InputField
+                  control={control}
+                  name="fatherEmail"
+                  label="Father's Email"
+                  className="h-11 rounded-2xl"
+                />
+                <InputField
+                  control={control}
+                  name="motherEmail"
+                  label="Mother's Email"
+                  className="h-11 rounded-2xl"
+                />
+                <InputField
+                  control={control}
+                  name="fatherAadharNo"
+                  label="Father's Aadhar"
+                  className="h-11 rounded-2xl"
+                />
+                <InputField
+                  control={control}
+                  name="motherAadharNo"
+                  label="Mother's Aadhar"
+                  className="h-11 rounded-2xl"
+                />
               </div>
             </div>
 
@@ -427,7 +773,12 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
 
             {/* Additional */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <InputField control={control} name="religion" label="Religion" className="h-11 rounded-2xl" />
+              <InputField
+                control={control}
+                name="religion"
+                label="Religion"
+                className="h-11 rounded-2xl"
+              />
               <Controller
                 control={control}
                 name="cateogry"
@@ -443,12 +794,34 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
                   />
                 )}
               />
-              <InputField control={control} name="contactPersonName" label="Emergency Contact Name" className="h-11 rounded-2xl" />
-              <InputField control={control} name="contactPersonPhone" label="Emergency Contact Phone" className="h-11 rounded-2xl" />
+              <InputField
+                control={control}
+                name="contactPersonName"
+                label="Emergency Contact Name"
+                className="h-11 rounded-2xl"
+              />
+              <InputField
+                control={control}
+                name="contactPersonPhone"
+                label="Emergency Contact Phone"
+                className="h-11 rounded-2xl"
+              />
             </div>
 
-            <ActionButton type="submit" color={brandColor} loading={loading} disabled={loading} className="h-11 w-full rounded-2xl">
-              {loading ? (isEditing ? "Updating..." : "Enrolling...") : (isEditing ? "Save Changes" : "Enroll Student")}
+            <ActionButton
+              type="submit"
+              color={brandColor}
+              loading={loading}
+              disabled={loading}
+              className="h-11 w-full rounded-2xl"
+            >
+              {loading
+                ? isEditing
+                  ? "Updating..."
+                  : "Enrolling..."
+                : isEditing
+                  ? "Save Changes"
+                  : "Enroll Student"}
             </ActionButton>
           </form>
         </CardContent>
@@ -457,30 +830,101 @@ export default function EnrollStudentForm({ orgId, orgName, brandColor, classOpt
   );
 }
 
-function AddressBlock({ prefix, control, setValue, selectedState, stateOptions, cityOptions }: {
+function AddressBlock({
+  prefix,
+  control,
+  setValue,
+  selectedState,
+  stateOptions,
+  cityOptions,
+}: {
   prefix: "permanantAddress" | "communicationAddress";
-  control: any; setValue: any; selectedState: string;
-  stateOptions: DropdownOption[]; cityOptions: DropdownOption[];
+  control: any;
+  setValue: any;
+  selectedState: string;
+  stateOptions: DropdownOption[];
+  cityOptions: DropdownOption[];
 }) {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      <InputField control={control} name={`${prefix}.addressLine1`} label="Address Line 1" placeholder="House no, street" className="h-11 rounded-2xl" rules={{ required: "Address Line 1 is required" }} />
-      <InputField control={control} name={`${prefix}.addressLine2`} label="Address Line 2" placeholder="Optional" className="h-11 rounded-2xl" />
-      <InputField control={control} name={`${prefix}.pinCode`} label="Pin Code" placeholder="e.g. 110001" className="h-11 rounded-2xl" rules={{ required: "Pin code is required" }} />
+      <InputField
+        control={control}
+        name={`${prefix}.addressLine1`}
+        label="Address Line 1"
+        placeholder="House no, street"
+        className="h-11 rounded-2xl"
+        rules={{ required: "Address Line 1 is required" }}
+      />
+      <InputField
+        control={control}
+        name={`${prefix}.addressLine2`}
+        label="Address Line 2"
+        placeholder="Optional"
+        className="h-11 rounded-2xl"
+      />
+      <InputField
+        control={control}
+        name={`${prefix}.pinCode`}
+        label="Pin Code"
+        placeholder="e.g. 110001"
+        className="h-11 rounded-2xl"
+        rules={{ required: "Pin code is required" }}
+      />
       <div className="flex gap-4">
-        <Controller control={control} name={`${prefix}.state`} rules={{ required: "State is required" }}
+        <Controller
+          control={control}
+          name={`${prefix}.state`}
+          rules={{ required: "State is required" }}
           render={({ field, fieldState }) => (
             <div className="flex-1 space-y-1.5">
-              <DropdownFilter label="State" value={field.value} onChange={(val) => { field.onChange(val); setValue(`${prefix}.city`, ""); }} placeholder="Select State" options={stateOptions} className={cn("h-11 py-5 rounded-2xl", fieldState.invalid && "border-red-500")} allowClear={false} />
-              {fieldState.invalid && <p className="text-xs text-red-600">{fieldState.error?.message}</p>}
+              <DropdownFilter
+                label="State"
+                value={field.value}
+                onChange={(val) => {
+                  field.onChange(val);
+                  setValue(`${prefix}.city`, "");
+                }}
+                placeholder="Select State"
+                options={stateOptions}
+                className={cn(
+                  "h-11 py-5 rounded-2xl",
+                  fieldState.invalid && "border-red-500",
+                )}
+                allowClear={false}
+              />
+              {fieldState.invalid && (
+                <p className="text-xs text-red-600">
+                  {fieldState.error?.message}
+                </p>
+              )}
             </div>
           )}
         />
-        <Controller control={control} name={`${prefix}.city`} rules={{ required: "City is required" }}
+        <Controller
+          control={control}
+          name={`${prefix}.city`}
+          rules={{ required: "City is required" }}
           render={({ field, fieldState }) => (
             <div className="flex-1 space-y-1.5">
-              <DropdownFilter label="City" value={field.value} onChange={field.onChange} placeholder={selectedState ? "Select City" : "Select state first"} options={cityOptions} className={cn("h-11 py-5 rounded-2xl", fieldState.invalid && "border-red-500")} allowClear={false} />
-              {fieldState.invalid && <p className="text-xs text-red-600">{fieldState.error?.message}</p>}
+              <DropdownFilter
+                label="City"
+                value={field.value}
+                onChange={field.onChange}
+                placeholder={
+                  selectedState ? "Select City" : "Select state first"
+                }
+                options={cityOptions}
+                className={cn(
+                  "h-11 py-5 rounded-2xl",
+                  fieldState.invalid && "border-red-500",
+                )}
+                allowClear={false}
+              />
+              {fieldState.invalid && (
+                <p className="text-xs text-red-600">
+                  {fieldState.error?.message}
+                </p>
+              )}
             </div>
           )}
         />

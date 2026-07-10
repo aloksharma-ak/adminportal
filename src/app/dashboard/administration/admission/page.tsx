@@ -6,7 +6,6 @@ import {
   getStudentsByOrgId,
 } from "@/app/dashboard/administration/actions";
 import StudentsGrid from "@/components/administration/StudentsGrid";
-import { ErrorCard } from "@/components/shared-ui/States";
 import { PageHeader } from "@/components/shared-ui/PageHeader";
 import { LinkButton } from "@/components/controls/Buttons";
 import { UserPlus } from "lucide-react";
@@ -42,28 +41,39 @@ export default async function AdmissionPage({
   let classOptions: { label: string; value: string }[] = [];
   let fetchError: string | null = null;
 
-  try {
-    const [studentsRes, masterRes] = await Promise.all([
-      getStudentsByOrgId(
-        session.user.orgId,
-        session.user.profileId,
-        true,
-        classId,
-        searchText,
-      ),
-      getAdmissionMasterData({
-        orgId: session.user.orgId,
-        userId: session.user.profileId,
-      }),
-    ]);
+  const [studentsResult, masterResult] = await Promise.allSettled([
+    getStudentsByOrgId(
+      session.user.orgId,
+      session.user.profileId,
+      true,
+      classId,
+      searchText,
+    ),
+    getAdmissionMasterData({
+      orgId: session.user.orgId,
+      userId: session.user.profileId,
+    }),
+  ]);
 
-    students = studentsRes;
+  if (studentsResult.status === "fulfilled") {
+    students = studentsResult.value;
+  } else {
+    const fullError =
+      studentsResult.reason instanceof Error
+        ? studentsResult.reason.message
+        : "Failed to load students";
+    const colonIndex = fullError.indexOf(":");
+    fetchError = colonIndex !== -1 ? fullError.substring(colonIndex + 1).trim() : fullError;
+  }
+
+  if (masterResult.status === "fulfilled") {
+    const masterRes = masterResult.value;
     classOptions = (masterRes?.data?.classMasters ?? []).map((classMaster) => ({
       label: classMaster.classText,
       value: String(classMaster.id),
     }));
-  } catch (err) {
-    fetchError = err instanceof Error ? err.message : "Failed to load students";
+  } else {
+    console.error("Failed to load admission master data:", masterResult.reason);
   }
 
   const brandColor = session.user.brandColor ?? "#3b82f6";
@@ -84,17 +94,14 @@ export default async function AdmissionPage({
           </LinkButton>
         }
       />
-      {fetchError ? (
-        <ErrorCard message={fetchError} />
-      ) : (
-        <StudentsGrid
-          data={students}
-          brandColor={brandColor}
-          classOptions={classOptions}
-          initialClassId={classId ? String(classId) : undefined}
-          initialSearch={searchText}
-        />
-      )}
+      <StudentsGrid
+        data={students}
+        brandColor={brandColor}
+        classOptions={classOptions}
+        initialClassId={classId ? String(classId) : undefined}
+        initialSearch={searchText}
+        errorMessage={fetchError}
+      />
     </Container>
   );
 }

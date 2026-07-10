@@ -50,6 +50,8 @@ export type StudentDetail = {
   communicationAddress?: Address | null;
   orgId?: number;
   enrolledClass?: EnrolledClass | null;
+  enrolledClassId?: number | null;
+  classId?: number | null;
   previousSchoolName?: string | null;
   previousSchoolAddress?: string | null;
   fatherContactDetails?: Contact | null;

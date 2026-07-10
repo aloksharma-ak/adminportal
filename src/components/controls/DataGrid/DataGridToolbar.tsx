@@ -94,12 +94,13 @@ export function DataGridToolbar({
     );
   }, [filterValueSignature]);
 
-  const commitSearch = () => {
+  const commitSearch = (updatedFilters?: Record<string, string | undefined>) => {
+    const filtersToUse = updatedFilters ?? draftFilters;
     onSearchChange?.(draftSearch);
     topFilters.forEach((filter) => {
-      filter.onChange?.(draftFilters[filter.key]);
+      filter.onChange?.(filtersToUse[filter.key]);
     });
-    onSearch?.({ searchValue: draftSearch, filters: draftFilters });
+    onSearch?.({ searchValue: draftSearch, filters: filtersToUse });
   };
 
   const clearToolbar = () => {
@@ -186,7 +187,7 @@ export function DataGridToolbar({
             </Button>
           )}
           {showSearch && (
-            <Button onClick={commitSearch} style={{ backgroundColor: brandColor }}>
+            <Button onClick={() => commitSearch()} style={{ backgroundColor: brandColor }}>
               {searchLabel}
             </Button>
           )}

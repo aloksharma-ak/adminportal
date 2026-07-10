@@ -130,7 +130,14 @@ export default async function ProfilePage() {
                     </div>
                   </div>
                 </div>
-                <div className="pb-1">
+
+                <div className="flex gap-4">
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-center dark:border-slate-700 dark:bg-slate-800">
+                    <p className="text-xs text-slate-500">Profile ID</p>
+                    <p className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                      #{profile.profileId}
+                    </p>
+                  </div>
                   <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-center dark:border-slate-700 dark:bg-slate-800">
                     <p className="text-xs text-slate-500">Employee ID</p>
                     <p className="text-lg font-bold text-slate-900 dark:text-slate-100">

@@ -47,6 +47,7 @@ import {
 type Props = {
   orgId: number;
   studentId: number;
+  studentName?: string;
   admissionId: number;
   grade: string;
   includeTransport: boolean;
@@ -380,6 +381,7 @@ function ChargePicker({
 export default function AddAdmissionFeeForm({
   orgId,
   studentId,
+  studentName,
   admissionId,
   grade,
   includeTransport,
@@ -552,7 +554,7 @@ export default function AddAdmissionFeeForm({
         <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-4">
           <LockedField label="Org ID" value={orgId} />
           <LockedField label="Admission ID" value={admissionId} />
-          <LockedField label="Student ID" value={studentId} />
+          <LockedField label="Student Name" value={studentName || studentId} />
           <LockedField
             label="Transport"
             value={includeTransport ? "Included" : "Not Included"}

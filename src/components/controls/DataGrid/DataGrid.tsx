@@ -89,6 +89,7 @@ type Props<TData, TValue> = {
   // className
   className?: string;
   brandColor?: string;
+  errorMessage?: string | null;
 };
 
 function cn(...classes: (string | undefined | false)[]) {
@@ -110,6 +111,7 @@ export function DataGrid<TData, TValue>({
   enableRowSelection = false,
   className,
   brandColor,
+  errorMessage,
 }: Props<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -251,7 +253,11 @@ export function DataGrid<TData, TValue>({
                     colSpan={table.getAllColumns().length}
                     className="h-24 text-center"
                   >
-                    No results.
+                    {errorMessage ? (
+                      <span className="text-red-500 font-semibold">{errorMessage}</span>
+                    ) : (
+                      "No results."
+                    )}
                   </TableCell>
                 </TableRow>
               )}

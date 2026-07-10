@@ -2,45 +2,23 @@
 
 import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { CalendarCheck, Pencil, Save } from "lucide-react";
+import { CalendarCheck, Pencil } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { toast } from "sonner";
 
 import {
-  getAttendanceDetail,
-  modifyAttendanceSession,
-  type AttendanceDetail,
   type AttendanceSession,
   type ClassStudent,
 } from "@/app/dashboard/academics/actions";
-import { getErrorMessage } from "@/app/dashboard/utils";
 import { ActionButton } from "@/components/controls/Buttons";
 import { DataGrid } from "@/components/controls/DataGrid";
-import { DropdownFilter } from "@/components/controls/DropdownFilter";
 import { PageHeader } from "@/components/shared-ui/PageHeader";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/Table";
 
 type StatusOption = { value: string; label: string };
-
-type EditableAttendance = {
-  studentId: number;
-  studentName: string;
-  status: number;
-  remarks: string;
-};
 
 type Props = {
   classId: number;
@@ -53,14 +31,6 @@ type Props = {
   initialToDate: string;
   brandColor?: string | null;
 };
-
-function studentName(student: ClassStudent) {
-  return (
-    student.studentName ||
-    `${student.firstName ?? ""} ${student.lastName ?? ""}`.trim() ||
-    `Student #${student.studentId}`
-  );
-}
 
 function sessionId(session: AttendanceSession) {
   return session.attendanceId ?? session.id;
@@ -106,25 +76,35 @@ function sessionColumns(
       ),
     },
     {
-      accessorKey: "presentCount",
-      header: "Present",
-      cell: ({ getValue }) => getValue<number>() ?? "-",
+      id: "totalStudents",
+      header: "Total Students",
+      cell: ({ row }) => {
+        const present = row.original.totalPresent ?? row.original.presentCount ?? 0;
+        const absent = row.original.totalAbsent ?? row.original.absentCount ?? 0;
+        return row.original.totalStudent ?? (present + absent);
+      },
     },
     {
-      accessorKey: "absentCount",
+      id: "presentCount",
+      header: "Present",
+      cell: ({ row }) => {
+        return row.original.totalPresent ?? row.original.presentCount ?? "-";
+      },
+    },
+    {
+      id: "absentCount",
       header: "Absent",
-      cell: ({ getValue }) => getValue<number>() ?? "-",
+      cell: ({ row }) => {
+        return row.original.totalAbsent ?? row.original.absentCount ?? "-";
+      },
     },
   ];
 }
 
 export default function AttendanceWorkspace({
   classId,
-  orgId,
   className,
-  students,
   sessions,
-  statusOptions,
   initialFromDate,
   initialToDate,
   brandColor,
@@ -132,81 +112,14 @@ export default function AttendanceWorkspace({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { data: session } = useSession();
   const [fromDate, setFromDate] = React.useState(initialFromDate);
   const [toDate, setToDate] = React.useState(initialToDate);
-  const [attendanceId, setAttendanceId] = React.useState(0);
-  const [attendanceDate, setAttendanceDate] = React.useState(initialToDate);
-  const [saving, setSaving] = React.useState(false);
-  const [loadingDetail, setLoadingDetail] = React.useState(false);
-  const [details, setDetails] = React.useState<EditableAttendance[]>(() =>
-    students.map((student) => ({
-      studentId: student.studentId,
-      studentName: studentName(student),
-      status: Number(statusOptions[0]?.value ?? 1),
-      remarks: "",
-    })),
-  );
-
-  React.useEffect(() => {
-    setDetails((current) =>
-      students.map((student) => {
-        const existing = current.find(
-          (item) => item.studentId === student.studentId,
-        );
-        return (
-          existing ?? {
-            studentId: student.studentId,
-            studentName: studentName(student),
-            status: Number(statusOptions[0]?.value ?? 1),
-            remarks: "",
-          }
-        );
-      }),
-    );
-  }, [statusOptions, students]);
-
-  const applyDetail = React.useCallback(
-    (attendance: AttendanceSession) => {
-      const detailMap = new Map<number, AttendanceDetail>(
-        (attendance.details ?? []).map((item) => [item.studentId, item]),
-      );
-      setAttendanceId(sessionId(attendance));
-      setAttendanceDate(attendance.date?.slice(0, 10) || initialToDate);
-      setDetails(
-        students.map((student) => {
-          const detail = detailMap.get(student.studentId);
-          return {
-            studentId: student.studentId,
-            studentName: studentName(student),
-            status: detail?.status ?? Number(statusOptions[0]?.value ?? 1),
-            remarks: detail?.remarks ?? "",
-          };
-        }),
-      );
-    },
-    [initialToDate, statusOptions, students],
-  );
 
   const editSession = React.useCallback(
-    async (value: AttendanceSession) => {
-      setLoadingDetail(true);
-      const toastId = toast.loading("Loading attendance details...");
-      try {
-        const detail = await getAttendanceDetail({
-          attendanceId: sessionId(value),
-          orgId,
-          userId: session?.user?.profileId,
-        });
-        applyDetail(detail ?? value);
-        toast.success("Attendance details loaded.", { id: toastId });
-      } catch (error) {
-        toast.error(getErrorMessage(error), { id: toastId });
-      } finally {
-        setLoadingDetail(false);
-      }
+    (value: AttendanceSession) => {
+      router.push(`/dashboard/academics/classes/${classId}/attendance/record?id=${sessionId(value)}`);
     },
-    [applyDetail, orgId, session?.user?.profileId],
+    [router, classId],
   );
 
   const columns = React.useMemo(
@@ -219,72 +132,7 @@ export default function AttendanceWorkspace({
     params.set("fromDate", fromDate);
     params.set("toDate", toDate);
     router.replace(`${pathname}?${params.toString()}`);
-  };
-
-  const createNewSession = () => {
-    setAttendanceId(0);
-    setAttendanceDate(toDate);
-    setDetails(
-      students.map((student) => ({
-        studentId: student.studentId,
-        studentName: studentName(student),
-        status: Number(statusOptions[0]?.value ?? 1),
-        remarks: "",
-      })),
-    );
-  };
-
-  const updateDetail = (
-    studentId: number,
-    patch: Partial<EditableAttendance>,
-  ) => {
-    setDetails((current) =>
-      current.map((item) =>
-        item.studentId === studentId ? { ...item, ...patch } : item,
-      ),
-    );
-  };
-
-  const saveAttendance = async () => {
-    if (!attendanceDate) {
-      toast.error("Attendance date is required.");
-      return;
-    }
-    if (details.length === 0) {
-      toast.error("No students found for this class.");
-      return;
-    }
-
-    setSaving(true);
-    const toastId = toast.loading("Saving attendance...");
-    try {
-      const response = await modifyAttendanceSession({
-        attendance: {
-          id: attendanceId,
-          classId,
-          orgId,
-          date: attendanceDate,
-          details: details.map((item) => ({
-            studentId: item.studentId,
-            status: item.status,
-            remarks: item.remarks.trim(),
-          })),
-        },
-        userId: session?.user?.profileId,
-      });
-      if (!response.status) {
-        throw new Error(response.message || "Unable to save attendance.");
-      }
-
-      toast.success(response.message || "Attendance saved successfully.", {
-        id: toastId,
-      });
-      router.refresh();
-    } catch (error) {
-      toast.error(getErrorMessage(error), { id: toastId });
-    } finally {
-      setSaving(false);
-    }
+    router.refresh();
   };
 
   return (
@@ -298,7 +146,7 @@ export default function AttendanceWorkspace({
             type="button"
             color={brandColor ?? "blue"}
             leftIcon={<CalendarCheck className="h-4 w-4" />}
-            onClick={createNewSession}
+            onClick={() => router.push(`/dashboard/academics/classes/${classId}/attendance/record`)}
           >
             New Session
           </ActionButton>
@@ -345,89 +193,7 @@ export default function AttendanceWorkspace({
           brandColor={brandColor ?? undefined}
         />
       </div>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-base">
-              {attendanceId ? `Edit Session #${attendanceId}` : "New Session"}
-            </CardTitle>
-          </div>
-          <div className="flex items-end gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="attendance-date">Attendance Date</Label>
-              <Input
-                id="attendance-date"
-                type="date"
-                value={attendanceDate}
-                onChange={(event) => setAttendanceDate(event.target.value)}
-              />
-            </div>
-            <ActionButton
-              type="button"
-              color={brandColor ?? "blue"}
-              leftIcon={<Save className="h-4 w-4" />}
-              loading={saving}
-              disabled={saving || loadingDetail}
-              onClick={saveAttendance}
-            >
-              Save Attendance
-            </ActionButton>
-          </div>
-        </CardHeader>
-        <CardContent className="px-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="pl-6">Student</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Remarks</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {details.length > 0 ? (
-                details.map((detail) => (
-                  <TableRow key={detail.studentId}>
-                    <TableCell className="pl-6 font-medium">
-                      {detail.studentName}
-                    </TableCell>
-                    <TableCell>
-                      <DropdownFilter
-                        value={String(detail.status)}
-                        onChange={(value) =>
-                          updateDetail(detail.studentId, {
-                            status: Number(value) || 0,
-                          })
-                        }
-                        options={statusOptions}
-                        allowClear={false}
-                        className="w-40"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        value={detail.remarks}
-                        onChange={(event) =>
-                          updateDetail(detail.studentId, {
-                            remarks: event.target.value,
-                          })
-                        }
-                        placeholder="Optional remarks"
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={3} className="h-24 text-center">
-                    No students found for this class.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
     </>
   );
 }
+

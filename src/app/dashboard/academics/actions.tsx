@@ -79,6 +79,9 @@ export type AttendanceSession = {
   presentCount?: number;
   absentCount?: number;
   details?: AttendanceDetail[];
+  totalStudent?: number;
+  totalPresent?: number;
+  totalAbsent?: number;
 };
 
 export async function getAcademicsMasterData(params: {

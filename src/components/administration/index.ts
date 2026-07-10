@@ -4,3 +4,4 @@ export * from "./StudentsGrid";
 export * from "./AdmissionFeeStructure";
 export * from "./AddAdmissionFeeForm";
 export * from "./fee-slabs";
+export * from "./AddFeeShortcutDialog";
