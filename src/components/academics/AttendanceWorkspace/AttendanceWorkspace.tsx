@@ -30,6 +30,7 @@ type Props = {
   initialFromDate: string;
   initialToDate: string;
   brandColor?: string | null;
+  errorMessage?: string | null;
 };
 
 function sessionId(session: AttendanceSession) {
@@ -108,12 +109,14 @@ export default function AttendanceWorkspace({
   initialFromDate,
   initialToDate,
   brandColor,
+  errorMessage,
 }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [fromDate, setFromDate] = React.useState(initialFromDate);
   const [toDate, setToDate] = React.useState(initialToDate);
+  const [isPending, startTransition] = React.useTransition();
 
   const editSession = React.useCallback(
     (value: AttendanceSession) => {
@@ -128,11 +131,13 @@ export default function AttendanceWorkspace({
   );
 
   const applyDateFilter = () => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("fromDate", fromDate);
-    params.set("toDate", toDate);
-    router.replace(`${pathname}?${params.toString()}`);
-    router.refresh();
+    startTransition(() => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("fromDate", fromDate);
+      params.set("toDate", toDate);
+      router.replace(`${pathname}?${params.toString()}`);
+      router.refresh();
+    });
   };
 
   return (
@@ -176,6 +181,7 @@ export default function AttendanceWorkspace({
           <ActionButton
             type="button"
             color={brandColor ?? "blue"}
+            loading={isPending}
             onClick={applyDateFilter}
           >
             Load Attendance
@@ -191,6 +197,7 @@ export default function AttendanceWorkspace({
           columns={columns}
           defaultPageSize={10}
           brandColor={brandColor ?? undefined}
+          errorMessage={errorMessage}
         />
       </div>
     </>

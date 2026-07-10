@@ -12,8 +12,6 @@ import {
 } from "@/app/dashboard/academics/actions";
 import AttendanceWorkspace from "@/components/academics/AttendanceWorkspace";
 import { Container } from "@/components";
-import { ErrorCard } from "@/components/shared-ui/States";
-import { PageHeader } from "@/components/shared-ui/PageHeader";
 
 type PageProps = {
   params: Promise<{ classId: string }>;
@@ -27,15 +25,17 @@ function currentMonthRangeInIndia() {
     month: "2-digit",
     day: "2-digit",
   }).formatToParts(new Date());
-  const value = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  const value = Object.fromEntries(
+    parts.map((part) => [part.type, part.value]),
+  );
   const year = Number(value.year);
   const month = Number(value.month);
-  
+
   const fromDate = `${value.year}-${value.month}-01`;
   const lastDayDate = new Date(Date.UTC(year, month, 0));
   const lastDay = String(lastDayDate.getUTCDate()).padStart(2, "0");
   const toDate = `${value.year}-${value.month}-${lastDay}`;
-  
+
   return { fromDate, toDate };
 }
 
@@ -55,7 +55,8 @@ export default async function ClassAttendancePage({
   const classId = Number(rawClassId);
   if (!Number.isInteger(classId) || classId <= 0) notFound();
 
-  const { fromDate: defaultFromDate, toDate: defaultToDate } = currentMonthRangeInIndia();
+  const { fromDate: defaultFromDate, toDate: defaultToDate } =
+    currentMonthRangeInIndia();
   const fromDate = validDate(query.fromDate) ?? defaultFromDate;
   const toDate = validDate(query.toDate) ?? defaultToDate;
 
@@ -97,11 +98,27 @@ export default async function ClassAttendancePage({
     if (studentsResult.status === "fulfilled") {
       students = studentsResult.value;
     } else {
-      throw studentsResult.reason;
+      const rawMsg =
+        studentsResult.reason instanceof Error
+          ? studentsResult.reason.message
+          : "Failed to load student list";
+      const colonIndex = rawMsg.indexOf(":");
+      errorMessage =
+        colonIndex !== -1 ? rawMsg.substring(colonIndex + 1).trim() : rawMsg;
     }
 
     if (attendanceResult.status === "fulfilled") {
       sessions = attendanceResult.value;
+    } else {
+      const rawMsg =
+        attendanceResult.reason instanceof Error
+          ? attendanceResult.reason.message
+          : "Failed to load attendance sessions";
+      const colonIndex = rawMsg.indexOf(":");
+      if (!errorMessage) {
+        errorMessage =
+          colonIndex !== -1 ? rawMsg.substring(colonIndex + 1).trim() : rawMsg;
+      }
     }
 
     if (classResult.status === "fulfilled") {
@@ -116,8 +133,7 @@ export default async function ClassAttendancePage({
     }
 
     if (masterResult.status === "fulfilled") {
-      const statuses =
-        masterResult.value.data?.attendanceStatusMasters ?? [];
+      const statuses = masterResult.value.data?.attendanceStatusMasters ?? [];
       if (statuses.length > 0) {
         statusOptions = statuses.map((status) => ({
           value: String(status.id),
@@ -126,35 +142,23 @@ export default async function ClassAttendancePage({
       }
     }
   } catch (error) {
-    errorMessage =
-      error instanceof Error
-        ? error.message
-        : "Failed to load class attendance.";
+    console.error("Academics allSettled wrapper check failed:", error);
   }
 
   return (
     <Container className="py-8">
-      {errorMessage ? (
-        <>
-          <PageHeader
-            title="Class Attendance"
-            backLabel="Back to Classes"
-          />
-          <ErrorCard message={errorMessage} />
-        </>
-      ) : (
-        <AttendanceWorkspace
-          classId={classId}
-          orgId={session.user.orgId}
-          className={className}
-          students={students}
-          sessions={sessions}
-          statusOptions={statusOptions}
-          initialFromDate={fromDate}
-          initialToDate={toDate}
-          brandColor={session.user.brandColor}
-        />
-      )}
+      <AttendanceWorkspace
+        classId={classId}
+        orgId={session.user.orgId}
+        className={className}
+        students={students}
+        sessions={sessions}
+        statusOptions={statusOptions}
+        initialFromDate={fromDate}
+        initialToDate={toDate}
+        brandColor={session.user.brandColor}
+        errorMessage={errorMessage}
+      />
     </Container>
   );
 }
