@@ -82,7 +82,8 @@ function sessionColumns(
       cell: ({ row }) => {
         const present = row.original.totalPresent ?? row.original.presentCount ?? 0;
         const absent = row.original.totalAbsent ?? row.original.absentCount ?? 0;
-        return row.original.totalStudent ?? (present + absent);
+        const markedCount = present + absent;
+        return markedCount > 0 ? markedCount : (row.original.totalStudent ?? 0);
       },
     },
     {

@@ -95,10 +95,7 @@ export async function getAcademicsMasterData(params: {
   });
 }
 
-export async function getClassList(params: {
-  orgId: number;
-  userId?: number;
-}) {
+export async function getClassList(params: { orgId: number; userId?: number }) {
   const meta = await reqMeta(params.userId);
   try {
     const response = await post<AcademicsApiResponse<unknown>>(
@@ -190,7 +187,8 @@ export async function getAttendanceDetail(params: {
   userId?: number;
 }) {
   const meta = await reqMeta(params.userId);
-  const response = await post<AcademicsApiResponse<unknown>>(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const response = await post<AcademicsApiResponse<any>>(
     "/api/Attendance/GetAttendanceDetail",
     {
       ...meta,
@@ -198,7 +196,13 @@ export async function getAttendanceDetail(params: {
       orgId: Number(params.orgId),
     },
   );
-  return extractDetail<AttendanceSession>(response.data, "attendance");
+
+  const extracted = extractDetail<AttendanceSession>(
+    response.data,
+    "attendanceDetail",
+  );
+
+  return extracted;
 }
 
 export async function modifyAttendanceSession(params: {

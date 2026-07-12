@@ -78,6 +78,8 @@ export default function RecordAttendanceWorkspace({
   const { data: session } = useSession();
   const [saving, setSaving] = React.useState(false);
 
+  console.log("🛠️ [RecordAttendanceWorkspace] props attendanceSession:", JSON.stringify(attendanceSession, null, 2));
+
   // Initialize values based on whether editing or creating
   const attendanceId = attendanceSession ? (attendanceSession.attendanceId ?? attendanceSession.id) : 0;
   const [attendanceDate, setAttendanceDate] = React.useState(() => {
@@ -106,13 +108,8 @@ export default function RecordAttendanceWorkspace({
     const detailMap = new Map(
       (attendanceSession?.details ?? []).map((item) => [item.studentId, item])
     );
-    setDetails((current) =>
+    setDetails(
       students.map((student) => {
-        const existing = current.find(
-          (item) => item.studentId === student.studentId,
-        );
-        if (existing) return existing;
-
         const detail = detailMap.get(student.studentId);
         return {
           studentId: student.studentId,
