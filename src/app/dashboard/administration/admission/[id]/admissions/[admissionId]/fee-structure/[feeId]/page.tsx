@@ -179,15 +179,15 @@ export default async function ViewAdmissionFeePage({ params }: PageProps) {
         title={`View Fee - ${studentName}`}
         description={`${admission.academicYear || "Admission"} - Class ${admission.class || "-"}`}
         backLabel="Back to Fee Structure"
-        // actions={
-        //   <LinkButton
-        //     color={session.user.brandColor ?? "blue"}
-        //     leftIcon={<Pencil className="h-4 w-4" />}
-        //     href={`/dashboard/administration/admission/${studentId}/admissions/${admissionId}/fee-structure/${fId}/edit`}
-        //   >
-        //     Edit Fee
-        //   </LinkButton>
-        // }
+        actions={
+          <LinkButton
+            color={session.user.brandColor ?? "blue"}
+            leftIcon={<Pencil className="h-4 w-4" />}
+            href={`/dashboard/administration/admission/${studentId}/admissions/${admissionId}/fee-structure/${fId}/edit`}
+          >
+            Edit Fee
+          </LinkButton>
+        }
       />
 
       <div className="mt-8 space-y-6">
@@ -198,7 +198,7 @@ export default async function ViewAdmissionFeePage({ params }: PageProps) {
           <CardContent className="grid grid-cols-2 gap-x-4 gap-y-6 md:grid-cols-4">
             <ReadonlyField label="Org ID" value={fee.orgId} />
             <ReadonlyField label="Admission ID" value={fee.admissionId} />
-            <ReadonlyField label="Student ID" value={fee.studentId} />
+            <ReadonlyField label="Student Name" value={studentName} />
             <ReadonlyField label="Receipt No" value={fee.receiptNo || "-"} />
             <ReadonlyField
               label="Transaction Date"

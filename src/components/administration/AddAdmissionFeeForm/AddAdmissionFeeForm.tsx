@@ -158,6 +158,7 @@ function normalizeCharge(
 }
 
 function buildPayload(values: FormValues): StudentFee {
+  const isEdit = Boolean(values.id);
   const rawItems = values.feeLineItems.map((item) => {
     const finalAmount = roundAmount(
       toNumber(item.baseAmount) + toNumber(item.transportAmount),
@@ -165,8 +166,8 @@ function buildPayload(values: FormValues): StudentFee {
 
     return {
       ...item,
-      id: 0,
-      headerId: 0,
+      id: isEdit ? toNumber(item.id) : 0,
+      headerId: isEdit ? toNumber(item.headerId) : 0,
       chargeId: toNumber(item.chargeId),
       frequencyId: toNumber(item.frequencyId),
       transportSlabId: toNumber(item.transportSlabId),
@@ -178,7 +179,7 @@ function buildPayload(values: FormValues): StudentFee {
       finalAmount,
       paidAmount: 0,
       pendingAmount: finalAmount,
-      isActive: true,
+      isActive: item.isActive ?? true,
     };
   });
 
@@ -235,14 +236,14 @@ function buildPayload(values: FormValues): StudentFee {
 
   return {
     ...rest,
-    id: 0,
-    receiptNo: "",
+    id: values.id || 0,
+    receiptNo: values.receiptNo || "",
     transactionDate: new Date(values.transactionDate).toISOString(),
     totalAmount,
     discountAmount,
     paidAmount,
     pendingAmount,
-    isActive: true,
+    isActive: values.isActive ?? true,
     feeLineItems,
     finalAmount: totalAmount,
   };
