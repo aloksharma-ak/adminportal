@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { ClipboardPlus, Eye } from "lucide-react";
+import { ClipboardPlus, Eye, Pencil } from "lucide-react";
 import Link from "next/link";
 
 import { type StudentFee } from "@/app/dashboard/administration/actions";
@@ -58,13 +58,13 @@ function getColumns(
               <Eye className="h-4 w-4" />
             </Button>
           </Link>
-          {/* <Link
+          <Link
             href={`/dashboard/administration/admission/${studentId}/admissions/${admissionId}/fee-structure/${row.original.id}/edit`}
           >
             <Button type="button" variant="ghost" size="icon" title="Edit fee">
               <Pencil className="h-4 w-4" />
             </Button>
-          </Link> */}
+          </Link>
         </div>
       ),
     },

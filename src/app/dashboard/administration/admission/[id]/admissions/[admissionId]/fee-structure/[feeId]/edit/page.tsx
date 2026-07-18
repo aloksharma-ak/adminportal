@@ -178,6 +178,7 @@ export default async function EditAdmissionFeePage({ params }: PageProps) {
         <AddAdmissionFeeForm
           orgId={session.user.orgId}
           studentId={studentId}
+          studentName={studentName}
           admissionId={admId}
           grade={grade}
           includeTransport={includeTransport}
