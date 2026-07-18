@@ -20,6 +20,7 @@ interface Props {
   options: DropdownOption[];
   className?: string;
   allowClear?: boolean;
+  disabled?: boolean;
 
   // ✅ FieldLabel props
   label?: string;
@@ -43,6 +44,7 @@ export function DropdownFilter({
   required = false,
   labelClassName,
   wrapperClassName,
+  disabled = false,
 }: Props) {
   const autoId = React.useId();
   const triggerId = id ?? `dropdown-${autoId}`;
@@ -62,6 +64,7 @@ export function DropdownFilter({
       <Select
         value={value}
         onValueChange={(v) => onChange(v === CLEAR_VALUE ? undefined : v)}
+        disabled={disabled}
       >
         <SelectTrigger id={triggerId} className={className}>
           <SelectValue placeholder={placeholder} />

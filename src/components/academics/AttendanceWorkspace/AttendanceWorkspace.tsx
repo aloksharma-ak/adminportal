@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { CalendarCheck, Pencil } from "lucide-react";
+import { CalendarCheck, Pencil, Eye } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import {
@@ -39,6 +39,7 @@ function sessionId(session: AttendanceSession) {
 
 function sessionColumns(
   onEdit: (session: AttendanceSession) => void,
+  onView: (session: AttendanceSession) => void,
 ): ColumnDef<AttendanceSession>[] {
   return [
     {
@@ -50,15 +51,26 @@ function sessionColumns(
       id: "actions",
       header: "Actions",
       cell: ({ row }) => (
-        <Button
-          type="button"
-          size="icon"
-          variant="ghost"
-          title="Edit attendance"
-          onClick={() => onEdit(row.original)}
-        >
-          <Pencil className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            title="View attendance"
+            onClick={() => onView(row.original)}
+          >
+            <Eye className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+          </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            title="Edit attendance"
+            onClick={() => onEdit(row.original)}
+          >
+            <Pencil className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+          </Button>
+        </div>
       ),
     },
     {
@@ -121,14 +133,21 @@ export default function AttendanceWorkspace({
 
   const editSession = React.useCallback(
     (value: AttendanceSession) => {
-      router.push(`/dashboard/academics/classes/${classId}/attendance/record?id=${sessionId(value)}`);
+      router.push(`/dashboard/academics/classes/${classId}/attendance/record?id=${sessionId(value)}&mode=edit`);
+    },
+    [router, classId],
+  );
+
+  const viewSession = React.useCallback(
+    (value: AttendanceSession) => {
+      router.push(`/dashboard/academics/classes/${classId}/attendance/record?id=${sessionId(value)}&mode=view`);
     },
     [router, classId],
   );
 
   const columns = React.useMemo(
-    () => sessionColumns(editSession),
-    [editSession],
+    () => sessionColumns(editSession, viewSession),
+    [editSession, viewSession],
   );
 
   const applyDateFilter = () => {

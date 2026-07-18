@@ -44,6 +44,8 @@ type Props = {
   attendanceSession: AttendanceSession | null;
   statusOptions: StatusOption[];
   brandColor?: string | null;
+  editId?: number;
+  mode?: "edit" | "view";
 };
 
 function studentName(student: ClassStudent) {
@@ -73,6 +75,8 @@ export default function RecordAttendanceWorkspace({
   attendanceSession,
   statusOptions,
   brandColor,
+  editId,
+  mode = "edit",
 }: Props) {
   const router = useRouter();
   const { data: session } = useSession();
@@ -80,8 +84,12 @@ export default function RecordAttendanceWorkspace({
 
   console.log("🛠️ [RecordAttendanceWorkspace] props attendanceSession:", JSON.stringify(attendanceSession, null, 2));
 
+  const isEdit = !!editId;
+  const hasApiData = !!attendanceSession && !!attendanceSession.details && attendanceSession.details.length > 0;
+  const isReadOnly = mode === "view" || (isEdit && !hasApiData);
+
   // Initialize values based on whether editing or creating
-  const attendanceId = attendanceSession ? (attendanceSession.attendanceId ?? attendanceSession.id) : 0;
+  const attendanceId = editId ?? 0;
   const [attendanceDate, setAttendanceDate] = React.useState(() => {
     if (attendanceSession?.date) {
       return attendanceSession.date.slice(0, 10);
@@ -95,11 +103,14 @@ export default function RecordAttendanceWorkspace({
     );
     return students.map((student) => {
       const detail = detailMap.get(student.studentId);
+      const status = isEdit
+        ? (hasApiData && detail ? detail.status : 0)
+        : Number(statusOptions[0]?.value ?? 1);
       return {
         studentId: student.studentId,
         studentName: studentName(student),
-        status: detail?.status ?? Number(statusOptions[0]?.value ?? 1),
-        remarks: detail?.remarks ?? "",
+        status,
+        remarks: isEdit && hasApiData && detail ? (detail.remarks ?? "") : "",
       };
     });
   });
@@ -111,15 +122,18 @@ export default function RecordAttendanceWorkspace({
     setDetails(
       students.map((student) => {
         const detail = detailMap.get(student.studentId);
+        const status = isEdit
+          ? (hasApiData && detail ? detail.status : 0)
+          : Number(statusOptions[0]?.value ?? 1);
         return {
           studentId: student.studentId,
           studentName: studentName(student),
-          status: detail?.status ?? Number(statusOptions[0]?.value ?? 1),
-          remarks: detail?.remarks ?? "",
+          status,
+          remarks: isEdit && hasApiData && detail ? (detail.remarks ?? "") : "",
         };
       }),
     );
-  }, [statusOptions, students, attendanceSession]);
+  }, [statusOptions, students, attendanceSession, isEdit, hasApiData]);
 
   const updateDetail = (
     studentId: number,
@@ -178,8 +192,18 @@ export default function RecordAttendanceWorkspace({
   return (
     <>
       <PageHeader
-        title={attendanceId ? `Edit Session #${attendanceId}` : "New Session"}
-        description={`Record daily student attendance for ${className}`}
+        title={
+          mode === "view"
+            ? `View Session #${attendanceId}`
+            : attendanceId
+            ? `Edit Session #${attendanceId}`
+            : "New Session"
+        }
+        description={
+          mode === "view"
+            ? `View daily student attendance for ${className}`
+            : `Record daily student attendance for ${className}`
+        }
         backLabel="Back to Attendance Sessions"
       />
 
@@ -187,7 +211,11 @@ export default function RecordAttendanceWorkspace({
         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle className="text-base">
-              {attendanceId ? `Edit Session #${attendanceId}` : "New Session"}
+              {mode === "view"
+                ? `View Session #${attendanceId}`
+                : attendanceId
+                ? `Edit Session #${attendanceId}`
+                : "New Session"}
             </CardTitle>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -198,18 +226,21 @@ export default function RecordAttendanceWorkspace({
                 type="date"
                 value={attendanceDate}
                 onChange={(event) => setAttendanceDate(event.target.value)}
+                disabled={isReadOnly}
               />
             </div>
-            <ActionButton
-              type="button"
-              color={brandColor ?? "blue"}
-              leftIcon={<Save className="h-4 w-4" />}
-              loading={saving}
-              disabled={saving}
-              onClick={saveAttendance}
-            >
-              Save Attendance
-            </ActionButton>
+            {mode === "edit" && (
+              <ActionButton
+                type="button"
+                color={brandColor ?? "blue"}
+                leftIcon={<Save className="h-4 w-4" />}
+                loading={saving}
+                disabled={saving || (isEdit && !hasApiData)}
+                onClick={saveAttendance}
+              >
+                Save Attendance
+              </ActionButton>
+            )}
           </div>
         </CardHeader>
         <CardContent className="px-0">
@@ -230,7 +261,7 @@ export default function RecordAttendanceWorkspace({
                     </TableCell>
                     <TableCell>
                       <DropdownFilter
-                        value={String(detail.status)}
+                        value={detail.status ? String(detail.status) : undefined}
                         onChange={(value) =>
                           updateDetail(detail.studentId, {
                             status: Number(value) || 0,
@@ -239,6 +270,8 @@ export default function RecordAttendanceWorkspace({
                         options={statusOptions}
                         allowClear={false}
                         className="w-40"
+                        disabled={isReadOnly}
+                        placeholder={detail.status ? "Select..." : ""}
                       />
                     </TableCell>
                     <TableCell>
@@ -249,7 +282,8 @@ export default function RecordAttendanceWorkspace({
                             remarks: event.target.value,
                           })
                         }
-                        placeholder="Optional remarks"
+                        placeholder={isReadOnly ? "" : "Optional remarks"}
+                        disabled={isReadOnly}
                       />
                     </TableCell>
                   </TableRow>

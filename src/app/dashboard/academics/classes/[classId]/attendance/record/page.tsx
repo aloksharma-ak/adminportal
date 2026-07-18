@@ -16,7 +16,7 @@ import { ErrorCard } from "@/components/shared-ui/States";
 
 type PageProps = {
   params: Promise<{ classId: string }>;
-  searchParams: Promise<{ id?: string }>;
+  searchParams: Promise<{ id?: string; mode?: string }>;
 };
 
 export default async function RecordAttendancePage({
@@ -32,6 +32,7 @@ export default async function RecordAttendancePage({
   if (!Number.isInteger(classId) || classId <= 0) notFound();
 
   const attendanceId = query.id ? Number(query.id) : undefined;
+  const mode = query.mode === "view" ? "view" : "edit";
 
   let students: ClassStudent[] = [];
   let attendanceSessionData: AttendanceSession | null = null;
@@ -120,6 +121,8 @@ export default async function RecordAttendancePage({
           attendanceSession={attendanceSessionData}
           statusOptions={statusOptions}
           brandColor={session.user.brandColor}
+          editId={attendanceId}
+          mode={mode}
         />
       )}
     </Container>
