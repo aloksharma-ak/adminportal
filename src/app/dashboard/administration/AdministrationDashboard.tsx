@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/Card";
-import { GraduationCap, Wallet, Coins, type LucideIcon } from "lucide-react";
+import { GraduationCap, Wallet, Coins, Files, type LucideIcon } from "lucide-react";
 import AddFeeShortcutDialog from "@/components/administration/AddFeeShortcutDialog";
 import { type ClassMaster } from "@/app/dashboard/administration/actions";
 
@@ -32,6 +32,13 @@ export default function AdministrationDashboard({
   const [dialogOpen, setDialogOpen] = React.useState(false);
 
   const tiles: TileItem[] = [
+    {
+      href: "/dashboard/administration/document-types",
+      Icon: Files,
+      gradient: "from-cyan-500 to-blue-500",
+      title: "Document Types",
+      description: "Configure document types used by upload controls",
+    },
     {
       href: "/dashboard/administration/admission",
       Icon: GraduationCap,
