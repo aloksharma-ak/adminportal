@@ -133,6 +133,14 @@ export type TransportCharge = {
   frequencyId: number;
 };
 
+export type DocumentType = {
+  id: number;
+  orgId: number;
+  documentType: string;
+  moduleId: number;
+  isActive: boolean;
+};
+
 export type StudentFeeLineItem = {
   id: number;
   headerId: number;
@@ -458,6 +466,47 @@ export async function modifyTransportCharge(
     ...payload,
     orgId: payload.orgId,
   });
+}
+
+// Document Type APIs
+export async function getDocumentTypesList(params: {
+  orgId: number;
+  search?: string;
+  userId?: number;
+}) {
+  const res = await post<ApiResponse<any>>(
+    "/api/DocumentTypes/GetDocumentTypesList",
+    {
+      ...(await reqMeta(params.userId)),
+      orgId: params.orgId,
+      search: params.search ?? "",
+    },
+  );
+  return extractList<DocumentType>(res?.data, "documentTypes");
+}
+
+export async function getDocumentType(params: {
+  id: number;
+  orgId: number;
+  userId?: number;
+}) {
+  const res = await post<ApiResponse<any>>(
+    "/api/DocumentTypes/GetDocumentType",
+    { ...(await reqMeta(params.userId)), id: params.id, orgId: params.orgId },
+  );
+  return extractDetail<DocumentType>(res?.data, "documentType");
+}
+
+export async function modifyDocumentType(params: {
+  payload: DocumentType;
+  userId?: number;
+}) {
+  const res = await post<ApiResponse<unknown>>(
+    "/api/DocumentTypes/ModifyDocumentType",
+    { ...(await reqMeta(params.userId)), ...params.payload },
+  );
+  revalidatePath("/dashboard/administration/document-types");
+  return res;
 }
 
 // Admission Fee APIs
