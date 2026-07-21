@@ -225,6 +225,7 @@ export async function modifyAttendanceSession(params: {
       "/api/Attendance/ModifyAttendanceSession",
       {
         ...meta,
+        orgId: Number(params.attendance.orgId),
         attendance: params.attendance,
       },
     );

@@ -19,6 +19,7 @@ type ModuleItem = {
 
 type Props = {
   roleId: number;
+  orgId: number;
   /** Permissions currently assigned to this role (from GetRolesPermissions) */
   assignedPermissions: RolePermissionDetail[];
   /** Modules from getMasterData({ orgId }) */
@@ -37,6 +38,7 @@ function dedupeById(perms: RolePermissionDetail[]): RolePermissionDetail[] {
 
 export default function RolePermissionsEditor({
   roleId,
+  orgId,
   assignedPermissions,
   modules,
   brandColor,
@@ -70,6 +72,7 @@ export default function RolePermissionsEditor({
     (async () => {
       try {
         const res = await getAllSystemPermissions({
+          orgId,
           userId: session?.user?.profileId ?? 0,
         });
         if (mounted) {
@@ -94,7 +97,7 @@ export default function RolePermissionsEditor({
     return () => {
       mounted = false;
     };
-  }, [assignedPermissions, session?.user?.profileId]);
+  }, [assignedPermissions, orgId, session?.user?.profileId]);
 
   // Filtered + grouped
   const byGroup = React.useMemo(() => {
@@ -138,6 +141,7 @@ export default function RolePermissionsEditor({
     try {
       const res = await updateRolePermissions({
         roleId,
+        orgId,
         permissionIds: Array.from(enabledIds),
         userId: session?.user?.profileId ?? 0,
       });

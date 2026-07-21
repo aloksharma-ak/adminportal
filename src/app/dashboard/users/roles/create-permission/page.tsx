@@ -58,6 +58,7 @@ export default async function CreatePermissionPage() {
 
    
       <CreatePermissionForm
+        orgId={session.user.orgId}
         modules={modules}
         brandColor={session.user.brandColor ?? ""}
         successRedirect="/dashboard/users/roles"

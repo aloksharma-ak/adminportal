@@ -371,48 +371,74 @@ export async function getMasterData(params: {
 
 // ─── Role Permission API calls ────────────────────────────────────────────────
 
-export async function getRoles(params: { userId?: number }) {
-  const base = requireUrl(USER_API_URL, "USER_API_URL");
-  return apiPost<ApiResponse<RolesResponse>>(
-    base,
-    "/api/RolePermission/GetRoles",
-    await reqMeta(params.userId),
-  );
+export async function getRoles(params: { orgId: number; userId?: number }) {
+  const response = await getMasterData(params);
+  const rawRoles = (response.data?.roleMaster ?? []) as Array<
+    Role & { id?: number }
+  >;
+  const roles = rawRoles.map((role) => ({
+    id: Number(role.id ?? role.roleId),
+    roleName: role.roleName,
+    isActive: role.isActive !== false,
+  }));
+
+  return {
+    ...response,
+    data: { roles },
+  } satisfies ApiResponse<RolesResponse>;
 }
 
-export async function getAllSystemPermissions(params: { userId?: number }) {
+export async function getAllSystemPermissions(params: {
+  orgId: number;
+  userId?: number;
+}) {
   const base = requireUrl(USER_API_URL, "USER_API_URL");
+  const orgId = Number(params.orgId);
+  if (!Number.isFinite(orgId) || orgId <= 0)
+    throw new Error("Invalid organisation ID");
   return apiPost<ApiResponse<RolePermissionDetail[]>>(
     base,
     "/api/RolePermission/GetPermissions",
-    await reqMeta(params.userId),
+    {
+      ...(await reqMeta(params.userId)),
+      orgId,
+      orgid: orgId,
+    },
   );
 }
 
 export async function getRolePermissions(params: {
   roleId: number;
+  orgId: number;
   userId?: number;
 }) {
   const base = requireUrl(USER_API_URL, "USER_API_URL");
   const roleId = Number(params.roleId);
+  const orgId = Number(params.orgId);
   if (!Number.isFinite(roleId) || roleId <= 0)
     throw new Error("Invalid role ID");
+  if (!Number.isFinite(orgId) || orgId <= 0)
+    throw new Error("Invalid organisation ID");
   return apiPost<ApiResponse<RolePermissionDetail[]>>(
     base,
     "/api/RolePermission/GetRolesPermissions",
-    { ...(await reqMeta(params.userId)), roleId },
+    { ...(await reqMeta(params.userId)), roleId, orgId },
   );
 }
 
 export async function updateRolePermissions(params: {
   roleId: number;
   permissionIds: number[];
+  orgId: number;
   userId?: number;
 }) {
   const base = requireUrl(USER_API_URL, "USER_API_URL");
   const roleId = Number(params.roleId);
+  const orgId = Number(params.orgId);
   if (!Number.isFinite(roleId) || roleId <= 0)
     throw new Error("Invalid role ID");
+  if (!Number.isFinite(orgId) || orgId <= 0)
+    throw new Error("Invalid organisation ID");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return apiPost<ApiResponse<any>>(
     base,
@@ -420,6 +446,7 @@ export async function updateRolePermissions(params: {
     {
       ...(await reqMeta(params.userId)),
       roleId,
+      orgId,
       permissionIds: params.permissionIds,
     },
   );
@@ -429,9 +456,13 @@ export async function createPermission(params: {
   name: string;
   description: string;
   moduleId: number;
+  orgId: number;
   userId?: number;
 }) {
   const base = requireUrl(USER_API_URL, "USER_API_URL");
+  const orgId = Number(params.orgId);
+  if (!Number.isFinite(orgId) || orgId <= 0)
+    throw new Error("Invalid organisation ID");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return apiPost<ApiResponse<any>>(
     base,
@@ -439,6 +470,7 @@ export async function createPermission(params: {
     {
       ...(await reqMeta(params.userId)),
       ...params,
+      orgId,
     },
   );
 }

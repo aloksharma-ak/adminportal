@@ -20,6 +20,7 @@ import { Separator } from "@/components/ui/Separator";
 import { cn } from "@/lib/utils";
 
 type Props = {
+  orgId: number;
   modules: { moduleId: number; moduleName: string; icon?: string | null }[];
   brandColor?: string;
   successRedirect?: string;
@@ -32,6 +33,7 @@ type FormValues = {
 };
 
 export default function CreatePermissionForm({
+  orgId,
   modules,
   brandColor,
   successRedirect,
@@ -76,7 +78,13 @@ export default function CreatePermissionForm({
     const tId = toast.loading("Creating permission…");
 
     try {
-      await createPermission({ name, description, moduleId: moduleIdNum, userId: session?.user?.profileId ?? 0 });
+      await createPermission({
+        name,
+        description,
+        moduleId: moduleIdNum,
+        orgId,
+        userId: session?.user?.profileId ?? 0,
+      });
       toast.success("Permission created successfully", { id: tId });
       reset();
       if (successRedirect) router.push(successRedirect);
