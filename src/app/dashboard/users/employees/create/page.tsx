@@ -17,7 +17,10 @@ export default async function CreateEmployeePage() {
   try {
     const [masterRes, rolesRes] = await Promise.allSettled([
       getMasterData({ orgId: session.user.orgId, userId: session.user.profileId }),
-      getRoles({ userId: session.user.profileId }),
+      getRoles({
+        orgId: session.user.orgId,
+        userId: session.user.profileId,
+      }),
     ]);
 
     let rawRoles: any[] = [];

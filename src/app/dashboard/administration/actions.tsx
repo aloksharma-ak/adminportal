@@ -390,6 +390,7 @@ export async function modifyAdmissionCharge(
   return post<ApiResponse<unknown>>("/api/Charges/ModifyCharge", {
     ...(await reqMeta(userId)),
     ...payload,
+    orgId: payload.orgId,
   });
 }
 
@@ -422,6 +423,7 @@ export async function modifyFeeCharge(
   return post<ApiResponse<unknown>>("/api/Charges/ModifyFeeCharge", {
     ...(await reqMeta(userId)),
     ...payload,
+    orgId: payload.orgId,
   });
 }
 
@@ -454,6 +456,7 @@ export async function modifyTransportCharge(
   return post<ApiResponse<unknown>>("/api/Charges/ModifyTransport", {
     ...(await reqMeta(userId)),
     ...payload,
+    orgId: payload.orgId,
   });
 }
 
@@ -511,6 +514,7 @@ export async function saveStudentFee(params: {
     requestGuid: meta.requestGuid,
     requestTime: meta.requestTime,
     userId: meta.userId,
+    orgId: params.payload.orgId,
     fee: params.payload,
   });
 
